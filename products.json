@@ -1,0 +1,3256 @@
+[
+  {
+    "id": "L01",
+    "name": "Lace Lingerie Set",
+    "category": "Lingerie",
+    "price": 4999,
+    "oldPrice": 5999,
+    "image": "image1.jpg",
+    "tags": [
+      "exclusive"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium lingerie in soft imported fabric.",
+    "badge": "Bestseller",
+    "details": {
+      "Fabric": "Imported lace & mesh",
+      "Care": "Hand wash cold, dry in shade"
+    },
+    "active": true
+  },
+  {
+    "id": "L02",
+    "name": "Balconette Bra Set",
+    "category": "Lingerie",
+    "price": 3999,
+    "oldPrice": null,
+    "image": "image2.jpg",
+    "tags": [
+      "exclusive"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium lingerie in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Imported lace & mesh",
+      "Care": "Hand wash cold, dry in shade"
+    },
+    "active": true
+  },
+  {
+    "id": "L03",
+    "name": "Push-Up Lace Set",
+    "category": "Lingerie",
+    "price": 3299,
+    "oldPrice": null,
+    "image": "image3.jpg",
+    "tags": [
+      "exclusive"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium lingerie in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Imported lace & mesh",
+      "Care": "Hand wash cold, dry in shade"
+    },
+    "active": true
+  },
+  {
+    "id": "L04",
+    "name": "Plunge Bralette Set",
+    "category": "Lingerie",
+    "price": 2499,
+    "oldPrice": null,
+    "image": "image4.jpg",
+    "tags": [
+      "popular"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium lingerie in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Imported lace & mesh",
+      "Care": "Hand wash cold, dry in shade"
+    },
+    "active": true
+  },
+  {
+    "id": "L05",
+    "name": "Seamless Everyday Set",
+    "category": "Lingerie",
+    "price": 2199,
+    "oldPrice": null,
+    "image": "image5.jpg",
+    "tags": [
+      "popular"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium lingerie in soft imported fabric.",
+    "badge": "New",
+    "details": {
+      "Fabric": "Imported lace & mesh",
+      "Care": "Hand wash cold, dry in shade"
+    },
+    "active": true
+  },
+  {
+    "id": "L06",
+    "name": "Satin Bra & Brief Set",
+    "category": "Lingerie",
+    "price": 3499,
+    "oldPrice": null,
+    "image": "image6.jpg",
+    "tags": [
+      "popular"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium lingerie in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Imported lace & mesh",
+      "Care": "Hand wash cold, dry in shade"
+    },
+    "active": true
+  },
+  {
+    "id": "L07",
+    "name": "Mesh Lingerie Set",
+    "category": "Lingerie",
+    "price": 2999,
+    "oldPrice": null,
+    "image": "image7.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium lingerie in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Imported lace & mesh",
+      "Care": "Hand wash cold, dry in shade"
+    },
+    "active": true
+  },
+  {
+    "id": "L08",
+    "name": "Padded Lace Bra Set",
+    "category": "Lingerie",
+    "price": 3799,
+    "oldPrice": null,
+    "image": "image8.jpg",
+    "tags": [
+      "recommended"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium lingerie in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Imported lace & mesh",
+      "Care": "Hand wash cold, dry in shade"
+    },
+    "active": true
+  },
+  {
+    "id": "L09",
+    "name": "Strappy Lingerie Set",
+    "category": "Lingerie",
+    "price": 3599,
+    "oldPrice": null,
+    "image": "image9.jpg",
+    "tags": [
+      "recommended"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium lingerie in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Imported lace & mesh",
+      "Care": "Hand wash cold, dry in shade"
+    },
+    "active": true
+  },
+  {
+    "id": "L10",
+    "name": "Embroidered Bra Set",
+    "category": "Lingerie",
+    "price": 4299,
+    "oldPrice": null,
+    "image": "image10.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium lingerie in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Imported lace & mesh",
+      "Care": "Hand wash cold, dry in shade"
+    },
+    "active": true
+  },
+  {
+    "id": "L11",
+    "name": "T-Shirt Bra Set",
+    "category": "Lingerie",
+    "price": 1999,
+    "oldPrice": null,
+    "image": "image11.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium lingerie in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Imported lace & mesh",
+      "Care": "Hand wash cold, dry in shade"
+    },
+    "active": true
+  },
+  {
+    "id": "L12",
+    "name": "Sheer Lace Set",
+    "category": "Lingerie",
+    "price": 3199,
+    "oldPrice": null,
+    "image": "image12.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium lingerie in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Imported lace & mesh",
+      "Care": "Hand wash cold, dry in shade"
+    },
+    "active": true
+  },
+  {
+    "id": "L13",
+    "name": "Longline Bra Set",
+    "category": "Lingerie",
+    "price": 4499,
+    "oldPrice": null,
+    "image": "image13.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium lingerie in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Imported lace & mesh",
+      "Care": "Hand wash cold, dry in shade"
+    },
+    "active": true
+  },
+  {
+    "id": "L14",
+    "name": "Triangle Bralette Set",
+    "category": "Lingerie",
+    "price": 1899,
+    "oldPrice": null,
+    "image": "image14.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium lingerie in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Imported lace & mesh",
+      "Care": "Hand wash cold, dry in shade"
+    },
+    "active": true
+  },
+  {
+    "id": "L15",
+    "name": "Garter Lingerie Set",
+    "category": "Lingerie",
+    "price": 5499,
+    "oldPrice": null,
+    "image": "image15.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium lingerie in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Imported lace & mesh",
+      "Care": "Hand wash cold, dry in shade"
+    },
+    "active": true
+  },
+  {
+    "id": "L16",
+    "name": "Wireless Comfort Set",
+    "category": "Lingerie",
+    "price": 2299,
+    "oldPrice": null,
+    "image": "image16.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium lingerie in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Imported lace & mesh",
+      "Care": "Hand wash cold, dry in shade"
+    },
+    "active": true
+  },
+  {
+    "id": "L17",
+    "name": "Floral Lace Set",
+    "category": "Lingerie",
+    "price": 3699,
+    "oldPrice": null,
+    "image": "image17.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium lingerie in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Imported lace & mesh",
+      "Care": "Hand wash cold, dry in shade"
+    },
+    "active": true
+  },
+  {
+    "id": "L18",
+    "name": "Cut-Out Lingerie Set",
+    "category": "Lingerie",
+    "price": 4199,
+    "oldPrice": null,
+    "image": "image18.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium lingerie in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Imported lace & mesh",
+      "Care": "Hand wash cold, dry in shade"
+    },
+    "active": true
+  },
+  {
+    "id": "L19",
+    "name": "Velvet Trim Bra Set",
+    "category": "Lingerie",
+    "price": 4799,
+    "oldPrice": null,
+    "image": "image19.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium lingerie in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Imported lace & mesh",
+      "Care": "Hand wash cold, dry in shade"
+    },
+    "active": true
+  },
+  {
+    "id": "L20",
+    "name": "Bridal Lace Set",
+    "category": "Lingerie",
+    "price": 6499,
+    "oldPrice": null,
+    "image": "image20.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium lingerie in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Imported lace & mesh",
+      "Care": "Hand wash cold, dry in shade"
+    },
+    "active": true
+  },
+  {
+    "id": "N01",
+    "name": "Silk Nighty",
+    "category": "Nighty",
+    "price": 7999,
+    "oldPrice": null,
+    "image": "image21.jpg",
+    "tags": [
+      "exclusive"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium nighty in soft imported fabric.",
+    "badge": "Bestseller",
+    "details": {
+      "Fabric": "Satin / silk blend",
+      "Care": "Gentle wash, low iron"
+    },
+    "active": true
+  },
+  {
+    "id": "N02",
+    "name": "Satin Slip Nighty",
+    "category": "Nighty",
+    "price": 5499,
+    "oldPrice": null,
+    "image": "image22.jpg",
+    "tags": [
+      "exclusive"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium nighty in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Satin / silk blend",
+      "Care": "Gentle wash, low iron"
+    },
+    "active": true
+  },
+  {
+    "id": "N03",
+    "name": "Lace Trim Nighty",
+    "category": "Nighty",
+    "price": 4999,
+    "oldPrice": null,
+    "image": "image23.jpg",
+    "tags": [
+      "exclusive"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium nighty in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Satin / silk blend",
+      "Care": "Gentle wash, low iron"
+    },
+    "active": true
+  },
+  {
+    "id": "N04",
+    "name": "Cotton Comfort Nighty",
+    "category": "Nighty",
+    "price": 2999,
+    "oldPrice": null,
+    "image": "image24.jpg",
+    "tags": [
+      "popular"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium nighty in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Satin / silk blend",
+      "Care": "Gentle wash, low iron"
+    },
+    "active": true
+  },
+  {
+    "id": "N05",
+    "name": "Chiffon Babydoll",
+    "category": "Nighty",
+    "price": 3499,
+    "oldPrice": null,
+    "image": "image25.jpg",
+    "tags": [
+      "popular"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium nighty in soft imported fabric.",
+    "badge": "New",
+    "details": {
+      "Fabric": "Satin / silk blend",
+      "Care": "Gentle wash, low iron"
+    },
+    "active": true
+  },
+  {
+    "id": "N06",
+    "name": "Robe & Nighty Set",
+    "category": "Nighty",
+    "price": 9499,
+    "oldPrice": null,
+    "image": "image26.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium nighty in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Satin / silk blend",
+      "Care": "Gentle wash, low iron"
+    },
+    "active": true
+  },
+  {
+    "id": "N07",
+    "name": "Long Satin Nightgown",
+    "category": "Nighty",
+    "price": 6999,
+    "oldPrice": null,
+    "image": "image27.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium nighty in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Satin / silk blend",
+      "Care": "Gentle wash, low iron"
+    },
+    "active": true
+  },
+  {
+    "id": "N08",
+    "name": "Button-Front Nighty",
+    "category": "Nighty",
+    "price": 3299,
+    "oldPrice": null,
+    "image": "image28.jpg",
+    "tags": [
+      "recommended"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium nighty in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Satin / silk blend",
+      "Care": "Gentle wash, low iron"
+    },
+    "active": true
+  },
+  {
+    "id": "N09",
+    "name": "Printed Cotton Nighty",
+    "category": "Nighty",
+    "price": 2499,
+    "oldPrice": null,
+    "image": "image29.jpg",
+    "tags": [
+      "recommended"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium nighty in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Satin / silk blend",
+      "Care": "Gentle wash, low iron"
+    },
+    "active": true
+  },
+  {
+    "id": "N10",
+    "name": "Lace Back Nighty",
+    "category": "Nighty",
+    "price": 4799,
+    "oldPrice": null,
+    "image": "image30.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium nighty in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Satin / silk blend",
+      "Care": "Gentle wash, low iron"
+    },
+    "active": true
+  },
+  {
+    "id": "N11",
+    "name": "Maternity Comfort Nighty",
+    "category": "Nighty",
+    "price": 3999,
+    "oldPrice": null,
+    "image": "image31.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium nighty in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Satin / silk blend",
+      "Care": "Gentle wash, low iron"
+    },
+    "active": true
+  },
+  {
+    "id": "N12",
+    "name": "Short Satin Nighty",
+    "category": "Nighty",
+    "price": 4299,
+    "oldPrice": null,
+    "image": "image32.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium nighty in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Satin / silk blend",
+      "Care": "Gentle wash, low iron"
+    },
+    "active": true
+  },
+  {
+    "id": "N13",
+    "name": "Kaftan Nighty",
+    "category": "Nighty",
+    "price": 3799,
+    "oldPrice": null,
+    "image": "image33.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium nighty in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Satin / silk blend",
+      "Care": "Gentle wash, low iron"
+    },
+    "active": true
+  },
+  {
+    "id": "N14",
+    "name": "Velvet Nightgown",
+    "category": "Nighty",
+    "price": 6499,
+    "oldPrice": null,
+    "image": "image34.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium nighty in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Satin / silk blend",
+      "Care": "Gentle wash, low iron"
+    },
+    "active": true
+  },
+  {
+    "id": "N15",
+    "name": "Pyjama Nighty Set",
+    "category": "Nighty",
+    "price": 3599,
+    "oldPrice": null,
+    "image": "image35.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium nighty in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Satin / silk blend",
+      "Care": "Gentle wash, low iron"
+    },
+    "active": true
+  },
+  {
+    "id": "N16",
+    "name": "Bridal Night Set",
+    "category": "Nighty",
+    "price": 11999,
+    "oldPrice": null,
+    "image": "image36.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium nighty in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Satin / silk blend",
+      "Care": "Gentle wash, low iron"
+    },
+    "active": true
+  },
+  {
+    "id": "N17",
+    "name": "Cami Nighty",
+    "category": "Nighty",
+    "price": 2799,
+    "oldPrice": null,
+    "image": "image37.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium nighty in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Satin / silk blend",
+      "Care": "Gentle wash, low iron"
+    },
+    "active": true
+  },
+  {
+    "id": "N18",
+    "name": "Georgette Nighty",
+    "category": "Nighty",
+    "price": 4499,
+    "oldPrice": null,
+    "image": "image38.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium nighty in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Satin / silk blend",
+      "Care": "Gentle wash, low iron"
+    },
+    "active": true
+  },
+  {
+    "id": "N19",
+    "name": "Embroidered Nighty",
+    "category": "Nighty",
+    "price": 5299,
+    "oldPrice": null,
+    "image": "image39.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium nighty in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Satin / silk blend",
+      "Care": "Gentle wash, low iron"
+    },
+    "active": true
+  },
+  {
+    "id": "N20",
+    "name": "Silk Robe Set",
+    "category": "Nighty",
+    "price": 10999,
+    "oldPrice": null,
+    "image": "image40.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium nighty in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Satin / silk blend",
+      "Care": "Gentle wash, low iron"
+    },
+    "active": true
+  },
+  {
+    "id": "I01",
+    "name": "Premium Party Wear",
+    "category": "Intimate Wear",
+    "price": 14999,
+    "oldPrice": null,
+    "image": "image41.jpg",
+    "tags": [
+      "exclusive"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium intimate wear in soft imported fabric.",
+    "badge": "Bestseller",
+    "details": {
+      "Fabric": "Imported stretch fabric",
+      "Care": "Hand wash cold"
+    },
+    "active": true
+  },
+  {
+    "id": "I02",
+    "name": "Velvet Bodysuit",
+    "category": "Intimate Wear",
+    "price": 8999,
+    "oldPrice": null,
+    "image": "image42.jpg",
+    "tags": [
+      "exclusive"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium intimate wear in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Imported stretch fabric",
+      "Care": "Hand wash cold"
+    },
+    "active": true
+  },
+  {
+    "id": "I03",
+    "name": "Mesh Corset Top",
+    "category": "Intimate Wear",
+    "price": 6499,
+    "oldPrice": null,
+    "image": "image43.jpg",
+    "tags": [
+      "exclusive"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium intimate wear in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Imported stretch fabric",
+      "Care": "Hand wash cold"
+    },
+    "active": true
+  },
+  {
+    "id": "I04",
+    "name": "Silk Cami & Shorts",
+    "category": "Intimate Wear",
+    "price": 4499,
+    "oldPrice": null,
+    "image": "image44.jpg",
+    "tags": [
+      "popular"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium intimate wear in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Imported stretch fabric",
+      "Care": "Hand wash cold"
+    },
+    "active": true
+  },
+  {
+    "id": "I05",
+    "name": "Lace Kimono Robe",
+    "category": "Intimate Wear",
+    "price": 5999,
+    "oldPrice": null,
+    "image": "image45.jpg",
+    "tags": [
+      "popular"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium intimate wear in soft imported fabric.",
+    "badge": "New",
+    "details": {
+      "Fabric": "Imported stretch fabric",
+      "Care": "Hand wash cold"
+    },
+    "active": true
+  },
+  {
+    "id": "I06",
+    "name": "Lace Bodysuit",
+    "category": "Intimate Wear",
+    "price": 5499,
+    "oldPrice": null,
+    "image": "image46.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium intimate wear in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Imported stretch fabric",
+      "Care": "Hand wash cold"
+    },
+    "active": true
+  },
+  {
+    "id": "I07",
+    "name": "Satin Corset",
+    "category": "Intimate Wear",
+    "price": 7499,
+    "oldPrice": null,
+    "image": "image47.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium intimate wear in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Imported stretch fabric",
+      "Care": "Hand wash cold"
+    },
+    "active": true
+  },
+  {
+    "id": "I08",
+    "name": "Sheer Teddy",
+    "category": "Intimate Wear",
+    "price": 3999,
+    "oldPrice": null,
+    "image": "image48.jpg",
+    "tags": [
+      "recommended"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium intimate wear in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Imported stretch fabric",
+      "Care": "Hand wash cold"
+    },
+    "active": true
+  },
+  {
+    "id": "I09",
+    "name": "Cut-Out Bodysuit",
+    "category": "Intimate Wear",
+    "price": 4999,
+    "oldPrice": null,
+    "image": "image49.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium intimate wear in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Imported stretch fabric",
+      "Care": "Hand wash cold"
+    },
+    "active": true
+  },
+  {
+    "id": "I10",
+    "name": "Lounge Set",
+    "category": "Intimate Wear",
+    "price": 4299,
+    "oldPrice": null,
+    "image": "image50.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium intimate wear in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Imported stretch fabric",
+      "Care": "Hand wash cold"
+    },
+    "active": true
+  },
+  {
+    "id": "I11",
+    "name": "Satin Robe",
+    "category": "Intimate Wear",
+    "price": 6999,
+    "oldPrice": null,
+    "image": "image51.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium intimate wear in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Imported stretch fabric",
+      "Care": "Hand wash cold"
+    },
+    "active": true
+  },
+  {
+    "id": "I12",
+    "name": "Bustier Top",
+    "category": "Intimate Wear",
+    "price": 5799,
+    "oldPrice": null,
+    "image": "image52.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium intimate wear in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Imported stretch fabric",
+      "Care": "Hand wash cold"
+    },
+    "active": true
+  },
+  {
+    "id": "I13",
+    "name": "Lace Chemise",
+    "category": "Intimate Wear",
+    "price": 3799,
+    "oldPrice": null,
+    "image": "image53.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium intimate wear in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Imported stretch fabric",
+      "Care": "Hand wash cold"
+    },
+    "active": true
+  },
+  {
+    "id": "I14",
+    "name": "High-Waist Brief Set",
+    "category": "Intimate Wear",
+    "price": 2499,
+    "oldPrice": null,
+    "image": "image54.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium intimate wear in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Imported stretch fabric",
+      "Care": "Hand wash cold"
+    },
+    "active": true
+  },
+  {
+    "id": "I15",
+    "name": "Shapewear Bodysuit",
+    "category": "Intimate Wear",
+    "price": 3299,
+    "oldPrice": null,
+    "image": "image55.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium intimate wear in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Imported stretch fabric",
+      "Care": "Hand wash cold"
+    },
+    "active": true
+  },
+  {
+    "id": "I16",
+    "name": "Slip Dress",
+    "category": "Intimate Wear",
+    "price": 8499,
+    "oldPrice": null,
+    "image": "image56.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium intimate wear in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Imported stretch fabric",
+      "Care": "Hand wash cold"
+    },
+    "active": true
+  },
+  {
+    "id": "I17",
+    "name": "Strappy Teddy",
+    "category": "Intimate Wear",
+    "price": 4599,
+    "oldPrice": null,
+    "image": "image57.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium intimate wear in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Imported stretch fabric",
+      "Care": "Hand wash cold"
+    },
+    "active": true
+  },
+  {
+    "id": "I18",
+    "name": "Satin Shorts Set",
+    "category": "Intimate Wear",
+    "price": 3499,
+    "oldPrice": null,
+    "image": "image58.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium intimate wear in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Imported stretch fabric",
+      "Care": "Hand wash cold"
+    },
+    "active": true
+  },
+  {
+    "id": "I19",
+    "name": "Lace Camisole",
+    "category": "Intimate Wear",
+    "price": 2799,
+    "oldPrice": null,
+    "image": "image59.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium intimate wear in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Imported stretch fabric",
+      "Care": "Hand wash cold"
+    },
+    "active": true
+  },
+  {
+    "id": "I20",
+    "name": "Bridal Bodysuit",
+    "category": "Intimate Wear",
+    "price": 9999,
+    "oldPrice": null,
+    "image": "image60.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium intimate wear in soft imported fabric.",
+    "badge": "",
+    "details": {
+      "Fabric": "Imported stretch fabric",
+      "Care": "Hand wash cold"
+    },
+    "active": true
+  },
+  {
+    "id": "P01",
+    "name": "Sequin Party Dress",
+    "category": "Party Wear",
+    "price": 14999,
+    "oldPrice": null,
+    "image": "image61.jpg",
+    "tags": [
+      "exclusive"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium party wear for your glamorous look.",
+    "badge": "Bestseller",
+    "details": {
+      "Fabric": "Premium imported fabric",
+      "Care": "Dry clean recommended"
+    },
+    "active": true
+  },
+  {
+    "id": "P02",
+    "name": "Satin Party Gown",
+    "category": "Party Wear",
+    "price": 11999,
+    "oldPrice": null,
+    "image": "image62.jpg",
+    "tags": [
+      "exclusive"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium party wear for your glamorous look.",
+    "badge": "",
+    "details": {
+      "Fabric": "Premium imported fabric",
+      "Care": "Dry clean recommended"
+    },
+    "active": true
+  },
+  {
+    "id": "P03",
+    "name": "Velvet Party Dress",
+    "category": "Party Wear",
+    "price": 12999,
+    "oldPrice": null,
+    "image": "image63.jpg",
+    "tags": [
+      "exclusive"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium party wear for your glamorous look.",
+    "badge": "",
+    "details": {
+      "Fabric": "Premium imported fabric",
+      "Care": "Dry clean recommended"
+    },
+    "active": true
+  },
+  {
+    "id": "P04",
+    "name": "Lace Cocktail Dress",
+    "category": "Party Wear",
+    "price": 9999,
+    "oldPrice": null,
+    "image": "image64.jpg",
+    "tags": [
+      "popular"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium party wear for your glamorous look.",
+    "badge": "",
+    "details": {
+      "Fabric": "Premium imported fabric",
+      "Care": "Dry clean recommended"
+    },
+    "active": true
+  },
+  {
+    "id": "P05",
+    "name": "Off-Shoulder Party Dress",
+    "category": "Party Wear",
+    "price": 8999,
+    "oldPrice": null,
+    "image": "image65.jpg",
+    "tags": [
+      "popular"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium party wear for your glamorous look.",
+    "badge": "New",
+    "details": {
+      "Fabric": "Premium imported fabric",
+      "Care": "Dry clean recommended"
+    },
+    "active": true
+  },
+  {
+    "id": "P06",
+    "name": "Bodycon Party Dress",
+    "category": "Party Wear",
+    "price": 7999,
+    "oldPrice": null,
+    "image": "image66.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium party wear for your glamorous look.",
+    "badge": "",
+    "details": {
+      "Fabric": "Premium imported fabric",
+      "Care": "Dry clean recommended"
+    },
+    "active": true
+  },
+  {
+    "id": "P07",
+    "name": "Slit Evening Gown",
+    "category": "Party Wear",
+    "price": 15999,
+    "oldPrice": null,
+    "image": "image67.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium party wear for your glamorous look.",
+    "badge": "",
+    "details": {
+      "Fabric": "Premium imported fabric",
+      "Care": "Dry clean recommended"
+    },
+    "active": true
+  },
+  {
+    "id": "P08",
+    "name": "Halter Party Dress",
+    "category": "Party Wear",
+    "price": 8499,
+    "oldPrice": null,
+    "image": "image68.jpg",
+    "tags": [
+      "recommended"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium party wear for your glamorous look.",
+    "badge": "",
+    "details": {
+      "Fabric": "Premium imported fabric",
+      "Care": "Dry clean recommended"
+    },
+    "active": true
+  },
+  {
+    "id": "P09",
+    "name": "Mesh Party Dress",
+    "category": "Party Wear",
+    "price": 9499,
+    "oldPrice": null,
+    "image": "image69.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium party wear for your glamorous look.",
+    "badge": "",
+    "details": {
+      "Fabric": "Premium imported fabric",
+      "Care": "Dry clean recommended"
+    },
+    "active": true
+  },
+  {
+    "id": "P10",
+    "name": "Wrap Party Dress",
+    "category": "Party Wear",
+    "price": 7499,
+    "oldPrice": null,
+    "image": "image70.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium party wear for your glamorous look.",
+    "badge": "",
+    "details": {
+      "Fabric": "Premium imported fabric",
+      "Care": "Dry clean recommended"
+    },
+    "active": true
+  },
+  {
+    "id": "P11",
+    "name": "Backless Party Dress",
+    "category": "Party Wear",
+    "price": 10999,
+    "oldPrice": null,
+    "image": "image71.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium party wear for your glamorous look.",
+    "badge": "",
+    "details": {
+      "Fabric": "Premium imported fabric",
+      "Care": "Dry clean recommended"
+    },
+    "active": true
+  },
+  {
+    "id": "P12",
+    "name": "One-Shoulder Gown",
+    "category": "Party Wear",
+    "price": 13999,
+    "oldPrice": null,
+    "image": "image72.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium party wear for your glamorous look.",
+    "badge": "",
+    "details": {
+      "Fabric": "Premium imported fabric",
+      "Care": "Dry clean recommended"
+    },
+    "active": true
+  },
+  {
+    "id": "P13",
+    "name": "Ruched Mini Dress",
+    "category": "Party Wear",
+    "price": 6999,
+    "oldPrice": null,
+    "image": "image73.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium party wear for your glamorous look.",
+    "badge": "",
+    "details": {
+      "Fabric": "Premium imported fabric",
+      "Care": "Dry clean recommended"
+    },
+    "active": true
+  },
+  {
+    "id": "P14",
+    "name": "Feather Trim Dress",
+    "category": "Party Wear",
+    "price": 12499,
+    "oldPrice": null,
+    "image": "image74.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium party wear for your glamorous look.",
+    "badge": "",
+    "details": {
+      "Fabric": "Premium imported fabric",
+      "Care": "Dry clean recommended"
+    },
+    "active": true
+  },
+  {
+    "id": "P15",
+    "name": "Corset Party Dress",
+    "category": "Party Wear",
+    "price": 10499,
+    "oldPrice": null,
+    "image": "image75.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium party wear for your glamorous look.",
+    "badge": "",
+    "details": {
+      "Fabric": "Premium imported fabric",
+      "Care": "Dry clean recommended"
+    },
+    "active": true
+  },
+  {
+    "id": "P16",
+    "name": "Metallic Party Dress",
+    "category": "Party Wear",
+    "price": 11499,
+    "oldPrice": null,
+    "image": "image76.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium party wear for your glamorous look.",
+    "badge": "",
+    "details": {
+      "Fabric": "Premium imported fabric",
+      "Care": "Dry clean recommended"
+    },
+    "active": true
+  },
+  {
+    "id": "P17",
+    "name": "Mermaid Evening Gown",
+    "category": "Party Wear",
+    "price": 17999,
+    "oldPrice": null,
+    "image": "image77.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium party wear for your glamorous look.",
+    "badge": "",
+    "details": {
+      "Fabric": "Premium imported fabric",
+      "Care": "Dry clean recommended"
+    },
+    "active": true
+  },
+  {
+    "id": "P18",
+    "name": "Tulle Party Dress",
+    "category": "Party Wear",
+    "price": 9999,
+    "oldPrice": null,
+    "image": "image78.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium party wear for your glamorous look.",
+    "badge": "",
+    "details": {
+      "Fabric": "Premium imported fabric",
+      "Care": "Dry clean recommended"
+    },
+    "active": true
+  },
+  {
+    "id": "P19",
+    "name": "Beaded Party Dress",
+    "category": "Party Wear",
+    "price": 18999,
+    "oldPrice": null,
+    "image": "image79.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium party wear for your glamorous look.",
+    "badge": "",
+    "details": {
+      "Fabric": "Premium imported fabric",
+      "Care": "Dry clean recommended"
+    },
+    "active": true
+  },
+  {
+    "id": "P20",
+    "name": "Bridal Party Gown",
+    "category": "Party Wear",
+    "price": 21999,
+    "oldPrice": null,
+    "image": "image80.jpg",
+    "tags": [],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Premium party wear for your glamorous look.",
+    "badge": "",
+    "details": {
+      "Fabric": "Premium imported fabric",
+      "Care": "Dry clean recommended"
+    },
+    "active": true
+  }
+]
