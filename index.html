@@ -9,8 +9,6 @@
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- PapaParse: turns the Google Sheet CSV into JSON -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -472,9 +470,8 @@
     categoryLimit: 20,                  // max products shown on each category page
     sizes: ['S', 'M', 'L', 'XL', 'XXL', '3XL', '4XL', '5XL'],
     colors: ['Black', 'White', 'Red', 'Pink', 'Blue', 'Navy', 'Green', 'Yellow', 'Purple', 'Grey', 'Beige', 'Maroon'],
-    // Published Google Sheet (File → Share → Publish to web → CSV)
-    sheetUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRrbZCjYtNJiUWZA8lr66rYpgnWbAqhGf3RfPH40idJ0LTD4Po3TRjnBofqZy16Bw/pub?gid=627543760&single=true&output=csv',
-    imageExt: '.jpg',                   // serial 1 → 1.jpg, 2 → 2.jpg …
+    productsUrl: 'products.json',       // product list in the repo root (edit this file to update the site)
+    imageExt: '.jpg',                   // "image": "5" → 5.jpg
     sectionLimits: { exclusive: 12, popular: 9, recommended: 6 },
     instagram: 'https://www.instagram.com/secretcollectionbd',
     // Latest Instagram posts shown in "Check Our Latest Instagram Collections" (max 12, newest first)
@@ -504,9 +501,9 @@
   let PRODUCTS = [];
   const state = { view: 'home', category: 'All', query: '', sort: 'default' };
 
-  /* ---------- Load products LIVE from the Google Sheet ---------- */
-  // Column headers are matched loosely (case & spaces ignored), so
-  // "Product Name", "name" or "Title" all work.
+  /* ---------- Load products LIVE from products.json ---------- */
+  // Field names are matched loosely (case & spaces ignored), so
+  // "name", "Product Name" or "title" all work.
   const COLS = {
     id:          ['id', 'sku', 'code', 'productid', 'productcode'],
     name:        ['name', 'productname', 'product', 'title'],
@@ -515,6 +512,7 @@
     oldPrice:    ['oldprice', 'regularprice', 'mrp', 'compareprice', 'originalprice'],
     image:       ['image', 'imageno', 'imagenumber', 'img', 'photo', 'serial', 'serialno', 'sl', 'slno', 'imageserial'],
     tag:         ['tag', 'tags', 'section', 'sections'],
+    skip:        ['featured', 'popular', 'recommended', 'exclusive', 'details', 'hoverimage'],
     sizes:       ['sizes', 'size'],
     colors:      ['colors', 'colours', 'color', 'colour'],
     description: ['description', 'details', 'desc'],
@@ -539,46 +537,55 @@
 
   let productsHash = '';
   async function loadProducts() {
-    const sep = CONFIG.sheetUrl.includes('?') ? '&' : '?';
-    const res = await fetch(`${CONFIG.sheetUrl}${sep}t=${Date.now()}`, { cache: 'no-store' });
+    const res = await fetch(`${CONFIG.productsUrl}?v=${Date.now()}`, { cache: 'no-store' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const text = await res.text();
-    if (/^\s*</.test(text)) throw new Error('Sheet is not published as CSV');
+    const data = JSON.parse(text);
+    if (!Array.isArray(data)) throw new Error('products.json must be a list [ ... ]');
     const changed = text !== productsHash;
     productsHash = text;
 
-    const parsed = Papa.parse(text, { header: true, skipEmptyLines: 'greedy' });
-    PRODUCTS = parsed.data.map((row, i) => {
+    PRODUCTS = data.map((raw, i) => {
+      if (!raw || typeof raw !== 'object') return null;
+      // flatten arrays ("sizes": ["S","M"]) to text so one reader handles every format
+      const row = {};
+      for (const [k, v] of Object.entries(raw)) row[k] = Array.isArray(v) ? v.join(', ') : (v === null || v === undefined ? '' : (typeof v === 'object' ? '' : String(v)));
       const name = pickCol(row, COLS.name);
       if (!name) return null;
-      const status = norm(pickCol(row, COLS.status));
-      if (HIDE.includes(status)) return null;
+      if (raw.active === false || HIDE.includes(norm(pickCol(row, COLS.status)))) return null;
       const serial = pickCol(row, COLS.image);
-      const id = pickCol(row, COLS.id) || serial || 'row' + (i + 2);
+      const id = pickCol(row, COLS.id) || serial || 'p' + (i + 1);
       const catRaw = pickCol(row, COLS.category);
+      const tags = list(pickCol(row, COLS.tag).toLowerCase());
+      ['exclusive', 'popular', 'recommended'].forEach(t => { if (raw[t] === true) tags.push(t); });
+      if (raw.featured === true) tags.push('exclusive');
+      const known = Object.values(COLS).flat();
       return {
         id: String(id),
         name,
         category: CAT_MAP[norm(catRaw)] || catRaw || 'Intimate Wear',
         price: num(pickCol(row, COLS.price)),
         oldPrice: num(pickCol(row, COLS.oldPrice)) || null,
-        image: imagePath(serial, String(i + 1)),
-        tags: list(pickCol(row, COLS.tag).toLowerCase()),
+        image: imagePath(serial, 'image' + (i + 1)),
+        hoverImage: raw.hoverImage ? imagePath(String(raw.hoverImage)) : '',
+        tags: [...new Set(tags)],
         sizes: list(pickCol(row, COLS.sizes)).length ? list(pickCol(row, COLS.sizes)) : CONFIG.sizes,
         colors: list(pickCol(row, COLS.colors)).length ? list(pickCol(row, COLS.colors)) : CONFIG.colors,
         description: pickCol(row, COLS.description),
         badge: pickCol(row, COLS.badge),
-        // Any other column you add in the sheet (e.g. Fabric, Care, Fit) is shown on the product page
-        extra: Object.entries(row)
-          .filter(([k, v]) => k && String(v).trim() && !Object.values(COLS).flat().includes(norm(k)))
-          .map(([k, v]) => [k.trim(), String(v).trim()])
+        // Shown under "Product Details": the "details" block, plus any extra field you add (e.g. "fabric")
+        extra: [
+          ...Object.entries(raw.details && typeof raw.details === 'object' ? raw.details : {}),
+          ...Object.entries(row).filter(([k, v]) => v.trim() && !known.includes(norm(k)))
+            .map(([k, v]) => [k.charAt(0).toUpperCase() + k.slice(1), v])
+        ].map(([k, v]) => [String(k).trim(), String(v).trim()]).filter(([k, v]) => k && v)
       };
     }).filter(Boolean);
-    if (!PRODUCTS.length) throw new Error('No products found in the sheet');
+    if (!PRODUCTS.length) throw new Error('No products found in products.json');
     return changed;
   }
   function showLoadError(err) {
-    console.error('Could not load products from Google Sheet:', err);
+    console.error('Could not load products.json:', err);
     const box = `<div class="col-span-full text-center py-16 text-charcoal-soft text-sm">Products are being updated. Please refresh in a moment.</div>`;
     ['gridExclusive', 'gridPopular', 'gridRecommended', 'gridCatalog'].forEach(id => $(id).innerHTML = box);
   }
@@ -1075,7 +1082,7 @@ Please confirm my order. Thank you.`;
     catch (err) { showLoadError(err); }
     observeReveal();
 
-    // Re-check the Google Sheet whenever a visitor comes back to the tab
+    // Re-check products.json whenever a visitor comes back to the tab
     // and every 5 minutes, so price/stock edits show without a manual refresh.
     const refresh = async () => { try { if (await loadProducts()) renderAll(); } catch (e) {} };
     document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
