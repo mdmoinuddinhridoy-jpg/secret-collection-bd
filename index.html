@@ -9,6 +9,8 @@
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- PapaParse: turns the Google Sheet CSV into JSON -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -224,7 +226,7 @@
     <section class="bg-blush-50">
       <div class="max-w-7xl mx-auto px-6 py-20 grid md:grid-cols-2 gap-12 items-center">
         <div class="aspect-[4/5] img-ph overflow-hidden reveal">
-          <img src="image3.jpg" alt="" class="w-full h-full object-cover" onerror="this.style.display='none'" />
+          <img id="editorialImg" src="" alt="" style="display:none" class="w-full h-full object-cover" onerror="this.style.display='none'" />
         </div>
         <div class="reveal">
           <p class="text-[11px] tracking-luxe uppercase text-blush-500 mb-4">The Lingerie Edit</p>
@@ -488,7 +490,10 @@
     categoryLimit: 20,                  // max products shown on each category page
     sizes: ['S', 'M', 'L', 'XL', 'XXL', '3XL', '4XL', '5XL'],
     colors: ['Black', 'White', 'Red', 'Pink', 'Blue', 'Navy', 'Green', 'Yellow', 'Purple', 'Grey', 'Beige', 'Maroon'],
-    productsUrl: 'products.json',
+    // Published Google Sheet (File → Share → Publish to web → CSV)
+    sheetUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRrbZCjYtNJiUWZA8lr66rYpgnWbAqhGf3RfPH40idJ0LTD4Po3TRjnBofqZy16Bw/pub?gid=627543760&single=true&output=csv',
+    imageExt: '.jpg',                   // serial 1 → 1.jpg, 2 → 2.jpg …
+    sectionLimits: { exclusive: 12, popular: 9, recommended: 6 },
     instagram: 'https://www.instagram.com/secretcollectionbd',
     heroImage: 'image0.jpg'             // hero banner always uses this file
   };
@@ -502,29 +507,77 @@
   let PRODUCTS = [];
   const state = { view: 'home', category: 'All', query: '', sort: 'default' };
 
-  /* ---------- Load products (live from products.json, nothing hard-coded) ---------- */
+  /* ---------- Load products LIVE from the Google Sheet ---------- */
+  // Column headers are matched loosely (case & spaces ignored), so
+  // "Product Name", "name" or "Title" all work.
+  const COLS = {
+    id:          ['id', 'sku', 'code', 'productid', 'productcode'],
+    name:        ['name', 'productname', 'product', 'title'],
+    category:    ['category', 'cat', 'type'],
+    price:       ['price', 'saleprice', 'sellingprice', 'pricebdt', 'price৳'],
+    oldPrice:    ['oldprice', 'regularprice', 'mrp', 'compareprice', 'originalprice'],
+    image:       ['image', 'imageno', 'imagenumber', 'img', 'photo', 'serial', 'serialno', 'sl', 'slno', 'imageserial'],
+    tag:         ['tag', 'tags', 'section', 'sections'],
+    sizes:       ['sizes', 'size'],
+    colors:      ['colors', 'colours', 'color', 'colour'],
+    description: ['description', 'details', 'desc'],
+    badge:       ['badge', 'label'],
+    status:      ['status', 'active', 'show', 'visible', 'stock']
+  };
+  const norm = (k) => String(k || '').toLowerCase().replace(/[^a-z0-9৳]/g, '');
+  function pickCol(row, keys) {
+    for (const [k, v] of Object.entries(row)) if (keys.includes(norm(k)) && String(v).trim() !== '') return String(v).trim();
+    return '';
+  }
+  const list = (v) => v ? v.split(/[,|/;]+/).map(x => x.trim()).filter(Boolean) : [];
+  const num = (v) => Number(String(v).replace(/[^0-9.]/g, '')) || 0;
+  const CAT_MAP = { lingerie: 'Lingerie', nighty: 'Nighty', nightie: 'Nighty', nighties: 'Nighty', intimatewear: 'Intimate Wear', intimate: 'Intimate Wear' };
+  function imagePath(v, fallback) {
+    v = (v || fallback || '').trim();
+    if (!v) return '';
+    if (/^https?:\/\//i.test(v) || /\.(jpe?g|png|webp|gif|avif)$/i.test(v)) return v;
+    return v + CONFIG.imageExt;                       // "1" → "1.jpg"
+  }
+  const HIDE = ['no', 'false', '0', 'hide', 'hidden', 'inactive', 'off', 'draft'];
+
   let productsHash = '';
   async function loadProducts() {
-    // ?v=timestamp stops the browser/CDN from serving an old copy
-    const res = await fetch(`${CONFIG.productsUrl}?v=${Date.now()}`, { cache: 'no-store' });
+    const sep = CONFIG.sheetUrl.includes('?') ? '&' : '?';
+    const res = await fetch(`${CONFIG.sheetUrl}${sep}t=${Date.now()}`, { cache: 'no-store' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const text = await res.text();
-    const data = JSON.parse(text);
-    if (!Array.isArray(data)) throw new Error('products.json must be a list [ ... ]');
+    if (/^\s*</.test(text)) throw new Error('Sheet is not published as CSV');
     const changed = text !== productsHash;
     productsHash = text;
-    PRODUCTS = data
-      .filter(p => p && p.active !== false && p.name)          // set "active": false to hide a product
-      .map((p, i) => ({
-        ...p,
-        colors: (Array.isArray(p.colors) && p.colors.length) ? p.colors : CONFIG.colors,
-        sizes: (Array.isArray(p.sizes) && p.sizes.length) ? p.sizes : CONFIG.sizes,
-        id: String(p.id ?? 'p' + i), price: Number(p.price) || 0
-      }));
+
+    const parsed = Papa.parse(text, { header: true, skipEmptyLines: 'greedy' });
+    PRODUCTS = parsed.data.map((row, i) => {
+      const name = pickCol(row, COLS.name);
+      if (!name) return null;
+      const status = norm(pickCol(row, COLS.status));
+      if (HIDE.includes(status)) return null;
+      const serial = pickCol(row, COLS.image);
+      const id = pickCol(row, COLS.id) || serial || 'row' + (i + 2);
+      const catRaw = pickCol(row, COLS.category);
+      return {
+        id: String(id),
+        name,
+        category: CAT_MAP[norm(catRaw)] || catRaw || 'Intimate Wear',
+        price: num(pickCol(row, COLS.price)),
+        oldPrice: num(pickCol(row, COLS.oldPrice)) || null,
+        image: imagePath(serial, String(i + 1)),
+        tags: list(pickCol(row, COLS.tag).toLowerCase()),
+        sizes: list(pickCol(row, COLS.sizes)).length ? list(pickCol(row, COLS.sizes)) : CONFIG.sizes,
+        colors: list(pickCol(row, COLS.colors)).length ? list(pickCol(row, COLS.colors)) : CONFIG.colors,
+        description: pickCol(row, COLS.description),
+        badge: pickCol(row, COLS.badge)
+      };
+    }).filter(Boolean);
+    if (!PRODUCTS.length) throw new Error('No products found in the sheet');
     return changed;
   }
   function showLoadError(err) {
-    console.error('Could not load products.json:', err);
+    console.error('Could not load products from Google Sheet:', err);
     const box = `<div class="col-span-full text-center py-16 text-charcoal-soft text-sm">Products are being updated. Please refresh in a moment.</div>`;
     ['gridExclusive', 'gridPopular', 'gridRecommended', 'gridCatalog'].forEach(id => $(id).innerHTML = box);
   }
@@ -572,13 +625,14 @@
 
   /* ---------- Home ---------- */
   function renderHome() {
-    const pick = (flag, n) => {
-      const flagged = PRODUCTS.filter(p => p[flag]);
-      return (flagged.length ? flagged : PRODUCTS).slice(0, n);
-    };
-    renderGrid($('gridExclusive'), pick('featured', 12));
-    renderGrid($('gridPopular'), pick('popular', 9));
-    renderGrid($('gridRecommended'), pick('recommended', 6), true);
+    const L = CONFIG.sectionLimits;
+    const byTag = (tag, alt) => PRODUCTS.filter(p => p.tags.includes(tag) || (alt && p.tags.includes(alt)));
+    const pick = (tag, n, alt) => { const t = byTag(tag, alt); return (t.length ? t : PRODUCTS).slice(0, n); };
+    renderGrid($('gridExclusive'), pick('exclusive', L.exclusive, 'featured'));
+    renderGrid($('gridPopular'), pick('popular', L.popular));
+    renderGrid($('gridRecommended'), pick('recommended', L.recommended), true);
+    const ed = PRODUCTS.find(p => p.category === 'Lingerie') || PRODUCTS[0];
+    if (ed && $('editorialImg')) { $('editorialImg').style.display = ''; $('editorialImg').src = ed.image; }
 
     const imgs = PRODUCTS.slice(0, 12).map(p => p.image);
     $('gridInstagram').innerHTML = Array.from({ length: 12 }, (_, i) => `
@@ -864,7 +918,7 @@ Please confirm my order. Thank you.`;
     catch (err) { showLoadError(err); }
     observeReveal();
 
-    // Re-check products.json whenever a visitor comes back to the tab
+    // Re-check the Google Sheet whenever a visitor comes back to the tab
     // and every 5 minutes, so price/stock edits show without a manual refresh.
     const refresh = async () => { try { if (await loadProducts()) renderAll(); } catch (e) {} };
     document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
