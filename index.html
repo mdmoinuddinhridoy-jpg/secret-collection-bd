@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Secret Collection BD | Luxury Lingerie, Nighty & Intimate Wear</title>
+  <title>Secret Collection BD | Luxury Lingerie, Nighty, Intimate & Party Wear</title>
   <meta name="description" content="Secret Collection BD — luxury lingerie, nighties and intimate wear for women in Bangladesh. 100% private and discreet packaging. Order via WhatsApp." />
   <meta name="theme-color" content="#0F0F0F" />
 
@@ -84,7 +84,7 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6">
       <div class="h-16 lg:h-20 flex items-center justify-between gap-4">
         <!-- Mobile menu btn -->
-        <button id="menuBtn" class="lg:hidden p-2 -ml-2" aria-label="Open menu">
+        <button id="menuBtn" class="xl:hidden p-2 -ml-2" aria-label="Open menu">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.4" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 7h16M4 12h16M4 17h10"/></svg>
         </button>
 
@@ -94,11 +94,12 @@
         </a>
 
         <!-- Desktop nav -->
-        <nav class="hidden lg:flex items-center gap-7 text-[13px] tracking-[.14em] uppercase text-charcoal">
+        <nav class="hidden xl:flex items-center gap-7 text-[13px] tracking-[.14em] uppercase text-charcoal whitespace-nowrap">
           <a href="#" class="nav-link" data-view="home">Home</a>
           <a href="#" class="nav-link" data-cat="Lingerie">Lingerie</a>
           <a href="#" class="nav-link" data-cat="Nighty">Nighty</a>
           <a href="#" class="nav-link" data-cat="Intimate Wear">Intimate Wear</a>
+          <a href="#" class="nav-link" data-cat="Party Wear">Party Wear</a>
           <a href="#about" class="nav-link" data-scroll="about">About Us</a>
           <a href="#contact" class="nav-link" data-scroll="contact">Contact</a>
         </nav>
@@ -128,6 +129,7 @@
             <option value="Lingerie">Lingerie</option>
             <option value="Nighty">Nighty</option>
             <option value="Intimate Wear">Intimate Wear</option>
+            <option value="Party Wear">Party Wear</option>
           </select>
           <button class="bg-noir text-white text-xs tracking-luxe uppercase px-8 py-3 hover:bg-charcoal transition">Search</button>
         </form>
@@ -149,6 +151,7 @@
       <a href="#" data-cat="Lingerie">Lingerie</a>
       <a href="#" data-cat="Nighty">Nighty</a>
       <a href="#" data-cat="Intimate Wear">Intimate Wear</a>
+      <a href="#" data-cat="Party Wear">Party Wear</a>
       <a href="#about" data-scroll="about">About Us</a>
       <a href="#contact" data-scroll="contact">Contact</a>
     </nav>
@@ -244,6 +247,20 @@
         <h2 class="font-serif text-4xl sm:text-5xl">Most Popular Items</h2>
       </div>
       <div id="gridPopular" class="grid grid-cols-2 lg:grid-cols-3 gap-x-4 sm:gap-x-8 gap-y-12"></div>
+    </section>
+
+    <!-- ===== Party Wear Edit (tag = party, or category = Party Wear) ===== -->
+    <section id="partySection" class="bg-blush-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 py-20">
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-14 reveal">
+          <div>
+            <p class="text-[11px] tracking-luxe uppercase text-blush-500 mb-3">After Dark</p>
+            <h2 class="font-serif text-4xl sm:text-5xl">The Party Wear Edit</h2>
+          </div>
+          <a href="#" data-cat="Party Wear" class="self-start sm:self-auto border-b border-noir pb-1 text-xs tracking-luxe uppercase hover:text-blush-500 hover:border-blush-500 transition">View All Party Wear</a>
+        </div>
+        <div id="gridParty" class="grid grid-cols-2 lg:grid-cols-4 gap-x-4 sm:gap-x-6 gap-y-12"></div>
+      </div>
     </section>
 
     <!-- ===== Section 3: Recommended ===== -->
@@ -362,6 +379,7 @@
           <li><a href="#" data-cat="Lingerie" class="hover:text-white">Lingerie</a></li>
           <li><a href="#" data-cat="Nighty" class="hover:text-white">Nighty</a></li>
           <li><a href="#" data-cat="Intimate Wear" class="hover:text-white">Intimate Wear</a></li>
+          <li><a href="#" data-cat="Party Wear" class="hover:text-white">Party Wear</a></li>
           <li><a href="#" data-cat="All" class="hover:text-white">All Products</a></li>
         </ul>
       </div>
@@ -493,7 +511,7 @@
     // Published Google Sheet (File → Share → Publish to web → CSV)
     sheetUrl: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRrbZCjYtNJiUWZA8lr66rYpgnWbAqhGf3RfPH40idJ0LTD4Po3TRjnBofqZy16Bw/pub?gid=627543760&single=true&output=csv',
     imageExt: '.jpg',                   // serial 1 → 1.jpg, 2 → 2.jpg …
-    sectionLimits: { exclusive: 12, popular: 9, recommended: 6 },
+    sectionLimits: { exclusive: 12, popular: 9, party: 8, recommended: 6 },
     instagram: 'https://www.instagram.com/secretcollectionbd',
     heroImage: 'image0.jpg'             // hero banner always uses this file
   };
@@ -531,7 +549,7 @@
   }
   const list = (v) => v ? v.split(/[,|/;]+/).map(x => x.trim()).filter(Boolean) : [];
   const num = (v) => Number(String(v).replace(/[^0-9.]/g, '')) || 0;
-  const CAT_MAP = { lingerie: 'Lingerie', nighty: 'Nighty', nightie: 'Nighty', nighties: 'Nighty', intimatewear: 'Intimate Wear', intimate: 'Intimate Wear' };
+  const CAT_MAP = { lingerie: 'Lingerie', nighty: 'Nighty', nightie: 'Nighty', nighties: 'Nighty', intimatewear: 'Intimate Wear', intimate: 'Intimate Wear', partywear: 'Party Wear', party: 'Party Wear', partydress: 'Party Wear' };
   function imagePath(v, fallback) {
     v = (v || fallback || '').trim();
     if (!v) return '';
@@ -579,7 +597,7 @@
   function showLoadError(err) {
     console.error('Could not load products from Google Sheet:', err);
     const box = `<div class="col-span-full text-center py-16 text-charcoal-soft text-sm">Products are being updated. Please refresh in a moment.</div>`;
-    ['gridExclusive', 'gridPopular', 'gridRecommended', 'gridCatalog'].forEach(id => $(id).innerHTML = box);
+    ['gridExclusive', 'gridPopular', 'gridParty', 'gridRecommended', 'gridCatalog'].forEach(id => $(id).innerHTML = box);
   }
   function renderAll() {
     renderHome();
@@ -631,6 +649,9 @@
     renderGrid($('gridExclusive'), pick('exclusive', L.exclusive, 'featured'));
     renderGrid($('gridPopular'), pick('popular', L.popular));
     renderGrid($('gridRecommended'), pick('recommended', L.recommended), true);
+    const party = PRODUCTS.filter(p => p.tags.includes('party') || p.category === 'Party Wear').slice(0, L.party);
+    $('partySection').classList.toggle('hidden', party.length === 0);   // section hides itself until you add party wear
+    renderGrid($('gridParty'), party);
     const ed = PRODUCTS.find(p => p.category === 'Lingerie') || PRODUCTS[0];
     if (ed && $('editorialImg')) { $('editorialImg').style.display = ''; $('editorialImg').src = ed.image; }
 
@@ -649,7 +670,7 @@
   }
 
   /* ---------- Catalog ---------- */
-  const CATS = ['All', 'Lingerie', 'Nighty', 'Intimate Wear'];
+  const CATS = ['All', 'Lingerie', 'Nighty', 'Intimate Wear', 'Party Wear'];
   function renderCatalog() {
     const q = state.query.trim().toLowerCase();
     let list = PRODUCTS.filter(p =>
