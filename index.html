@@ -229,7 +229,8 @@
       <div class="text-center mb-12 reveal">
         <h2 class="font-serif text-3xl sm:text-5xl">Check Our Latest Instagram Collections</h2>
       </div>
-      <div id="gridInstagram" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3"></div>
+      <!-- Phones: swipe sideways · Desktop: 3-column grid -->
+      <div id="gridInstagram" class="flex lg:grid lg:grid-cols-3 gap-4 lg:gap-6 overflow-x-auto lg:overflow-visible snap-x snap-mandatory pb-4 -mx-4 px-4 lg:mx-0 lg:px-0"></div>
       <div class="text-center mt-10">
         <a href="https://www.instagram.com/secretcollectionbd" target="_blank" rel="noopener" class="inline-flex items-center gap-3 border border-noir text-xs tracking-luxe uppercase px-9 py-4 hover:bg-noir hover:text-white transition">
           Follow on Instagram
@@ -263,6 +264,21 @@
       <p class="font-serif text-3xl mb-3">Nothing found</p>
       <p class="text-charcoal-soft mb-8">Try another search term or category.</p>
       <button data-cat="All" class="bg-noir text-white text-xs tracking-luxe uppercase px-8 py-3">View All Products</button>
+    </div>
+  </section>
+
+  <!-- ================= PRODUCT VIEW ================= -->
+  <section id="productView" class="hidden max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-14 min-h-[70vh]">
+    <nav class="text-xs tracking-[.14em] uppercase text-charcoal-soft mb-8">
+      <a href="#" data-view="home" class="hover:text-noir">Home</a>
+      <span class="mx-2">/</span><a href="#" id="pvCrumbCat" class="hover:text-noir"></a>
+      <span class="mx-2">/</span><span id="pvCrumbName" class="text-noir"></span>
+    </nav>
+    <div id="pvBody"></div>
+
+    <div id="pvRecoWrap" class="mt-20 pt-14 border-t border-black/10">
+      <h2 class="font-serif text-3xl sm:text-4xl text-center mb-12">Recommended Products</h2>
+      <div id="pvReco" class="grid grid-cols-2 lg:grid-cols-4 gap-x-4 sm:gap-x-6 gap-y-12"></div>
     </div>
   </section>
 
@@ -461,6 +477,21 @@
     imageExt: '.jpg',                   // serial 1 → 1.jpg, 2 → 2.jpg …
     sectionLimits: { exclusive: 12, popular: 9, recommended: 6 },
     instagram: 'https://www.instagram.com/secretcollectionbd',
+    // Latest Instagram posts shown in "Check Our Latest Instagram Collections" (max 12, newest first)
+    instagramPosts: [
+      'https://www.instagram.com/p/DPBaMYKEZcp/',
+      'https://www.instagram.com/p/DQL4bPUkqCK/',
+      'https://www.instagram.com/p/DDF9WKMJ5Mv/',
+      'https://www.instagram.com/p/DdmZQ5Skupl/',
+      'https://www.instagram.com/p/DdZT257Es7q/',
+      'https://www.instagram.com/p/DcY8qOLSouE/',
+      'https://www.instagram.com/p/DcEqOptEijk/',
+      'https://www.instagram.com/p/DbB4_DnEs0h/',
+      'https://www.instagram.com/p/DayA5RWkufK/',
+      'https://www.instagram.com/p/DaIzoViEuU1/',
+      'https://www.instagram.com/p/DaFGoAOSIv-/',
+      'https://www.instagram.com/p/DZyGOo6STJv/'
+    ],
     heroImage: 'image0.jpg'             // hero banner always uses this file
   };
 
@@ -536,7 +567,11 @@
         sizes: list(pickCol(row, COLS.sizes)).length ? list(pickCol(row, COLS.sizes)) : CONFIG.sizes,
         colors: list(pickCol(row, COLS.colors)).length ? list(pickCol(row, COLS.colors)) : CONFIG.colors,
         description: pickCol(row, COLS.description),
-        badge: pickCol(row, COLS.badge)
+        badge: pickCol(row, COLS.badge),
+        // Any other column you add in the sheet (e.g. Fabric, Care, Fit) is shown on the product page
+        extra: Object.entries(row)
+          .filter(([k, v]) => k && String(v).trim() && !Object.values(COLS).flat().includes(norm(k)))
+          .map(([k, v]) => [k.trim(), String(v).trim()])
       };
     }).filter(Boolean);
     if (!PRODUCTS.length) throw new Error('No products found in the sheet');
@@ -555,7 +590,7 @@
   const findP = (id) => PRODUCTS.find(p => p.id === id);
 
   /* ---------- Product card ---------- */
-  function cardHTML(p, dark = false) {
+  function cardHTML(p, dark = false, hideCat = false) {
     const txt = dark ? 'text-white' : 'text-noir';
     const sub = dark ? 'text-white/50' : 'text-charcoal-soft';
     const selCls = dark ? 'bg-transparent border-white/20 text-white [&>option]:text-noir' : 'bg-white border-black/15 text-noir';
@@ -563,14 +598,14 @@
     const alt = p.hoverImage || '';
     return `
     <article class="group flex flex-col reveal" data-pid="${esc(p.id)}">
-      <div class="card-img relative aspect-[3/4] overflow-hidden img-ph mb-4">
+      <div class="card-img relative aspect-[3/4] overflow-hidden img-ph mb-4 cursor-pointer" data-open="${esc(p.id)}">
         <img src="${esc(p.image)}" alt="${esc(p.name)}" loading="lazy" class="img-main absolute inset-0 w-full h-full object-cover" onerror="this.style.display='none'" />
         ${alt ? `<img src="${esc(alt)}" alt="" loading="lazy" class="img-alt absolute inset-0 w-full h-full object-cover" onerror="this.remove()" />` : ''}
         ${p.badge ? `<span class="absolute top-3 left-3 bg-white text-noir text-[10px] tracking-[.18em] uppercase px-3 py-1">${esc(p.badge)}</span>` : ''}
         <button data-quick="${esc(p.id)}" class="absolute bottom-0 inset-x-0 translate-y-full group-hover:translate-y-0 transition duration-500 bg-noir/90 text-white text-[11px] tracking-luxe uppercase py-3 hidden sm:block">Quick Add</button>
       </div>
-      <p class="text-[10px] tracking-luxe uppercase ${sub} mb-1">${esc(p.category)}</p>
-      <h3 class="font-serif text-base sm:text-lg leading-snug ${txt} mb-1">${esc(p.name)}</h3>
+      ${hideCat ? '' : `<p class="text-[10px] tracking-luxe uppercase ${sub} mb-1">${esc(p.category)}</p>`}
+      <h3 class="font-serif text-base sm:text-lg leading-snug ${txt} mb-1"><a href="#product/${encodeURIComponent(p.id)}" data-open="${esc(p.id)}" class="hover:underline underline-offset-4">${esc(p.name)}</a></h3>
       <p class="text-sm ${txt} mb-3">${taka(p.price)}${p.oldPrice ? ` <span class="${sub} line-through ml-1">${taka(p.oldPrice)}</span>` : ''}</p>
       <div class="grid grid-cols-2 gap-2 mb-3 mt-auto">
         <select data-size class="lux border ${selCls} text-xs px-3 py-2 focus:outline-none" aria-label="Size">
@@ -584,8 +619,8 @@
     </article>`;
   }
 
-  function renderGrid(el, list, dark) {
-    el.innerHTML = list.map(p => cardHTML(p, dark)).join('');
+  function renderGrid(el, list, dark, hideCat) {
+    el.innerHTML = list.map(p => cardHTML(p, dark, hideCat)).join('');
     observeReveal(el);
   }
 
@@ -598,17 +633,7 @@
     renderGrid($('gridPopular'), pick('popular', L.popular));
     renderGrid($('gridRecommended'), pick('recommended', L.recommended), true);
 
-    const imgs = PRODUCTS.slice(0, 12).map(p => p.image);
-    $('gridInstagram').innerHTML = Array.from({ length: 12 }, (_, i) => `
-      <a href="${CONFIG.instagram}" target="_blank" rel="noopener" class="group relative aspect-square overflow-hidden img-ph block reveal" aria-label="View on Instagram">
-        <img src="${imgs[i % imgs.length]}" alt="" loading="lazy" class="w-full h-full object-cover transition duration-700 group-hover:scale-110" onerror="this.style.display='none'" />
-        <div class="absolute inset-0 bg-noir/0 group-hover:bg-noir/55 transition duration-500 flex items-center justify-center">
-          <span class="opacity-0 group-hover:opacity-100 transition duration-500 text-white text-[10px] tracking-luxe uppercase border border-white/60 px-4 py-2">View on Instagram</span>
-        </div>
-        <span class="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/90 flex items-center justify-center">
-          <svg class="w-4 h-4 text-noir" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>
-        </span>
-      </a>`).join('');
+    renderInstagram();
     observeReveal($('gridInstagram'));
   }
 
@@ -641,9 +666,11 @@
     state.view = view;
     $('homeView').classList.toggle('hidden', view !== 'home');
     $('catalogView').classList.toggle('hidden', view !== 'catalog');
+    $('productView').classList.toggle('hidden', view !== 'product');
+    if (view !== 'product') document.title = BASE_TITLE;
     if (view === 'catalog') renderCatalog();
     document.querySelectorAll('nav [data-cat], nav [data-view]').forEach(a => {
-      const active = view === 'home' ? a.dataset.view === 'home' : a.dataset.cat === state.category;
+      const active = view === 'home' ? a.dataset.view === 'home' : view === 'catalog' && a.dataset.cat === state.category;
       a.classList.toggle('active', !!active);
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -653,6 +680,160 @@
     $('categoryFilter').value = cat;
     history.replaceState(null, '', cat === 'All' ? '#shop' : '#' + encodeURIComponent(cat.toLowerCase().replace(/\s+/g, '-')));
     showView('catalog');
+  }
+
+  /* ---------- Product page ---------- */
+  const BASE_TITLE = document.title;
+  const CAT_ORDER = ['Lingerie', 'Nighty', 'Intimate Wear', 'Party Wear'];
+  const catSlug = (c) => c.toLowerCase().replace(/\s+/g, '-');
+  const pv = { size: '', color: '', qty: 1 };
+
+  function openProduct(id) {
+    const h = '#product/' + encodeURIComponent(id);
+    if (location.hash !== h) location.hash = h;   // adds a history entry, so the Back button works
+    else showProduct(id);
+  }
+
+  function chip(attr, val, active) {
+    return `<button type="button" ${attr}="${esc(val)}" class="min-w-[3rem] px-3 py-2 text-xs border transition ${active ? 'bg-noir text-white border-noir' : 'border-black/15 hover:border-noir'}">${esc(val)}</button>`;
+  }
+
+  function showProduct(id) {
+    const p = findP(id);
+    showView('product');
+    if (!p) {
+      $('pvCrumbCat').textContent = 'Products'; $('pvCrumbName').textContent = 'Not found';
+      $('pvBody').innerHTML = `<div class="text-center py-24"><p class="font-serif text-3xl mb-3">This product is no longer available</p><button data-cat="All" class="mt-6 bg-noir text-white text-xs tracking-luxe uppercase px-8 py-3">View All Products</button></div>`;
+      $('pvRecoWrap').classList.add('hidden');
+      return;
+    }
+    pv.size = p.sizes[0]; pv.color = p.colors[0]; pv.qty = 1;
+    document.title = `${p.name} | Secret Collection BD`;
+    $('pvCrumbCat').textContent = p.category;
+    $('pvCrumbCat').dataset.cat = p.category;
+    $('pvCrumbName').textContent = p.name;
+
+    const saving = p.oldPrice && p.oldPrice > p.price ? Math.round((1 - p.price / p.oldPrice) * 100) : 0;
+    const rows = [
+      ['Product Code', p.id],
+      ['Category', p.category],
+      ['Price', taka(p.price) + (p.oldPrice ? `  (Regular ${taka(p.oldPrice)})` : '')],
+      ['Available Sizes', p.sizes.join(', ')],
+      ['Available Colors', p.colors.join(', ')],
+      ...p.extra,
+      ['Delivery', 'FREE across Bangladesh'],
+      ['Payment', 'bKash or Nagad'],
+      ['Packaging', '100% private & discreet']
+    ];
+
+    $('pvBody').innerHTML = `
+      <div class="grid lg:grid-cols-2 gap-10 lg:gap-16 items-start">
+        <div class="relative aspect-[3/4] img-ph overflow-hidden lg:sticky lg:top-28">
+          <img src="${esc(p.image)}" alt="${esc(p.name)}" class="absolute inset-0 w-full h-full object-cover" onerror="this.style.display='none'" />
+          ${p.badge ? `<span class="absolute top-4 left-4 bg-white text-noir text-[10px] tracking-[.18em] uppercase px-3 py-1">${esc(p.badge)}</span>` : ''}
+        </div>
+
+        <div>
+          <p class="text-[11px] tracking-luxe uppercase text-charcoal-soft mb-3">${esc(p.category)}</p>
+          <h1 class="font-serif text-3xl sm:text-4xl lg:text-5xl leading-tight mb-5">${esc(p.name)}</h1>
+          <div class="flex items-baseline gap-3 mb-6">
+            <span class="text-2xl font-medium">${taka(p.price)}</span>
+            ${p.oldPrice ? `<span class="text-charcoal-soft line-through">${taka(p.oldPrice)}</span>` : ''}
+            ${saving ? `<span class="text-[11px] tracking-[.14em] uppercase bg-blush-100 px-2 py-1">Save ${saving}%</span>` : ''}
+          </div>
+          ${p.description ? `<p class="text-charcoal-light leading-relaxed mb-8">${esc(p.description)}</p>` : ''}
+
+          <div class="mb-6">
+            <p class="text-[11px] tracking-luxe uppercase mb-3">Size: <span id="pvSizeLbl" class="text-charcoal-soft">${esc(pv.size)}</span></p>
+            <div id="pvSizes" class="flex flex-wrap gap-2">${p.sizes.map(s => chip('data-pvsize', s, s === pv.size)).join('')}</div>
+          </div>
+          <div class="mb-8">
+            <p class="text-[11px] tracking-luxe uppercase mb-3">Color: <span id="pvColorLbl" class="text-charcoal-soft">${esc(pv.color)}</span></p>
+            <div id="pvColors" class="flex flex-wrap gap-2">${p.colors.map(c => chip('data-pvcolor', c, c === pv.color)).join('')}</div>
+          </div>
+
+          <div class="flex flex-wrap items-stretch gap-3 mb-10">
+            <div class="flex items-center border border-black/15">
+              <button type="button" data-pvqty="-1" class="w-11 h-full min-h-[48px] hover:bg-blush-50" aria-label="Decrease">−</button>
+              <span id="pvQty" class="w-10 text-center">1</span>
+              <button type="button" data-pvqty="1" class="w-11 h-full min-h-[48px] hover:bg-blush-50" aria-label="Increase">+</button>
+            </div>
+            <button type="button" data-pvadd="${esc(p.id)}" class="flex-1 min-w-[160px] bg-noir text-white text-[11px] tracking-luxe uppercase py-4 hover:bg-charcoal transition">Add to Cart</button>
+            <button type="button" data-pvbuy="${esc(p.id)}" class="flex-1 min-w-[160px] border border-noir text-[11px] tracking-luxe uppercase py-4 hover:bg-noir hover:text-white transition">Buy Now</button>
+          </div>
+
+          <h2 class="text-[11px] tracking-luxe uppercase mb-4">Product Details</h2>
+          <dl class="border-t border-black/10 text-sm">
+            ${rows.map(([k, v]) => `
+              <div class="grid grid-cols-[9rem_1fr] sm:grid-cols-[11rem_1fr] gap-4 py-3 border-b border-black/10">
+                <dt class="text-charcoal-soft">${esc(k)}</dt><dd>${esc(v)}</dd>
+              </div>`).join('')}
+          </dl>
+        </div>
+      </div>`;
+
+    // Recommended: one product from each category, in order, left to right
+    const reco = CAT_ORDER.map(c => {
+      const inCat = PRODUCTS.filter(x => x.category === c && x.id !== p.id);
+      return inCat.find(x => x.tags.includes('recommended')) || inCat[0];
+    }).filter(Boolean);
+    $('pvRecoWrap').classList.toggle('hidden', reco.length === 0);
+    renderGrid($('pvReco'), reco, false, true);
+  }
+
+  function pvSelect(kind, val) {
+    pv[kind] = val;
+    const box = kind === 'size' ? 'pvSizes' : 'pvColors';
+    $(box).querySelectorAll('button').forEach(b => {
+      const on = b.textContent === val;
+      b.classList.toggle('bg-noir', on); b.classList.toggle('text-white', on); b.classList.toggle('border-noir', on);
+      b.classList.toggle('border-black/15', !on);
+    });
+    $(kind === 'size' ? 'pvSizeLbl' : 'pvColorLbl').textContent = val;
+  }
+
+  /* ---------- Instagram (real post previews via Instagram's official embed) ---------- */
+  const igUrl = (u) => { const m = String(u).match(/instagram\.com\/(p|reel|tv)\/([A-Za-z0-9_-]+)/); return m ? `https://www.instagram.com/${m[1]}/${m[2]}/` : null; };
+  let igLoaded = false;
+  function renderInstagram() {
+    const posts = CONFIG.instagramPosts.map(igUrl).filter(Boolean).slice(0, 12);
+    const imgs = PRODUCTS.map(p => p.image);
+    $('gridInstagram').innerHTML = posts.map((url, i) => `
+      <div class="ig-card shrink-0 w-[85%] sm:w-[340px] lg:w-auto snap-start bg-white">
+        <blockquote class="instagram-media" data-instgrm-permalink="${url}?utm_source=ig_embed" data-instgrm-version="14"
+          style="background:#FFF;border:0;margin:0;max-width:100%;min-width:260px;width:100%;padding:0;">
+          <!-- Shown until Instagram loads the real post (or if Instagram is blocked) -->
+          <a href="${url}" target="_blank" rel="noopener" class="group relative block aspect-square overflow-hidden img-ph">
+            ${imgs.length ? `<img src="${esc(imgs[i % imgs.length])}" alt="" loading="lazy" class="w-full h-full object-cover" onerror="this.style.display='none'" />` : ''}
+            <span class="absolute inset-0 bg-noir/40 group-hover:bg-noir/60 transition flex items-center justify-center">
+              <span class="text-white text-[10px] tracking-luxe uppercase border border-white/70 px-4 py-2">View on Instagram</span>
+            </span>
+          </a>
+        </blockquote>
+      </div>`).join('');
+    igLoaded ? window.instgrm?.Embeds.process() : lazyLoadInstagram();
+  }
+  function lazyLoadInstagram() {
+    const load = () => {
+      if (igLoaded) return; igLoaded = true;
+      const sc = document.createElement('script');
+      sc.async = true; sc.src = 'https://www.instagram.com/embed.js';
+      sc.onload = () => window.instgrm?.Embeds.process();
+      document.body.appendChild(sc);
+    };
+    if (!('IntersectionObserver' in window)) return load();
+    const ob = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) { ob.disconnect(); load(); } }, { rootMargin: '600px' });
+    ob.observe($('gridInstagram'));
+  }
+
+  /* ---------- Router: #product/ID, #lingerie, #shop … (Back button friendly) ---------- */
+  function route() {
+    const h = decodeURIComponent(location.hash.slice(1));
+    if (h.startsWith('product/')) return showProduct(h.slice(8));
+    const match = CATS.find(c => catSlug(c) === h);
+    if (match) return openCategory(match);
+    if (h === 'shop') return openCategory('All');
+    if (!h || state.view !== 'home') showView('home');
   }
 
   /* ---------- Cart ---------- */
@@ -813,9 +994,20 @@ Please confirm my order. Thank you.`;
 
   /* ---------- Events ---------- */
   document.addEventListener('click', (e) => {
+    const opener = e.target.closest('[data-open]');
+    if (opener && !e.target.closest('button')) { e.preventDefault(); closeCart(); openProduct(opener.dataset.open); return; }
     const el = e.target.closest('a, button');
     if (!el) return;
     const d = el.dataset;
+
+    if (d.pvsize) return pvSelect('size', d.pvsize);
+    if (d.pvcolor) return pvSelect('color', d.pvcolor);
+    if (d.pvqty) { pv.qty = Math.min(99, Math.max(1, pv.qty + Number(d.pvqty))); $('pvQty').textContent = pv.qty; return; }
+    if (d.pvadd || d.pvbuy) {
+      for (let i = 0; i < pv.qty; i++) addToCart(d.pvadd || d.pvbuy, pv.size, pv.color);
+      if (d.pvbuy) openCart();
+      return;
+    }
 
     if (d.add || d.quick) {
       const card = el.closest('[data-pid]');
@@ -853,6 +1045,7 @@ Please confirm my order. Thank you.`;
   $('searchForm').addEventListener('submit', e => {
     e.preventDefault();
     state.query = $('searchInput').value; state.category = $('categoryFilter').value;
+    history.replaceState(null, '', '#shop');
     showView('catalog');
   });
   let st;
@@ -888,11 +1081,9 @@ Please confirm my order. Thank you.`;
     document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
     setInterval(refresh, 5 * 60 * 1000);
 
-    // Deep link support: #lingerie, #nighty, #intimate-wear, #shop
-    const h = decodeURIComponent(location.hash.slice(1));
-    const match = CATS.find(c => c.toLowerCase().replace(/\s+/g, '-') === h);
-    if (match) openCategory(match);
-    else if (h === 'shop') openCategory('All');
+    // Deep links & Back button: #product/L01, #lingerie, #nighty, #intimate-wear, #party-wear, #shop
+    window.addEventListener('hashchange', route);
+    route();
   })();
   </script>
 </body>
