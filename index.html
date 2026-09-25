@@ -107,6 +107,10 @@
           <button id="searchToggle" class="p-2 rounded-full hover:bg-blush-50" aria-label="Search">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path stroke-linecap="round" d="M20 20l-3.5-3.5"/></svg>
           </button>
+          <button id="accountBtn" data-account-ui class="hidden relative p-2 rounded-full hover:bg-blush-50" aria-label="Sign in">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path stroke-linecap="round" d="M4 20c1.5-3.5 4.5-5 8-5s6.5 1.5 8 5"/></svg>
+            <span id="accountDot" class="hidden absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#1F9D55] ring-2 ring-white"></span>
+          </button>
           <button id="cartBtn" class="relative p-2 rounded-full hover:bg-blush-50" aria-label="Open cart">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 7h12l-1 13H7L6 7z"/><path stroke-linecap="round" d="M9 7a3 3 0 016 0"/></svg>
             <span id="cartCount" class="absolute -top-0.5 -right-0.5 hidden min-w-[18px] h-[18px] px-1 rounded-full bg-noir text-white text-[10px] font-semibold flex items-center justify-center">0</span>
@@ -152,6 +156,7 @@
       <a href="#" data-cat="Party Wear">Party Wear</a>
       <a href="#about" data-scroll="about">About Us</a>
       <a href="#contact" data-scroll="contact">Contact</a>
+      <a href="#account" data-account-ui class="hidden">My Account</a>
     </nav>
     <div class="mt-auto px-6 py-6 text-xs tracking-luxe uppercase text-charcoal-soft border-t border-black/5">Private · Discreet · Luxurious</div>
   </aside>
@@ -280,6 +285,81 @@
     </div>
   </section>
 
+  <!-- ================= MY ACCOUNT VIEW ================= -->
+  <section id="accountView" class="hidden max-w-5xl mx-auto px-4 sm:px-6 py-12 sm:py-16 min-h-[70vh]">
+    <div id="accountBody"></div>
+  </section>
+
+  <!-- ================= ADMIN DASHBOARD VIEW ================= -->
+  <section id="adminView" class="hidden bg-[#FAFAFA] min-h-[80vh]">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+      <div id="adminGate"></div>
+      <div id="adminApp" class="hidden">
+        <!-- Title + actions -->
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+          <div>
+            <p class="text-[11px] tracking-luxe uppercase text-charcoal-soft mb-2">Secret Collection BD</p>
+            <h1 class="font-serif text-3xl sm:text-4xl">Admin Dashboard</h1>
+            <p class="text-xs text-charcoal-soft mt-2">Signed in as <span id="adminEmail"></span> · <span id="adminLive" class="inline-flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-[#1F9D55]"></span>Live</span></p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button type="button" data-export="orders" class="border border-noir bg-white text-[11px] tracking-[.14em] uppercase px-4 py-2.5 hover:bg-noir hover:text-white transition">Export Orders CSV</button>
+            <button type="button" data-export="sku" class="border border-noir bg-white text-[11px] tracking-[.14em] uppercase px-4 py-2.5 hover:bg-noir hover:text-white transition">Export SKU CSV</button>
+            <button type="button" data-signout class="bg-noir text-white text-[11px] tracking-[.14em] uppercase px-4 py-2.5 hover:bg-charcoal transition">Sign Out</button>
+          </div>
+        </div>
+
+        <!-- Filters (one row above everything) -->
+        <div class="flex flex-wrap items-center gap-2 mb-8">
+          <div id="admPeriod" class="flex flex-wrap border border-black/15 bg-white"></div>
+          <select id="admStatus" class="lux border border-black/15 bg-white px-4 py-2 text-xs focus:outline-none focus:border-noir"></select>
+          <input id="admSearch" type="search" placeholder="Search order no, name, phone, TrxID…" class="flex-1 min-w-[220px] border border-black/15 bg-white px-4 py-2 text-xs focus:outline-none focus:border-noir" />
+        </div>
+
+        <!-- KPI tiles -->
+        <div id="admKpis" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mb-8"></div>
+
+        <!-- Status breakdown -->
+        <div id="admStatusBar" class="flex flex-wrap gap-2 mb-8"></div>
+
+        <!-- Daily sales chart -->
+        <div class="bg-white border border-black/10 p-5 sm:p-6 mb-8">
+          <div class="flex items-baseline justify-between mb-4">
+            <h2 class="font-serif text-xl">Daily Sales (৳)</h2>
+            <p id="admChartNote" class="text-xs text-charcoal-soft"></p>
+          </div>
+          <div id="admChart" class="relative"></div>
+        </div>
+
+        <div class="grid xl:grid-cols-3 gap-8 mb-8">
+          <!-- SKU summary -->
+          <div class="xl:col-span-2 bg-white border border-black/10">
+            <div class="flex items-baseline justify-between px-5 sm:px-6 pt-5 pb-3">
+              <h2 class="font-serif text-xl">SKU-wise Summary</h2>
+              <p class="text-xs text-charcoal-soft">Excludes cancelled orders</p>
+            </div>
+            <div class="overflow-x-auto"><table class="w-full text-xs" id="admSku"></table></div>
+          </div>
+          <!-- Category summary -->
+          <div class="bg-white border border-black/10">
+            <div class="px-5 sm:px-6 pt-5 pb-3"><h2 class="font-serif text-xl">By Category</h2></div>
+            <div id="admCats" class="px-5 sm:px-6 pb-6 space-y-4"></div>
+          </div>
+        </div>
+
+        <!-- Orders -->
+        <div class="bg-white border border-black/10">
+          <div class="flex items-baseline justify-between px-5 sm:px-6 pt-5 pb-3">
+            <h2 class="font-serif text-xl">Orders</h2>
+            <p id="admOrderCount" class="text-xs text-charcoal-soft"></p>
+          </div>
+          <div class="overflow-x-auto"><table class="w-full text-xs" id="admOrders"></table></div>
+        </div>
+      </div>
+    </div>
+    <div id="admTip" class="pointer-events-none fixed z-[70] hidden bg-noir text-white text-xs px-3 py-2 shadow-lg"></div>
+  </section>
+
   <!-- ===== About ===== -->
   <section id="about" class="bg-blush-50 scroll-mt-24">
     <div class="max-w-4xl mx-auto px-6 py-20 text-center reveal">
@@ -290,7 +370,7 @@
   </section>
 
   <!-- ===== Footer Banner ===== -->
-  <section class="bg-noir text-white">
+  <section id="discreetBanner" class="bg-noir text-white">
     <div class="max-w-7xl mx-auto px-6 py-14 flex flex-col md:flex-row items-center justify-center gap-6 text-center md:text-left">
       <svg class="w-12 h-12 text-blush-200 shrink-0" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 48 48"><path d="M24 4l16 6v12c0 10-7 18-16 22-9-4-16-12-16-22V10l16-6z"/><path stroke-linecap="round" stroke-linejoin="round" d="M17 24l5 5 9-10"/></svg>
       <p class="font-serif text-2xl sm:text-3xl leading-snug">100% Private &amp; Discreet Packaging <span class="text-blush-200">Guaranteed across Bangladesh</span></p>
@@ -319,6 +399,7 @@
             <span class="bg-[#EC1C24] text-white text-[11px] font-bold px-3 py-1 tracking-wider">Nagad</span>
           </div>
           <p class="font-serif text-xl">Payment accepted via <b>bKash</b> or <b>Nagad</b> only</p>
+          <p class="text-sm text-charcoal-light">bKash: <b class="font-mono text-noir">01786789182</b> · Nagad: <b class="font-mono text-noir">01854109062</b> (Send Money)</p>
         </div>
         <div class="flex flex-col items-center gap-3 md:border-l md:border-black/10">
           <span class="border border-noir text-[11px] tracking-luxe uppercase px-3 py-1">Free Delivery</span>
@@ -350,7 +431,8 @@
         <ul class="space-y-3 text-sm">
           <li>WhatsApp: <a id="footerWa" href="#" target="_blank" rel="noopener" class="text-white hover:text-blush-200"></a></li>
           <li>Delivery: FREE across Bangladesh</li>
-          <li>Payment: bKash · Nagad</li>
+          <li>bKash: <span class="text-white font-mono">01786789182</span></li>
+          <li>Nagad: <span class="text-white font-mono">01854109062</span></li>
         </ul>
       </div>
       <div>
@@ -437,7 +519,9 @@
         <form id="checkoutForm" novalidate class="mt-8 space-y-4">
           <p class="text-[11px] tracking-luxe uppercase">Your Details</p>
           <input id="fName" type="text" autocomplete="name" placeholder="Customer Name *" class="w-full border border-black/15 px-4 py-3 text-sm focus:outline-none focus:border-noir" />
+          <p id="fSignedIn" class="hidden text-xs text-charcoal-soft"></p>
           <input id="fPhone" type="tel" inputmode="numeric" autocomplete="tel" placeholder="Phone Number * (01XXXXXXXXX)" class="w-full border border-black/15 px-4 py-3 text-sm focus:outline-none focus:border-noir" />
+          <input id="fEmail" type="email" autocomplete="email" placeholder="Email (optional)" class="w-full border border-black/15 px-4 py-3 text-sm focus:outline-none focus:border-noir" />
           <textarea id="fAddress" rows="2" autocomplete="street-address" placeholder="Full Address * (House, Road, Area, District)" class="w-full border border-black/15 px-4 py-3 text-sm focus:outline-none focus:border-noir"></textarea>
           <select id="fMethod" class="lux w-full border border-black/15 px-4 py-3 text-sm bg-white focus:outline-none focus:border-noir">
             <option value="">Payment Method *</option>
@@ -445,8 +529,18 @@
             <option>Nagad</option>
           </select>
           <input id="fTrx" type="text" placeholder="bKash / Nagad TrxID *" class="w-full border border-black/15 px-4 py-3 text-sm font-mono uppercase focus:outline-none focus:border-noir" />
+          <div id="fCreateWrap" data-account-ui class="hidden border border-black/10 bg-blush-50/60 p-4">
+            <label class="flex items-start gap-3 cursor-pointer text-sm">
+              <input id="fCreate" type="checkbox" class="mt-0.5 w-4 h-4 accent-[#0F0F0F]" />
+              <span><b class="font-medium">Create an account with this order</b><br><span class="text-xs text-charcoal-soft">Track your orders and check out faster next time.</span></span>
+            </label>
+            <div id="fPassWrap" class="hidden mt-3">
+              <input id="fPass" type="password" autocomplete="new-password" placeholder="Choose a password (min 6 characters) *" class="w-full border border-black/15 bg-white px-4 py-3 text-sm focus:outline-none focus:border-noir" />
+              <p class="text-[11px] text-charcoal-soft mt-1">Sign in next time with your phone number and this password.</p>
+            </div>
+          </div>
           <p id="fError" class="hidden text-sm text-red-600"></p>
-          <button type="submit" class="w-full flex items-center justify-center gap-3 bg-noir hover:bg-charcoal text-white text-xs tracking-luxe uppercase py-4 transition">
+          <button id="fSubmit" type="submit" class="w-full flex items-center justify-center gap-3 bg-noir hover:bg-charcoal text-white text-xs tracking-luxe uppercase py-4 transition">
             <svg class="w-5 h-5 text-[#25D366]" fill="currentColor" viewBox="0 0 24 24"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.9 9.9 0 004.74 1.21c5.46 0 9.91-4.45 9.91-9.91C21.95 6.45 17.5 2 12.04 2z"/></svg>
             Confirm &amp; Order via WhatsApp
           </button>
@@ -455,6 +549,52 @@
       </div>
     </div>
   </aside>
+
+  <!-- ===== Login / Create account modal ===== -->
+  <div id="authModal" class="fixed inset-0 z-[65] hidden items-center justify-center p-4">
+    <div data-authclose class="absolute inset-0 bg-black/50"></div>
+    <div class="relative bg-white w-full max-w-md max-h-[92vh] overflow-y-auto">
+      <button type="button" data-authclose class="absolute top-3 right-3 p-2" aria-label="Close">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+      <div class="px-8 pt-10 pb-8">
+        <p class="font-serif text-2xl text-center mb-6">Your Account</p>
+        <div class="grid grid-cols-2 border border-black/15 mb-6">
+          <button type="button" data-authtab="login" class="py-3 text-[11px] tracking-luxe uppercase">Sign In</button>
+          <button type="button" data-authtab="signup" class="py-3 text-[11px] tracking-luxe uppercase">Create Account</button>
+        </div>
+        <form id="authForm" novalidate class="space-y-3">
+          <div data-signup-only class="space-y-3">
+            <input id="aName" type="text" autocomplete="name" placeholder="Full Name *" class="w-full border border-black/15 px-4 py-3 text-sm focus:outline-none focus:border-noir" />
+            <input id="aPhone" type="tel" inputmode="numeric" autocomplete="tel" placeholder="Phone Number * (01XXXXXXXXX)" class="w-full border border-black/15 px-4 py-3 text-sm focus:outline-none focus:border-noir" />
+            <input id="aMail" type="email" autocomplete="email" placeholder="Email (optional)" class="w-full border border-black/15 px-4 py-3 text-sm focus:outline-none focus:border-noir" />
+          </div>
+          <input id="aId" data-login-only type="text" autocomplete="username" placeholder="Phone number or email *" class="w-full border border-black/15 px-4 py-3 text-sm focus:outline-none focus:border-noir" />
+          <input id="aPass" type="password" autocomplete="current-password" placeholder="Password *" class="w-full border border-black/15 px-4 py-3 text-sm focus:outline-none focus:border-noir" />
+          <p id="aError" class="hidden text-sm text-red-600"></p>
+          <p id="aInfo" class="hidden text-sm text-[#1F9D55]"></p>
+          <button id="aSubmit" type="submit" class="w-full bg-noir text-white text-xs tracking-luxe uppercase py-4 hover:bg-charcoal transition">Sign In</button>
+          <button type="button" id="aForgot" data-login-only class="block mx-auto text-xs text-charcoal-soft underline underline-offset-4 hover:text-noir">Forgot password?</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Order placed modal ===== -->
+  <div id="orderDone" class="fixed inset-0 z-[65] hidden items-center justify-center p-4">
+    <div data-doneclose class="absolute inset-0 bg-black/50"></div>
+    <div class="relative bg-white w-full max-w-md px-8 py-10 text-center">
+      <p class="text-[11px] tracking-luxe uppercase text-charcoal-soft mb-3">Thank you</p>
+      <p class="font-serif text-3xl mb-3">Order Placed</p>
+      <p class="text-sm text-charcoal-light mb-1">Your order number</p>
+      <p id="doneNo" class="font-mono text-xl mb-5"></p>
+      <p class="text-sm text-charcoal-light mb-8">Please send the WhatsApp message that just opened so we can verify your payment. We'll confirm shortly.</p>
+      <div class="flex flex-col sm:flex-row gap-2 justify-center">
+        <a id="doneWa" href="#" target="_blank" rel="noopener" class="bg-[#25D366] text-white text-[11px] tracking-luxe uppercase px-6 py-3">Open WhatsApp Again</a>
+        <button type="button" data-doneclose class="border border-noir text-[11px] tracking-luxe uppercase px-6 py-3">Continue Shopping</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Toast -->
   <div id="toast" class="fade fixed bottom-24 left-1/2 -translate-x-1/2 z-[60] bg-noir text-white text-xs tracking-[.14em] uppercase px-6 py-3 opacity-0 pointer-events-none"></div>
@@ -674,6 +814,11 @@
     $('homeView').classList.toggle('hidden', view !== 'home');
     $('catalogView').classList.toggle('hidden', view !== 'catalog');
     $('productView').classList.toggle('hidden', view !== 'product');
+    $('accountView').classList.toggle('hidden', view !== 'account');
+    $('adminView').classList.toggle('hidden', view !== 'admin');
+    ['about', 'how', 'discreetBanner'].forEach(id => $(id) && $(id).classList.toggle('hidden', view === 'admin'));
+    if (view === 'account' && typeof renderAccount === 'function') renderAccount();
+    if (view === 'admin' && typeof renderAdmin === 'function') renderAdmin();
     if (view !== 'product') document.title = BASE_TITLE;
     if (view === 'catalog') renderCatalog();
     document.querySelectorAll('nav [data-cat], nav [data-view]').forEach(a => {
@@ -840,6 +985,7 @@
     const match = CATS.find(c => catSlug(c) === h);
     if (match) return openCategory(match);
     if (h === 'shop') return openCategory('All');
+    if (h === 'account' || h === 'admin') return showView(h);
     if (!h || state.view !== 'home') showView('home');
   }
 
@@ -948,37 +1094,42 @@
   }
 
   /* ---------- WhatsApp checkout ---------- */
-  function checkout(e) {
+  async function checkout(e) {
     e.preventDefault();
     const name = $('fName').value.trim();
     const phone = $('fPhone').value.replace(/[\s-]/g, '');
+    const email = $('fEmail').value.trim();
     const address = $('fAddress').value.trim();
     const method = $('fMethod').value;
     const trx = $('fTrx').value.trim().toUpperCase();
+    const acctOn = typeof Account !== 'undefined' && Account.enabled;
+    const wantAccount = acctOn && !Account.user && $('fCreate').checked;
+    const pass = $('fPass').value;
     const err = $('fError');
 
     let msg = '';
     if (!cart.length) msg = 'Your bag is empty.';
     else if (!name) msg = 'Please enter your name.';
     else if (!/^(\+?88)?01[3-9]\d{8}$/.test(phone)) msg = 'Please enter a valid Bangladeshi phone number (01XXXXXXXXX).';
+    else if (email && !/^\S+@\S+\.\S+$/.test(email)) msg = 'Please enter a valid email.';
     else if (address.length < 8) msg = 'Please enter your full delivery address.';
     else if (!method) msg = 'Please choose a payment method.';
     else if (trx.length < 4) msg = 'Please enter your TrxID / payment reference.';
+    else if (wantAccount && pass.length < 6) msg = 'Please choose a password of at least 6 characters.';
     if (msg) { err.textContent = msg; err.classList.remove('hidden'); return; }
     err.classList.add('hidden');
 
+    const orderNo = acctOn ? makeOrderNo() : '';
     const { sub, total } = totals();
-    const items = cart.map((i, n) => {
-      const p = findP(i.id);
-      return `${n + 1}. ${p.name}\n   Size: ${i.size} | Color: ${i.color}\n   ${i.qty} × ${taka(p.price)} = ${taka(p.price * i.qty)}`;
-    }).join('\n\n');
+    const lines = cart.map(i => { const p = findP(i.id); return { id: p.id, name: p.name, category: p.category, size: i.size, color: i.color, qty: i.qty, price: p.price, lineTotal: p.price * i.qty, image: p.image }; });
+    const itemsText = lines.map((l, n) => `${n + 1}. ${l.name} (${l.id})\n   Size: ${l.size} | Color: ${l.color}\n   ${l.qty} × ${taka(l.price)} = ${taka(l.lineTotal)}`).join('\n\n');
 
     const text =
-`*NEW ORDER — SECRET COLLECTION BD*
+`*NEW ORDER — SECRET COLLECTION BD*${orderNo ? `\nOrder No: *${orderNo}*` : ''}
 ━━━━━━━━━━━━━━━
 
 *ORDER ITEMS*
-${items}
+${itemsText}
 
 ━━━━━━━━━━━━━━━
 Subtotal: ${taka(sub)}
@@ -987,7 +1138,7 @@ Delivery: FREE
 
 *CUSTOMER*
 Name: ${name}
-Phone: ${phone}
+Phone: ${phone}${email ? `\nEmail: ${email}` : ''}
 Address: ${address}
 
 *PAYMENT*
@@ -995,9 +1146,40 @@ Method: ${method}
 TrxID / Ref: ${trx}
 
 Please confirm my order. Thank you.`;
+    const url = `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(text)}`;
 
-    window.open(`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
+    if (!acctOn) { window.open(url, '_blank', 'noopener'); return; }
+
+    // open the WhatsApp tab now (browsers block pop-ups opened after a delay)
+    const win = window.open('', '_blank');
+    const btn = $('fSubmit'); btn.disabled = true; btn.classList.add('opacity-60');
+    try {
+      await saveOrder({
+        orderNo, source: 'website',
+        customer: { name, phone, email, address },
+        payment: { method, trx },
+        items: lines, subtotal: sub, delivery: 0, total
+      }, wantAccount ? { email, pass } : null);
+    } catch (ex) {
+      console.error('Order save failed:', ex);
+      if (ex && String(ex.code || '').startsWith('auth/')) {      // account problem: let the customer fix it
+        if (win) win.close();
+        err.textContent = authMsg(ex) + (ex.code === 'auth/email-already-in-use' ? ' Or untick "Create an account" to order as a guest.' : '');
+        err.classList.remove('hidden');
+        btn.disabled = false; btn.classList.remove('opacity-60');
+        return;
+      }
+      // anything else: never lose the sale, WhatsApp still goes through
+    }
+    btn.disabled = false; btn.classList.remove('opacity-60');
+    if (win && !win.closed) win.location.href = url; else location.href = url;
+
+    cart = []; saveCart(); renderCart(); closeCart();
+    $('fTrx').value = ''; $('fPass').value = ''; $('fCreate').checked = false; $('fPassWrap').classList.add('hidden');
+    $('doneNo').textContent = orderNo; $('doneWa').href = url;
+    $('orderDone').classList.remove('hidden'); $('orderDone').classList.add('flex');
   }
+
 
   /* ---------- Events ---------- */
   document.addEventListener('click', (e) => {
@@ -1092,6 +1274,557 @@ Please confirm my order. Thank you.`;
     window.addEventListener('hashchange', route);
     route();
   })();
+  </script>
+
+  <!-- =====================================================================
+       ACCOUNTS, ORDERS & ADMIN DASHBOARD  (Firebase — free "Spark" plan)
+       Paste your Firebase web config below. Until you do, the shop works
+       exactly as before (WhatsApp orders only) and login stays hidden.
+       ===================================================================== -->
+  <script>
+  const FIREBASE_CONFIG = {
+    apiKey: 'AIzaSyB_xMPnzuNieOtMZWE3ozmdBa0jxGKHkO4',
+    authDomain: 'secret-collection-bd.firebaseapp.com',
+    projectId: 'secret-collection-bd',
+    storageBucket: 'secret-collection-bd.firebasestorage.app',
+    messagingSenderId: '793518451226',
+    appId: '1:793518451226:web:abc07074ad9be7525a3fa3',
+    measurementId: 'G-0CGB5WHCEC'
+  };
+  // Emails that get the Admin Dashboard (must match the Firestore rules)
+  const ADMIN_EMAILS = ['md.moinuddin.hridoy@gmail.com'];
+
+  const ORDER_STATUSES = ['Pending', 'Payment Verified', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled'];
+  const STATUS_STYLE = {
+    'Pending':          'bg-[#FFF4D6] text-[#7A5A00]',
+    'Payment Verified': 'bg-[#E3F0FF] text-[#1D4E89]',
+    'Confirmed':        'bg-[#EDE7FF] text-[#4B3A8C]',
+    'Shipped':          'bg-[#E6F4F1] text-[#1E6B5C]',
+    'Delivered':        'bg-[#E3F5E9] text-[#1F7A45]',
+    'Cancelled':        'bg-[#FDE8E8] text-[#9B1C1C]'
+  };
+  const statusPill = (s) => `<span class="inline-block whitespace-nowrap px-2.5 py-1 text-[10px] tracking-[.12em] uppercase ${STATUS_STYLE[s] || 'bg-black/5'}">${esc(s)}</span>`;
+  const fmtDate = (d) => d ? d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+  const fmtTime = (d) => d ? d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '';
+
+  const Account = {
+    enabled: false, fb: null, auth: null, db: null,
+    user: null, profile: null, isAdmin: false,
+    myOrders: [], adminOrders: [], unsubMine: null, unsubAdmin: null
+  };
+
+  /* ---------- Boot ---------- */
+  async function initAccounts() {
+    if (!FIREBASE_CONFIG.apiKey || FIREBASE_CONFIG.apiKey.startsWith('PASTE')) {
+      console.info('Accounts are off: paste your Firebase config into FIREBASE_CONFIG to enable login & the admin dashboard.');
+      return;
+    }
+    try {
+      const V = '10.12.2', base = `https://www.gstatic.com/firebasejs/${V}/`;
+      const [appM, authM, dbM] = await Promise.all([
+        import(base + 'firebase-app.js'), import(base + 'firebase-auth.js'), import(base + 'firebase-database.js')
+      ]);
+      Account.fb = { ...authM, ...dbM };
+      const app = appM.initializeApp(FIREBASE_CONFIG);
+      Account.auth = authM.getAuth(app);
+      Account.db = dbM.getDatabase(app);
+      Account.enabled = true;
+      document.querySelectorAll('[data-account-ui]').forEach(el => el.classList.remove('hidden'));
+      authM.onAuthStateChanged(Account.auth, onAuthChange);
+    } catch (err) {
+      console.error('Firebase failed to load — accounts disabled for this visit.', err);
+    }
+  }
+  const R = (path) => Account.fb.ref(Account.db, path);
+  const clean = (o) => JSON.parse(JSON.stringify(o));          // Realtime Database rejects "undefined"
+
+  /* ---------- Phone / email login helpers ----------
+     Customers sign in with their phone number (or their email, if they added one).
+     Behind the scenes each customer account uses a private login ID made from the phone number. */
+  const normPhone = (v) => { const d = String(v || '').replace(/\D/g, '').replace(/^88(?=01)/, ''); return /^01[3-9]\d{8}$/.test(d) ? d : ''; };
+  async function sha(text) {
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(String(text).trim().toLowerCase()));
+    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+  const phoneLogin = async (phone) => `c${(await sha('scbd:' + phone)).slice(0, 24)}@members.secretcollectionbd.com`;
+  async function resolveLogin(id) {
+    const phone = normPhone(id);
+    if (phone) return phoneLogin(phone);
+    const email = String(id).trim().toLowerCase();
+    if (!/^\S+@\S+\.\S+$/.test(email)) return null;
+    if (ADMIN_EMAILS.includes(email)) return email;
+    try {
+      const snap = await Account.fb.get(R('emailIndex/' + await sha(email)));
+      if (snap.exists()) return snap.val();
+    } catch (e) { /* fall through */ }
+    return email;
+  }
+  async function createCustomer({ name, phone, email, address, pass }) {
+    const F = Account.fb;
+    const cred = await F.createUserWithEmailAndPassword(Account.auth, await phoneLogin(phone), pass);
+    await F.updateProfile(cred.user, { displayName: name }).catch(() => {});
+    const profile = clean({ name, phone, email: email || '', address: address || '', createdAt: Date.now() });
+    await F.set(R('users/' + cred.user.uid), profile);
+    if (email) await F.set(R('emailIndex/' + await sha(email)), cred.user.email).catch(() => {});
+    Account.profile = profile;
+    return cred.user;
+  }
+
+  async function onAuthChange(user) {
+    const F = Account.fb;
+    Account.user = user;
+    Account.isAdmin = !!(user && ADMIN_EMAILS.includes(String(user.email).toLowerCase()));
+    if (Account.unsubMine) { Account.unsubMine(); Account.unsubMine = null; }
+    if (Account.unsubAdmin) { Account.unsubAdmin(); Account.unsubAdmin = null; }
+    Account.myOrders = []; Account.adminOrders = [];
+    if (!user) Account.profile = null;
+
+    if (user) {
+      try {
+        const snap = await F.get(R('users/' + user.uid));
+        if (snap.exists()) Account.profile = snap.val();
+        else if (!Account.profile) Account.profile = { name: user.displayName || '', email: Account.isAdmin ? user.email : '' };
+      } catch (e) { if (!Account.profile) Account.profile = { name: user.displayName || '' }; }
+      // live: this customer's own orders
+      Account.unsubMine = F.onValue(R('userOrders/' + user.uid),
+        snap => { Account.myOrders = toOrders(snap.val()); if (state.view === 'account') renderAccount(); },
+        err => console.error(err));
+      // live: every order, admin only
+      if (Account.isAdmin) {
+        Account.unsubAdmin = F.onValue(F.query(R('orders'), F.orderByChild('createdAt'), F.limitToLast(5000)),
+          snap => { Account.adminOrders = toOrders(snap.val()); if (state.view === 'admin') renderAdmin(); },
+          err => { console.error(err); toast('Could not load orders — check Database rules'); });
+      }
+    }
+    updateAuthUI();
+    if (state.view === 'account') renderAccount();
+    if (state.view === 'admin') renderAdmin();
+  }
+
+  function toOrders(obj) {
+    return Object.entries(obj || {}).map(([id, o]) => ({
+      ...o, _id: id,
+      items: Array.isArray(o.items) ? o.items : Object.values(o.items || {}),
+      date: o.createdAt ? new Date(o.createdAt) : null
+    })).sort((a, b) => (b.date || 0) - (a.date || 0));
+  }
+
+  function updateAuthUI() {
+    const u = Account.user, p = Account.profile || {};
+    $('accountDot').classList.toggle('hidden', !u);
+    $('accountBtn').setAttribute('aria-label', u ? 'My account' : 'Sign in');
+    $('fCreateWrap').classList.toggle('hidden', !!u || !Account.enabled);
+    $('fSignedIn').classList.toggle('hidden', !u);
+    if (u) {
+      $('fSignedIn').textContent = `Ordering as ${p.name || 'you'}${p.phone ? ' · ' + p.phone : ''}`;
+      if (!$('fName').value) $('fName').value = p.name || '';
+      if (!$('fPhone').value) $('fPhone').value = p.phone || '';
+      if (!$('fAddress').value) $('fAddress').value = p.address || '';
+      if (!$('fEmail').value) $('fEmail').value = p.email || '';
+    }
+  }
+
+  /* ---------- Save order (called from checkout) ---------- */
+  async function saveOrder(order, newAccount) {
+    const F = Account.fb;
+    if (newAccount) await createCustomer({ ...order.customer, pass: newAccount.pass });
+    const u = Account.auth.currentUser;
+    const key = F.push(R('orders')).key;
+    const data = clean({ ...order, uid: u ? u.uid : null, status: 'Pending', createdAt: Date.now() });
+    await F.set(R('orders/' + key), data);
+    if (u) await F.set(R(`userOrders/${u.uid}/${key}`), data).catch(err => console.warn('Order copy for customer failed', err));
+  }
+  function makeOrderNo() {
+    const d = new Date(), p = (n) => String(n).padStart(2, '0');
+    return `SCB-${String(d.getFullYear()).slice(2)}${p(d.getMonth() + 1)}${p(d.getDate())}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+  }
+
+  /* ---------- Login / sign-up modal ---------- */
+  let authMode = 'login';
+  function openAuth(mode = 'login') {
+    if (!Account.enabled) return toast('Accounts are not set up yet');
+    authMode = mode;
+    const m = $('authModal'); m.classList.remove('hidden'); m.classList.add('flex');
+    $('aError').classList.add('hidden'); $('aInfo').classList.add('hidden');
+    document.querySelectorAll('[data-authtab]').forEach(b => {
+      const on = b.dataset.authtab === mode;
+      b.classList.toggle('bg-noir', on); b.classList.toggle('text-white', on);
+    });
+    document.querySelectorAll('[data-signup-only]').forEach(el => el.classList.toggle('hidden', mode !== 'signup'));
+    document.querySelectorAll('[data-login-only]').forEach(el => el.classList.toggle('hidden', mode !== 'login'));
+    $('aSubmit').textContent = mode === 'login' ? 'Sign In' : 'Create Account';
+    $('aPass').setAttribute('autocomplete', mode === 'login' ? 'current-password' : 'new-password');
+    setTimeout(() => (mode === 'signup' ? $('aName') : $('aId')).focus(), 50);
+  }
+  function closeAuth() { const m = $('authModal'); m.classList.add('hidden'); m.classList.remove('flex'); }
+  const AUTH_ERRORS = {
+    'auth/invalid-credential': 'Wrong phone/email or password.',
+    'auth/wrong-password': 'Wrong phone/email or password.',
+    'auth/user-not-found': 'No account found. Please create one.',
+    'auth/email-already-in-use': 'An account with this phone number already exists. Please sign in.',
+    'auth/weak-password': 'Password must be at least 6 characters.',
+    'auth/invalid-email': 'Please enter a valid phone number or email.',
+    'auth/too-many-requests': 'Too many attempts. Please wait a minute and try again.',
+    'auth/network-request-failed': 'Network problem. Check your internet and try again.'
+  };
+  const authMsg = (err) => AUTH_ERRORS[err && err.code] || 'Something went wrong. Please try again.';
+
+  async function submitAuth(e) {
+    e.preventDefault();
+    const F = Account.fb, err = $('aError'), pass = $('aPass').value;
+    err.classList.add('hidden');
+    const fail = (m) => { err.textContent = m; err.classList.remove('hidden'); };
+    if (pass.length < 6) return fail('Password must be at least 6 characters.');
+    const btn = $('aSubmit'); btn.disabled = true; btn.classList.add('opacity-60');
+    try {
+      let adminLogin = false;
+      if (authMode === 'login') {
+        const loginId = await resolveLogin($('aId').value);
+        if (!loginId) throw { code: 'x', message: 'Please enter your phone number (01XXXXXXXXX) or email.' };
+        adminLogin = ADMIN_EMAILS.includes(loginId);
+        await F.signInWithEmailAndPassword(Account.auth, loginId, pass);
+      } else {
+        const name = $('aName').value.trim(), phone = normPhone($('aPhone').value), email = $('aMail').value.trim().toLowerCase();
+        if (!name) throw { code: 'x', message: 'Please enter your name.' };
+        if (!phone) throw { code: 'x', message: 'Please enter a valid Bangladeshi phone number (01XXXXXXXXX).' };
+        if (email && !/^\S+@\S+\.\S+$/.test(email)) throw { code: 'x', message: 'Please enter a valid email, or leave it empty.' };
+        await createCustomer({ name, phone, email, pass });
+      }
+      closeAuth();
+      $('aPass').value = '';
+      toast(adminLogin ? 'Welcome back, admin' : 'Signed in');
+      location.hash = adminLogin ? '#admin' : '#account';
+    } catch (ex) {
+      fail(ex.code === 'x' ? ex.message : authMsg(ex));
+    } finally { btn.disabled = false; btn.classList.remove('opacity-60'); }
+  }
+  async function forgotPassword() {
+    const id = $('aId').value.trim().toLowerCase();
+    if (ADMIN_EMAILS.includes(id)) {
+      try {
+        await Account.fb.sendPasswordResetEmail(Account.auth, id);
+        $('aError').classList.add('hidden');
+        $('aInfo').textContent = 'Password reset link sent to your email.'; $('aInfo').classList.remove('hidden');
+      } catch (ex) { $('aError').textContent = authMsg(ex); $('aError').classList.remove('hidden'); }
+      return;
+    }
+    window.open(`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent('Hi, I forgot my Secret Collection BD account password. My phone number is: ' + id)}`, '_blank', 'noopener');
+  }
+  async function signOutUser() {
+    await Account.fb.signOut(Account.auth);
+    ['fName', 'fPhone', 'fAddress', 'fEmail'].forEach(id => $(id).value = '');
+    toast('Signed out');
+    location.hash = '';
+    showView('home');
+  }
+
+  /* ---------- Customer: My Account ---------- */
+  function renderAccount() {
+    const box = $('accountBody');
+    if (!Account.enabled) {
+      box.innerHTML = `<div class="text-center py-20"><p class="font-serif text-3xl mb-3">Accounts coming soon</p><p class="text-charcoal-soft">You can still order as a guest via WhatsApp.</p></div>`;
+      return;
+    }
+    const u = Account.user;
+    if (!u) {
+      box.innerHTML = `
+        <div class="text-center py-20">
+          <p class="font-serif text-4xl mb-4">My Account</p>
+          <p class="text-charcoal-soft mb-10">Sign in to track your orders and check out faster.</p>
+          <div class="flex flex-col sm:flex-row gap-3 justify-center">
+            <button type="button" data-authopen="login" class="bg-noir text-white text-[11px] tracking-luxe uppercase px-10 py-4">Sign In</button>
+            <button type="button" data-authopen="signup" class="border border-noir text-[11px] tracking-luxe uppercase px-10 py-4">Create Account</button>
+          </div>
+        </div>`;
+      return;
+    }
+    const p = Account.profile || {};
+    const orders = Account.myOrders;
+    box.innerHTML = `
+      <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10 pb-6 border-b border-black/10">
+        <div>
+          <p class="text-[11px] tracking-luxe uppercase text-charcoal-soft mb-2">My Account</p>
+          <h1 class="font-serif text-4xl">Hello, ${esc((p.name || 'there').split(' ')[0])}</h1>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          ${Account.isAdmin ? `<a href="#admin" class="bg-noir text-white text-[11px] tracking-luxe uppercase px-5 py-3">Admin Dashboard</a>` : ''}
+          <button type="button" data-signout class="border border-noir text-[11px] tracking-luxe uppercase px-5 py-3 hover:bg-noir hover:text-white transition">Sign Out</button>
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-3 gap-10">
+        <form id="profileForm" class="space-y-3">
+          <h2 class="text-[11px] tracking-luxe uppercase mb-4">My Details</h2>
+          <input id="pName" value="${esc(p.name || '')}" placeholder="Full Name" class="w-full border border-black/15 px-4 py-3 text-sm focus:outline-none focus:border-noir" />
+          <input id="pPhone" value="${esc(p.phone || '')}" placeholder="Phone Number" inputmode="numeric" ${p.phone ? 'readonly title="Your phone number is your login"' : ''} class="read-only:bg-black/[.03] w-full border border-black/15 px-4 py-3 text-sm focus:outline-none focus:border-noir" />
+          <textarea id="pAddress" rows="3" placeholder="Delivery Address" class="w-full border border-black/15 px-4 py-3 text-sm focus:outline-none focus:border-noir">${esc(p.address || '')}</textarea>
+          <input id="pEmail" type="email" value="${esc(p.email || '')}" placeholder="Email (optional)" class="w-full border border-black/15 px-4 py-3 text-sm focus:outline-none focus:border-noir" />
+          <p class="text-xs text-charcoal-soft">Sign in with your phone number${p.email ? ' or email' : ''}.</p>
+          <button class="w-full bg-noir text-white text-[11px] tracking-luxe uppercase py-3 hover:bg-charcoal transition">Save Details</button>
+        </form>
+
+        <div class="lg:col-span-2">
+          <h2 class="text-[11px] tracking-luxe uppercase mb-4">My Orders (${orders.length})</h2>
+          ${orders.length ? orders.map(o => `
+            <div class="border border-black/10 p-5 mb-3">
+              <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                <div><p class="font-mono text-sm">${esc(o.orderNo)}</p><p class="text-xs text-charcoal-soft">${fmtDate(o.date)} ${fmtTime(o.date)}</p></div>
+                ${statusPill(o.status)}
+              </div>
+              <ul class="text-sm text-charcoal-light space-y-1 mb-3">
+                ${(o.items || []).map(i => `<li>${esc(i.name)} <span class="text-charcoal-soft">· ${esc(i.size)} · ${esc(i.color)} · ×${i.qty}</span></li>`).join('')}
+              </ul>
+              <div class="flex justify-between text-sm pt-3 border-t border-black/5"><span class="text-charcoal-soft">${esc(o.payment?.method || '')} · ${esc(o.payment?.trx || '')}</span><b>${taka(o.total)}</b></div>
+            </div>`).join('') : `<div class="border border-dashed border-black/15 p-10 text-center text-charcoal-soft">No orders yet. <a href="#shop" class="underline">Start shopping</a></div>`}
+        </div>
+      </div>`;
+    $('profileForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = $('pEmail').value.trim().toLowerCase();
+      if (email && !/^\S+@\S+\.\S+$/.test(email)) return toast('Please enter a valid email');
+      const data = { name: $('pName').value.trim(), phone: (Account.profile && Account.profile.phone) || normPhone($('pPhone').value), address: $('pAddress').value.trim(), email };
+      try {
+        await Account.fb.update(R('users/' + u.uid), clean(data));
+        if (email && !Account.isAdmin) await Account.fb.set(R('emailIndex/' + await sha(email)), u.email).catch(() => {});
+        Account.profile = { ...Account.profile, ...data };
+        updateAuthUI(); toast('Details saved');
+      } catch (err) { console.error(err); toast('Could not save — please try again'); }
+    });
+  }
+
+  /* ---------- Admin dashboard ---------- */
+  const adm = { period: '30', status: 'All', search: '', open: null };
+  const PERIODS = [['today', 'Today'], ['7', '7 Days'], ['30', '30 Days'], ['month', 'This Month'], ['all', 'All Time']];
+
+  function periodStart(p) {
+    const now = new Date(), d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    if (p === 'today') return d;
+    if (p === '7') return new Date(d - 6 * 864e5);
+    if (p === '30') return new Date(d - 29 * 864e5);
+    if (p === 'month') return new Date(now.getFullYear(), now.getMonth(), 1);
+    return null;
+  }
+  function adminFiltered() {
+    const start = periodStart(adm.period), q = adm.search.trim().toLowerCase();
+    return Account.adminOrders.filter(o =>
+      (!start || (o.date && o.date >= start)) &&
+      (adm.status === 'All' || o.status === adm.status) &&
+      (!q || [o.orderNo, o.customer?.name, o.customer?.phone, o.customer?.email, o.payment?.trx].join(' ').toLowerCase().includes(q)));
+  }
+
+  function renderAdmin() {
+    const gate = $('adminGate'), appEl = $('adminApp');
+    if (!Account.enabled || !Account.user || !Account.isAdmin) {
+      appEl.classList.add('hidden');
+      gate.innerHTML = `<div class="text-center py-24">
+        <p class="font-serif text-3xl mb-3">Admin access only</p>
+        <p class="text-charcoal-soft mb-8">${!Account.enabled ? 'Accounts are not set up yet (Firebase config missing).' : Account.user ? 'This account does not have admin access.' : 'Please sign in with your admin account.'}</p>
+        ${Account.enabled && !Account.user ? `<button type="button" data-authopen="login" class="bg-noir text-white text-[11px] tracking-luxe uppercase px-10 py-4">Admin Sign In</button>` : ''}
+      </div>`;
+      return;
+    }
+    gate.innerHTML = ''; appEl.classList.remove('hidden');
+    $('adminEmail').textContent = Account.user.email;
+
+    $('admPeriod').innerHTML = PERIODS.map(([k, l]) => `<button type="button" data-admperiod="${k}" class="px-4 py-2 text-[11px] tracking-[.12em] uppercase ${adm.period === k ? 'bg-noir text-white' : 'hover:bg-black/5'}">${l}</button>`).join('');
+    const sel = $('admStatus');
+    if (!sel.options.length) sel.innerHTML = ['All', ...ORDER_STATUSES].map(s => `<option value="${s}">${s === 'All' ? 'All Statuses' : s}</option>`).join('');
+    sel.value = adm.status;
+
+    const list = adminFiltered();
+    const live = list.filter(o => o.status !== 'Cancelled');
+    const revenue = live.reduce((s, o) => s + (Number(o.total) || 0), 0);
+    const units = live.reduce((s, o) => s + (o.items || []).reduce((a, i) => a + (Number(i.qty) || 0), 0), 0);
+    const customers = new Set(list.map(o => o.customer?.phone).filter(Boolean)).size;
+    const pending = list.filter(o => o.status === 'Pending').length;
+
+    const tile = (label, value, sub) => `<div class="bg-white border border-black/10 p-4">
+      <p class="text-[10px] tracking-[.16em] uppercase text-charcoal-soft mb-2">${label}</p>
+      <p class="font-serif text-2xl leading-none">${value}</p>${sub ? `<p class="text-[11px] text-charcoal-soft mt-2">${sub}</p>` : ''}</div>`;
+    $('admKpis').innerHTML =
+      tile('Orders', list.length, `${live.length} active`) +
+      tile('Revenue', taka(revenue), 'Excl. cancelled') +
+      tile('Avg Order', taka(live.length ? Math.round(revenue / live.length) : 0)) +
+      tile('Items Sold', units) +
+      tile('Pending', pending, pending ? 'Need payment check' : 'All clear') +
+      tile('Customers', customers, 'Unique phone numbers');
+
+    $('admStatusBar').innerHTML = ORDER_STATUSES.map(s => {
+      const n = list.filter(o => o.status === s).length;
+      return `<button type="button" data-admstatus="${s}" class="flex items-center gap-2 bg-white border ${adm.status === s ? 'border-noir' : 'border-black/10'} px-3 py-2 text-xs">${statusPill(s)}<b>${n}</b></button>`;
+    }).join('');
+
+    renderAdminChart(live);
+    renderSku(live);
+    renderAdminOrders(list);
+  }
+
+  function renderAdminChart(live) {
+    const start = periodStart(adm.period);
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    let from = start ? new Date(start) : new Date(today - 29 * 864e5);
+    if ((today - from) / 864e5 > 59) from = new Date(today - 59 * 864e5);
+    const days = [];
+    for (let d = new Date(from); d <= today; d = new Date(d.getTime() + 864e5)) days.push({ d: new Date(d), rev: 0, n: 0 });
+    const key = (d) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+    const idx = Object.fromEntries(days.map((x, i) => [key(x.d), i]));
+    live.forEach(o => { if (!o.date) return; const i = idx[key(o.date)]; if (i !== undefined) { days[i].rev += Number(o.total) || 0; days[i].n++; } });
+    const max = Math.max(...days.map(x => x.rev), 1);
+    $('admChartNote').textContent = start ? '' : 'Showing the last ' + days.length + ' days';
+    const H = 180;
+    $('admChart').innerHTML = `
+      <div class="flex items-end gap-[2px] border-b border-black/15" style="height:${H}px">
+        ${days.map(x => `<div class="flex-1 h-full flex items-end group cursor-default" data-tip="${fmtDate(x.d)}|${taka(x.rev)}|${x.n} order${x.n === 1 ? '' : 's'}">
+          <div class="w-full rounded-t-[4px] ${x.rev ? 'bg-noir group-hover:bg-charcoal-light' : 'bg-black/5'}" style="height:${x.rev ? Math.max(3, x.rev / max * (H - 8)) : 2}px"></div>
+        </div>`).join('')}
+      </div>
+      <div class="flex justify-between text-[10px] text-charcoal-soft mt-2"><span>${fmtDate(days[0].d)}</span><span>Peak ${taka(max === 1 ? 0 : max)}</span><span>${fmtDate(days[days.length - 1].d)}</span></div>`;
+  }
+
+  let skuRows = [];
+  function renderSku(live) {
+    const map = {};
+    live.forEach(o => (o.items || []).forEach(i => {
+      const k = i.id || i.name;
+      const r = map[k] || (map[k] = { sku: i.id || '', name: i.name, category: i.category || '', qty: 0, revenue: 0, orders: new Set(), sizes: {}, colors: {} });
+      const q = Number(i.qty) || 0;
+      r.qty += q; r.revenue += Number(i.lineTotal) || (Number(i.price) || 0) * q; r.orders.add(o._id);
+      r.sizes[i.size] = (r.sizes[i.size] || 0) + q; r.colors[i.color] = (r.colors[i.color] || 0) + q;
+    }));
+    const top = (o) => Object.entries(o).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([k, v]) => `${k} (${v})`).join(', ');
+    skuRows = Object.values(map).sort((a, b) => b.qty - a.qty || b.revenue - a.revenue)
+      .map(r => ({ ...r, orders: r.orders.size, topSizes: top(r.sizes), topColors: top(r.colors) }));
+    const th = 'text-left font-medium text-[10px] tracking-[.14em] uppercase text-charcoal-soft px-4 py-3 border-y border-black/10 whitespace-nowrap';
+    const td = 'px-4 py-3 border-b border-black/5 align-top';
+    $('admSku').innerHTML = `<thead><tr>
+        <th class="${th}">SKU</th><th class="${th}">Product</th><th class="${th}">Category</th>
+        <th class="${th} text-right">Qty</th><th class="${th} text-right">Revenue</th><th class="${th} text-right">Orders</th>
+        <th class="${th}">Top Sizes</th><th class="${th}">Top Colors</th></tr></thead>
+      <tbody>${skuRows.length ? skuRows.map(r => `<tr class="hover:bg-black/[.02]">
+        <td class="${td} font-mono">${esc(r.sku)}</td><td class="${td}">${esc(r.name)}</td><td class="${td} text-charcoal-soft">${esc(r.category)}</td>
+        <td class="${td} text-right font-medium">${r.qty}</td><td class="${td} text-right">${taka(r.revenue)}</td><td class="${td} text-right">${r.orders}</td>
+        <td class="${td} text-charcoal-soft">${esc(r.topSizes)}</td><td class="${td} text-charcoal-soft">${esc(r.topColors)}</td></tr>`).join('')
+        : `<tr><td colspan="8" class="px-4 py-10 text-center text-charcoal-soft">No sales in this period yet.</td></tr>`}</tbody>`;
+
+    const cats = {};
+    skuRows.forEach(r => { const c = r.category || 'Other'; cats[c] = cats[c] || { qty: 0, revenue: 0 }; cats[c].qty += r.qty; cats[c].revenue += r.revenue; });
+    const totalRev = Object.values(cats).reduce((s, c) => s + c.revenue, 0) || 1;
+    $('admCats').innerHTML = Object.keys(cats).length ? Object.entries(cats).sort((a, b) => b[1].revenue - a[1].revenue).map(([c, v]) => `
+      <div>
+        <div class="flex justify-between text-xs mb-1.5"><span>${esc(c)}</span><span class="text-charcoal-soft">${v.qty} pcs · <b class="text-noir">${taka(v.revenue)}</b></span></div>
+        <div class="h-2 bg-black/5"><div class="h-2 bg-noir rounded-r-[4px]" style="width:${(v.revenue / totalRev * 100).toFixed(1)}%"></div></div>
+        <p class="text-[10px] text-charcoal-soft mt-1">${Math.round(v.revenue / totalRev * 100)}% of revenue</p>
+      </div>`).join('') : `<p class="text-xs text-charcoal-soft">No sales in this period yet.</p>`;
+  }
+
+  function renderAdminOrders(list) {
+    $('admOrderCount').textContent = `${list.length} order${list.length === 1 ? '' : 's'}`;
+    const th = 'text-left font-medium text-[10px] tracking-[.14em] uppercase text-charcoal-soft px-4 py-3 border-y border-black/10 whitespace-nowrap';
+    const td = 'px-4 py-3 border-b border-black/5 align-top';
+    $('admOrders').innerHTML = `<thead><tr>
+        <th class="${th}">Order</th><th class="${th}">Date</th><th class="${th}">Customer</th><th class="${th} text-right">Items</th>
+        <th class="${th} text-right">Total</th><th class="${th}">Payment</th><th class="${th}">Status</th></tr></thead>
+      <tbody>${list.length ? list.map(o => {
+        const n = (o.items || []).reduce((a, i) => a + (Number(i.qty) || 0), 0);
+        const open = adm.open === o._id;
+        return `<tr class="cursor-pointer hover:bg-black/[.02] ${open ? 'bg-black/[.03]' : ''}" data-admrow="${o._id}">
+          <td class="${td} font-mono whitespace-nowrap">${esc(o.orderNo)}</td>
+          <td class="${td} whitespace-nowrap">${fmtDate(o.date)}<br><span class="text-charcoal-soft">${fmtTime(o.date)}</span></td>
+          <td class="${td}">${esc(o.customer?.name)}<br><span class="text-charcoal-soft">${esc(o.customer?.phone)}</span>${o.uid ? ' <span class="text-[9px] uppercase tracking-wider border border-black/15 px-1">Member</span>' : ''}</td>
+          <td class="${td} text-right">${n}</td>
+          <td class="${td} text-right font-medium whitespace-nowrap">${taka(o.total)}</td>
+          <td class="${td} whitespace-nowrap">${esc(o.payment?.method)}<br><span class="font-mono text-charcoal-soft">${esc(o.payment?.trx)}</span></td>
+          <td class="${td}">
+            <select data-admset="${o._id}" class="lux border border-black/15 bg-white px-2 py-1.5 text-xs focus:outline-none focus:border-noir">
+              ${ORDER_STATUSES.map(s => `<option ${s === o.status ? 'selected' : ''}>${s}</option>`).join('')}
+            </select>
+          </td></tr>
+          ${open ? `<tr><td colspan="7" class="px-4 py-5 bg-black/[.02] border-b border-black/10">
+            <div class="grid md:grid-cols-3 gap-6 text-xs">
+              <div><p class="text-[10px] tracking-[.14em] uppercase text-charcoal-soft mb-2">Deliver To</p>
+                <p>${esc(o.customer?.name)}</p><p>${esc(o.customer?.phone)}</p>${o.customer?.email ? `<p>${esc(o.customer.email)}</p>` : ''}<p class="mt-1 text-charcoal-light">${esc(o.customer?.address)}</p>
+                <a href="https://wa.me/88${esc(String(o.customer?.phone || '').replace(/^\+?88/, ''))}" target="_blank" rel="noopener" class="inline-block mt-3 bg-[#25D366] text-white px-3 py-1.5 text-[10px] tracking-[.12em] uppercase">WhatsApp Customer</a></div>
+              <div class="md:col-span-2"><p class="text-[10px] tracking-[.14em] uppercase text-charcoal-soft mb-2">Items</p>
+                <table class="w-full">${(o.items || []).map(i => `<tr class="border-b border-black/5">
+                  <td class="py-1.5 font-mono pr-3">${esc(i.id)}</td><td class="py-1.5">${esc(i.name)}</td><td class="py-1.5 text-charcoal-soft">${esc(i.size)} · ${esc(i.color)}</td>
+                  <td class="py-1.5 text-right">×${i.qty}</td><td class="py-1.5 text-right">${taka(i.lineTotal)}</td></tr>`).join('')}
+                  <tr><td colspan="4" class="pt-2 text-right text-charcoal-soft">Delivery</td><td class="pt-2 text-right">FREE</td></tr>
+                  <tr><td colspan="4" class="text-right font-medium">Total</td><td class="text-right font-medium">${taka(o.total)}</td></tr></table>
+                ${o.updatedAt ? `<p class="text-[10px] text-charcoal-soft mt-3">Last status change: ${fmtDate(new Date(o.updatedAt))} ${fmtTime(new Date(o.updatedAt))}</p>` : ''}
+              </div>
+            </div></td></tr>` : ''}`;
+      }).join('') : `<tr><td colspan="7" class="px-4 py-10 text-center text-charcoal-soft">No orders match these filters.</td></tr>`}</tbody>`;
+  }
+
+  async function setOrderStatus(id, status) {
+    const o = Account.adminOrders.find(x => x._id === id);
+    const now = Date.now(), upd = { [`orders/${id}/status`]: status, [`orders/${id}/updatedAt`]: now };
+    if (o && o.uid) { upd[`userOrders/${o.uid}/${id}/status`] = status; upd[`userOrders/${o.uid}/${id}/updatedAt`] = now; }
+    try { await Account.fb.update(R(''), upd); toast(`Status → ${status}`); }
+    catch (err) { console.error(err); toast('Could not update status'); }
+  }
+
+  function downloadCsv(name, rows) {
+    const csv = rows.map(r => r.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(',')).join('\r\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }));
+    a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  }
+  function exportCsv(kind) {
+    const stamp = new Date().toISOString().slice(0, 10);
+    if (kind === 'sku') {
+      downloadCsv(`scbd-sku-summary-${stamp}.csv`, [['SKU', 'Product', 'Category', 'Qty Sold', 'Revenue (BDT)', 'Orders', 'Top Sizes', 'Top Colors'],
+        ...skuRows.map(r => [r.sku, r.name, r.category, r.qty, r.revenue, r.orders, r.topSizes, r.topColors])]);
+    } else {
+      const rows = [['Order No', 'Date', 'Time', 'Status', 'Customer', 'Phone', 'Email', 'Address', 'Payment', 'TrxID', 'SKU', 'Product', 'Category', 'Size', 'Color', 'Qty', 'Unit Price', 'Line Total', 'Order Total']];
+      adminFiltered().forEach(o => (o.items || []).forEach(i => rows.push([o.orderNo, fmtDate(o.date), fmtTime(o.date), o.status, o.customer?.name, o.customer?.phone, o.customer?.email, o.customer?.address, o.payment?.method, o.payment?.trx, i.id, i.name, i.category, i.size, i.color, i.qty, i.price, i.lineTotal, o.total])));
+      downloadCsv(`scbd-orders-${stamp}.csv`, rows);
+    }
+  }
+
+  /* ---------- Events ---------- */
+  document.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-authopen],[data-authtab],[data-authclose],[data-signout],[data-admperiod],[data-admstatus],[data-export],[data-doneclose],#accountBtn,#aForgot,[data-admrow]');
+    if (!t) return;
+    const d = t.dataset;
+    if (t.id === 'accountBtn') {
+      if (!Account.user) return openAuth('login');
+      location.hash = Account.isAdmin ? '#admin' : '#account'; return;
+    }
+    if (d.authopen) return openAuth(d.authopen);
+    if (d.authtab) return openAuth(d.authtab);
+    if (d.authclose !== undefined) return closeAuth();
+    if (t.id === 'aForgot') return forgotPassword();
+    if (d.signout !== undefined) return signOutUser();
+    if (d.doneclose !== undefined) { $('orderDone').classList.add('hidden'); $('orderDone').classList.remove('flex'); return; }
+    if (d.admperiod) { adm.period = d.admperiod; return renderAdmin(); }
+    if (d.admstatus) { adm.status = adm.status === d.admstatus ? 'All' : d.admstatus; return renderAdmin(); }
+    if (d.export) return exportCsv(d.export);
+    if (d.admrow && !e.target.closest('select')) { adm.open = adm.open === d.admrow ? null : d.admrow; renderAdminOrders(adminFiltered()); }
+  });
+  document.addEventListener('change', (e) => {
+    const s = e.target.closest('[data-admset]');
+    if (s) setOrderStatus(s.dataset.admset, s.value);
+    if (e.target.id === 'admStatus') { adm.status = e.target.value; renderAdmin(); }
+    if (e.target.id === 'fCreate') $('fPassWrap').classList.toggle('hidden', !e.target.checked);
+  });
+  let admT;
+  document.addEventListener('input', (e) => {
+    if (e.target.id === 'admSearch') { clearTimeout(admT); admT = setTimeout(() => { adm.search = e.target.value; renderAdmin(); }, 250); }
+  });
+  // chart tooltip (hover)
+  document.addEventListener('mousemove', (e) => {
+    const bar = e.target.closest && e.target.closest('[data-tip]'), tip = $('admTip');
+    if (!bar) { tip.classList.add('hidden'); return; }
+    const [d, v, n] = bar.dataset.tip.split('|');
+    tip.innerHTML = `<p class="text-white/60">${d}</p><p class="font-medium">${v}</p><p class="text-white/60">${n}</p>`;
+    tip.classList.remove('hidden');
+    tip.style.left = Math.min(e.clientX + 14, innerWidth - 150) + 'px'; tip.style.top = (e.clientY - 70) + 'px';
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAuth(); });
+  $('authForm').addEventListener('submit', submitAuth);
+
+  initAccounts();
   </script>
 </body>
 </html>
