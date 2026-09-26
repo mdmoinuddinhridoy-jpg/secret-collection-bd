@@ -6,6 +6,8 @@
   <title>Secret Collection BD | Luxury Lingerie, Nighty, Intimate & Party Wear</title>
   <meta name="description" content="Secret Collection BD — luxury lingerie, nighties and intimate wear for women in Bangladesh. 100% private and discreet packaging. Order via WhatsApp." />
   <meta name="theme-color" content="#0F0F0F" />
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -21,7 +23,8 @@
           fontFamily: {
             serif: ['"Playfair Display"', 'Georgia', 'serif'],
             sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', 'sans-serif'],
-            deco: ['"Poiret One"', '"Playfair Display"', 'serif']
+            deco: ['"Poiret One"', '"Playfair Display"', 'serif'],
+            brand: ['"Josefin Sans"', '"Poiret One"', 'system-ui', 'sans-serif']
           },
           letterSpacing: { luxe: '.28em' }
         }
@@ -32,7 +35,7 @@
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Poiret+One&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Poiret+One&family=Josefin+Sans:wght@600;700&display=swap" rel="stylesheet" />
 
   <style>
     html, body { -webkit-tap-highlight-color: transparent; }
@@ -87,8 +90,10 @@
         </button>
 
         <!-- Brand -->
-        <a href="#" data-view="home" class="font-serif text-[15px] sm:text-xl lg:text-2xl tracking-[.08em] sm:tracking-[.18em] font-medium whitespace-nowrap min-w-0 truncate">
-          SECRET COLLECTION <span class="font-normal">BD</span>
+        <a href="#" data-view="home" class="flex items-center gap-2 sm:gap-3 min-w-0 mr-1" aria-label="Secret Collection BD home">
+          <img src="logo.jpg" alt="Secret Collection BD logo" width="48" height="48"
+               class="w-8 h-8 sm:w-11 sm:h-11 lg:w-12 lg:h-12 shrink-0 rounded-none object-cover ring-1 ring-black/10" />
+          <span class="font-brand font-bold text-noir text-[14px] min-[380px]:text-[16px] min-[420px]:text-[18px] sm:text-2xl lg:text-[26px] leading-none tracking-[.02em] whitespace-nowrap pt-1">Secret Collection BD</span>
         </a>
 
         <!-- Desktop nav -->
@@ -103,15 +108,15 @@
         </nav>
 
         <!-- Actions -->
-        <div class="flex items-center gap-1 sm:gap-2">
-          <button id="searchToggle" class="p-2 rounded-full hover:bg-blush-50" aria-label="Search">
+        <div class="flex items-center gap-0 sm:gap-2 shrink-0">
+          <button id="searchToggle" class="p-1.5 sm:p-2 rounded-full hover:bg-blush-50" aria-label="Search">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path stroke-linecap="round" d="M20 20l-3.5-3.5"/></svg>
           </button>
-          <button id="accountBtn" data-account-ui class="hidden relative p-2 rounded-full hover:bg-blush-50" aria-label="Sign in">
+          <button id="accountBtn" data-account-ui class="hidden relative p-1.5 sm:p-2 rounded-full hover:bg-blush-50" aria-label="Sign in">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path stroke-linecap="round" d="M4 20c1.5-3.5 4.5-5 8-5s6.5 1.5 8 5"/></svg>
             <span id="accountDot" class="hidden absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#1F9D55] ring-2 ring-white"></span>
           </button>
-          <button id="cartBtn" class="relative p-2 rounded-full hover:bg-blush-50" aria-label="Open cart">
+          <button id="cartBtn" class="relative p-1.5 sm:p-2 rounded-full hover:bg-blush-50" aria-label="Open cart">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 7h12l-1 13H7L6 7z"/><path stroke-linecap="round" d="M9 7a3 3 0 016 0"/></svg>
             <span id="cartCount" class="absolute -top-0.5 -right-0.5 hidden min-w-[18px] h-[18px] px-1 rounded-full bg-noir text-white text-[10px] font-semibold flex items-center justify-center">0</span>
           </button>
@@ -607,7 +612,6 @@
     whatsapp: '8801786789182',          // 880 + 10-digit number (no +, no spaces)
     bkash: '01786789182',               // bKash personal number
     nagad: '01854109062',               // Nagad personal number
-    categoryLimit: 20,                  // max products shown on each category page
     sizes: ['S', 'M', 'L', 'XL', 'XXL', '3XL', '4XL', '5XL'],
     colors: ['Black', 'White', 'Red', 'Pink', 'Blue', 'Navy', 'Green', 'Yellow', 'Purple', 'Grey', 'Beige', 'Maroon'],
     productsUrl: 'products.json',       // product list in the repo root (edit this file to update the site)
@@ -805,7 +809,6 @@
     $('catalogCount').textContent = `${list.length} ${list.length === 1 ? 'piece' : 'pieces'}`;
     $('catChips').innerHTML = CATS.map(c => `
       <button data-cat="${c}" class="text-[11px] tracking-[.16em] uppercase px-4 py-2 border transition ${c === state.category ? 'bg-noir text-white border-noir' : 'border-black/15 hover:border-noir'}">${c}</button>`).join('');
-    if (state.category !== 'All' && !q) list = list.slice(0, CONFIG.categoryLimit);
     $('catalogCount').textContent = `${list.length} ${list.length === 1 ? 'piece' : 'pieces'}`;
     $('catalogEmpty').classList.toggle('hidden', list.length > 0);
     renderGrid($('gridCatalog'), list);
@@ -870,7 +873,7 @@
 
     const saving = p.oldPrice && p.oldPrice > p.price ? Math.round((1 - p.price / p.oldPrice) * 100) : 0;
     const rows = [
-      ['Product Code', p.id],
+      ['SKU', p.id],
       ['Category', p.category],
       ['Price', taka(p.price) + (p.oldPrice ? `  (Regular ${taka(p.oldPrice)})` : '')],
       ['Available Sizes', p.sizes.join(', ')],
@@ -883,7 +886,7 @@
 
     $('pvBody').innerHTML = `
       <div class="grid lg:grid-cols-2 gap-10 lg:gap-16 items-start">
-        <div class="lg:sticky lg:top-28">
+        <div class="lg:sticky lg:top-28 min-w-0">
           <!-- Gallery: swipe / arrows / thumbnails -->
           <div id="pvMain" class="group relative aspect-[3/4] img-ph overflow-hidden select-none touch-pan-y">
             <div id="pvTrack" class="absolute inset-0 flex transition-transform duration-500 ease-out">
@@ -896,8 +899,8 @@
               <span id="pvCount" class="absolute bottom-4 right-4 bg-white/90 text-[11px] tracking-[.12em] px-2.5 py-1">1 / ${p.images.length}</span>` : ''}
           </div>
           ${p.images.length > 1 ? `
-            <div id="pvThumbs" class="grid grid-cols-5 sm:grid-cols-6 gap-2 mt-3">
-              ${p.images.map((src, k) => `<button type="button" data-pvthumb="${k}" aria-label="Show photo ${k + 1}" class="relative aspect-[3/4] img-ph overflow-hidden border ${k ? 'border-transparent opacity-60' : 'border-noir'} hover:opacity-100 transition"><img src="${esc(src)}" alt="" loading="lazy" class="absolute inset-0 w-full h-full object-cover" onerror="this.style.display='none'" /></button>`).join('')}
+            <div id="pvThumbs" class="flex gap-2 mt-3 overflow-x-auto snap-x pb-1 [scrollbar-width:thin]">
+              ${p.images.map((src, k) => `<button type="button" data-pvthumb="${k}" aria-label="Show photo ${k + 1}" class="relative w-16 sm:w-20 shrink-0 snap-start aspect-[3/4] img-ph overflow-hidden border ${k ? 'border-transparent opacity-60' : 'border-noir'} hover:opacity-100 transition"><img src="${esc(src)}" alt="" loading="lazy" class="absolute inset-0 w-full h-full object-cover" onerror="this.style.display='none'" /></button>`).join('')}
             </div>` : ''}
         </div>
 
@@ -958,6 +961,7 @@
     if ($('pvCount')) $('pvCount').textContent = `${pvIndex + 1} / ${n}`;
     document.querySelectorAll('[data-pvthumb]').forEach((b, k) => {
       b.classList.toggle('border-noir', k === pvIndex); b.classList.toggle('border-transparent', k !== pvIndex); b.classList.toggle('opacity-60', k !== pvIndex);
+      if (k === pvIndex) b.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
     });
   }
   // swipe on phones
