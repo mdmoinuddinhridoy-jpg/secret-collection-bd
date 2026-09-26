@@ -652,7 +652,7 @@
     oldPrice:    ['oldprice', 'regularprice', 'mrp', 'compareprice', 'originalprice'],
     image:       ['image', 'imageno', 'imagenumber', 'img', 'photo', 'serial', 'serialno', 'sl', 'slno', 'imageserial'],
     tag:         ['tag', 'tags', 'section', 'sections'],
-    skip:        ['featured', 'popular', 'recommended', 'exclusive', 'details', 'hoverimage'],
+    skip:        ['featured', 'popular', 'recommended', 'exclusive', 'details', 'hoverimage', 'images', 'gallery'],
     sizes:       ['sizes', 'size'],
     colors:      ['colors', 'colours', 'color', 'colour'],
     description: ['description', 'details', 'desc'],
@@ -706,7 +706,10 @@
         category: CAT_MAP[norm(catRaw)] || catRaw || 'Intimate Wear',
         price: num(pickCol(row, COLS.price)),
         oldPrice: num(pickCol(row, COLS.oldPrice)) || null,
-        image: imagePath(serial, 'image' + (i + 1)),
+        image: imagePath(serial, String(i + 1)),
+        // all photos for the product page gallery: main image first, then "images" in order
+        images: [...new Set([imagePath(serial, String(i + 1)),
+          ...(Array.isArray(raw.images) ? raw.images : list(String(raw.images || ''))).map(x => imagePath(String(x))).filter(Boolean)])],
         hoverImage: raw.hoverImage ? imagePath(String(raw.hoverImage)) : '',
         tags: [...new Set(tags)],
         sizes: list(pickCol(row, COLS.sizes)).length ? list(pickCol(row, COLS.sizes)) : CONFIG.sizes,
@@ -742,7 +745,7 @@
     const sub = dark ? 'text-white/50' : 'text-charcoal-soft';
     const selCls = dark ? 'bg-transparent border-white/20 text-white [&>option]:text-noir' : 'bg-white border-black/15 text-noir';
     const btnCls = dark ? 'bg-white text-noir hover:bg-blush-100' : 'bg-noir text-white hover:bg-charcoal';
-    const alt = p.hoverImage || '';
+    const alt = p.hoverImage || (p.images && p.images[1]) || '';   // 2nd photo shows on hover
     return `
     <article class="group flex flex-col reveal" data-pid="${esc(p.id)}">
       <div class="card-img relative aspect-[3/4] overflow-hidden img-ph mb-4 cursor-pointer" data-open="${esc(p.id)}">
@@ -859,7 +862,7 @@
       $('pvRecoWrap').classList.add('hidden');
       return;
     }
-    pv.size = p.sizes[0]; pv.color = p.colors[0]; pv.qty = 1;
+    pv.size = p.sizes[0]; pv.color = p.colors[0]; pv.qty = 1; pvIndex = 0;
     document.title = `${p.name} | Secret Collection BD`;
     $('pvCrumbCat').textContent = p.category;
     $('pvCrumbCat').dataset.cat = p.category;
@@ -880,9 +883,22 @@
 
     $('pvBody').innerHTML = `
       <div class="grid lg:grid-cols-2 gap-10 lg:gap-16 items-start">
-        <div class="relative aspect-[3/4] img-ph overflow-hidden lg:sticky lg:top-28">
-          <img src="${esc(p.image)}" alt="${esc(p.name)}" class="absolute inset-0 w-full h-full object-cover" onerror="this.style.display='none'" />
-          ${p.badge ? `<span class="absolute top-4 left-4 bg-white text-noir text-[10px] tracking-[.18em] uppercase px-3 py-1">${esc(p.badge)}</span>` : ''}
+        <div class="lg:sticky lg:top-28">
+          <!-- Gallery: swipe / arrows / thumbnails -->
+          <div id="pvMain" class="group relative aspect-[3/4] img-ph overflow-hidden select-none touch-pan-y">
+            <div id="pvTrack" class="absolute inset-0 flex transition-transform duration-500 ease-out">
+              ${p.images.map((src, k) => `<div class="relative w-full h-full shrink-0"><img src="${esc(src)}" alt="${esc(p.name)} photo ${k + 1}" ${k ? 'loading="lazy"' : ''} draggable="false" class="absolute inset-0 w-full h-full object-cover" onerror="this.style.display='none'" /></div>`).join('')}
+            </div>
+            ${p.badge ? `<span class="absolute top-4 left-4 bg-white text-noir text-[10px] tracking-[.18em] uppercase px-3 py-1">${esc(p.badge)}</span>` : ''}
+            ${p.images.length > 1 ? `
+              <button type="button" data-pvnav="-1" aria-label="Previous photo" class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 hover:bg-white flex items-center justify-center sm:opacity-0 sm:group-hover:opacity-100 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15 5l-7 7 7 7"/></svg></button>
+              <button type="button" data-pvnav="1" aria-label="Next photo" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 hover:bg-white flex items-center justify-center sm:opacity-0 sm:group-hover:opacity-100 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 5l7 7-7 7"/></svg></button>
+              <span id="pvCount" class="absolute bottom-4 right-4 bg-white/90 text-[11px] tracking-[.12em] px-2.5 py-1">1 / ${p.images.length}</span>` : ''}
+          </div>
+          ${p.images.length > 1 ? `
+            <div id="pvThumbs" class="grid grid-cols-5 sm:grid-cols-6 gap-2 mt-3">
+              ${p.images.map((src, k) => `<button type="button" data-pvthumb="${k}" aria-label="Show photo ${k + 1}" class="relative aspect-[3/4] img-ph overflow-hidden border ${k ? 'border-transparent opacity-60' : 'border-noir'} hover:opacity-100 transition"><img src="${esc(src)}" alt="" loading="lazy" class="absolute inset-0 w-full h-full object-cover" onerror="this.style.display='none'" /></button>`).join('')}
+            </div>` : ''}
         </div>
 
         <div>
@@ -932,6 +948,31 @@
     $('pvRecoWrap').classList.toggle('hidden', reco.length === 0);
     renderGrid($('pvReco'), reco, false, true);
   }
+
+  let pvIndex = 0;
+  function pvGo(i) {
+    const track = $('pvTrack'); if (!track) return;
+    const n = track.children.length;
+    pvIndex = (i + n) % n;
+    track.style.transform = `translateX(-${pvIndex * 100}%)`;
+    if ($('pvCount')) $('pvCount').textContent = `${pvIndex + 1} / ${n}`;
+    document.querySelectorAll('[data-pvthumb]').forEach((b, k) => {
+      b.classList.toggle('border-noir', k === pvIndex); b.classList.toggle('border-transparent', k !== pvIndex); b.classList.toggle('opacity-60', k !== pvIndex);
+    });
+  }
+  // swipe on phones
+  let pvTouchX = null;
+  document.addEventListener('touchstart', e => { if (e.target.closest('#pvMain')) pvTouchX = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    if (pvTouchX === null) return;
+    const dx = e.changedTouches[0].clientX - pvTouchX; pvTouchX = null;
+    if (Math.abs(dx) > 40) pvGo(pvIndex + (dx < 0 ? 1 : -1));
+  }, { passive: true });
+  document.addEventListener('keydown', e => {
+    if (state.view !== 'product' || /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) return;
+    if (e.key === 'ArrowRight') pvGo(pvIndex + 1);
+    if (e.key === 'ArrowLeft') pvGo(pvIndex - 1);
+  });
 
   function pvSelect(kind, val) {
     pv[kind] = val;
@@ -1189,6 +1230,8 @@ Please confirm my order. Thank you.`;
     if (!el) return;
     const d = el.dataset;
 
+    if (d.pvnav) return pvGo(pvIndex + Number(d.pvnav));
+    if (d.pvthumb) return pvGo(Number(d.pvthumb));
     if (d.pvsize) return pvSelect('size', d.pvsize);
     if (d.pvcolor) return pvSelect('color', d.pvcolor);
     if (d.pvqty) { pv.qty = Math.min(99, Math.max(1, pv.qty + Number(d.pvqty))); $('pvQty').textContent = pv.qty; return; }
