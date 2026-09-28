@@ -323,6 +323,15 @@
           </div>
         </div>
 
+        <!-- ===== Admin tabs ===== -->
+        <div class="flex gap-1 border-b border-black/10 mb-8 overflow-x-auto">
+          <button type="button" data-admtab="orders" class="adm-tab px-5 py-3 text-[11px] tracking-[.16em] uppercase whitespace-nowrap border-b-2 border-noir">Orders &amp; Reports</button>
+          <button type="button" data-admtab="products" class="adm-tab px-5 py-3 text-[11px] tracking-[.16em] uppercase whitespace-nowrap border-b-2 border-transparent text-charcoal-soft">Products &amp; Photos</button>
+          <button type="button" data-admtab="settings" class="adm-tab px-5 py-3 text-[11px] tracking-[.16em] uppercase whitespace-nowrap border-b-2 border-transparent text-charcoal-soft">Settings</button>
+        </div>
+
+        <!-- ===== ORDERS & REPORTS TAB ===== -->
+        <div id="admTabOrders">
         <!-- Filters (one row above everything) -->
         <div class="flex flex-wrap items-center gap-2 mb-8">
           <div id="admPeriod" class="flex flex-wrap border border-black/15 bg-white"></div>
@@ -368,6 +377,60 @@
             <p id="admOrderCount" class="text-xs text-charcoal-soft"></p>
           </div>
           <div class="overflow-x-auto"><table class="w-full text-xs" id="admOrders"></table></div>
+        </div>
+        </div>
+
+        <!-- ===== PRODUCTS & PHOTOS TAB ===== -->
+        <div id="admTabProducts" class="hidden">
+          <div id="pmNotice" class="hidden mb-6 border border-black/10 bg-[#FFF4D6] px-5 py-4 text-sm"></div>
+          <div class="flex flex-wrap gap-2 mb-6">
+            <button type="button" data-pm="add" class="bg-noir text-white text-[11px] tracking-[.14em] uppercase px-5 py-3 hover:bg-charcoal">+ Add Product with AI</button>
+            <button type="button" data-pm="bulkphotos" class="border border-noir bg-white text-[11px] tracking-[.14em] uppercase px-5 py-3 hover:bg-noir hover:text-white">Bulk Upload Photos</button>
+            <button type="button" data-pm="bulksheet" class="border border-noir bg-white text-[11px] tracking-[.14em] uppercase px-5 py-3 hover:bg-noir hover:text-white">Bulk Import CSV / Excel</button>
+            <button type="button" data-pm="export" class="border border-noir bg-white text-[11px] tracking-[.14em] uppercase px-5 py-3 hover:bg-noir hover:text-white">Export Products (Excel)</button>
+            <button type="button" data-pm="reload" class="text-[11px] tracking-[.14em] uppercase px-3 py-3 underline underline-offset-4 text-charcoal-soft hover:text-noir">Reload</button>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 mb-4">
+            <input id="pmSearch" type="search" placeholder="Search SKU or name…" class="flex-1 min-w-[200px] border border-black/15 bg-white px-4 py-2 text-xs focus:outline-none focus:border-noir" />
+            <select id="pmCat" class="lux border border-black/15 bg-white px-4 py-2 text-xs focus:outline-none focus:border-noir">
+              <option value="">All categories</option><option>Lingerie</option><option>Nighty</option><option>Intimate Wear</option><option>Party Wear</option>
+            </select>
+            <p id="pmCount" class="text-xs text-charcoal-soft"></p>
+          </div>
+          <div class="bg-white border border-black/10 overflow-x-auto"><table id="pmTable" class="w-full text-xs"></table></div>
+        </div>
+
+        <!-- ===== SETTINGS TAB ===== -->
+        <div id="admTabSettings" class="hidden">
+          <form id="setForm" class="grid lg:grid-cols-2 gap-8">
+            <div class="bg-white border border-black/10 p-6 space-y-3">
+              <h2 class="font-serif text-xl mb-1">1. GitHub (publishing)</h2>
+              <p class="text-xs text-charcoal-soft mb-3">Products and photos are saved into your GitHub repo; Vercel then updates the live site in about 1 minute.</p>
+              <label class="block text-xs">Repository (owner/name)<input id="setRepo" placeholder="e.g. moinuddin/secret-collection-bd" class="mt-1 w-full border border-black/15 px-3 py-2.5 text-sm focus:outline-none focus:border-noir" /></label>
+              <label class="block text-xs">Branch<input id="setBranch" placeholder="main" class="mt-1 w-full border border-black/15 px-3 py-2.5 text-sm focus:outline-none focus:border-noir" /></label>
+              <label class="block text-xs">Access token<input id="setToken" type="password" autocomplete="off" placeholder="github_pat_…" class="mt-1 w-full border border-black/15 px-3 py-2.5 text-sm font-mono focus:outline-none focus:border-noir" /></label>
+              <p class="text-[11px] text-charcoal-soft">GitHub → Settings → Developer settings → Fine-grained tokens → Generate. Repository access: only this repo. Permission: <b>Contents: Read and write</b>.</p>
+            </div>
+            <div class="bg-white border border-black/10 p-6 space-y-3">
+              <h2 class="font-serif text-xl mb-1">2. AI Image Listing</h2>
+              <p class="text-xs text-charcoal-soft mb-3">Used to read a product photo and draft the title, description, fabric, care and colors.</p>
+              <label class="block text-xs">AI provider
+                <select id="setAi" class="lux mt-1 w-full border border-black/15 px-3 py-2.5 text-sm bg-white focus:outline-none focus:border-noir">
+                  <option value="claude">Claude (Anthropic)</option>
+                  <option value="gemini">Gemini (Google, has a free tier)</option>
+                </select></label>
+              <label class="block text-xs">API key<input id="setAiKey" type="password" autocomplete="off" placeholder="sk-ant-… or AIza…" class="mt-1 w-full border border-black/15 px-3 py-2.5 text-sm font-mono focus:outline-none focus:border-noir" /></label>
+              <label class="block text-xs">Model<input id="setAiModel" placeholder="claude-sonnet-5" class="mt-1 w-full border border-black/15 px-3 py-2.5 text-sm font-mono focus:outline-none focus:border-noir" /></label>
+              <p class="text-[11px] text-charcoal-soft">Claude key: console.anthropic.com → API Keys. Gemini key: aistudio.google.com → Get API key.</p>
+            </div>
+            <div class="lg:col-span-2 flex flex-wrap items-center gap-3">
+              <button class="bg-noir text-white text-[11px] tracking-[.14em] uppercase px-6 py-3 hover:bg-charcoal">Save Settings</button>
+              <button type="button" data-set="test" class="border border-noir bg-white text-[11px] tracking-[.14em] uppercase px-6 py-3 hover:bg-noir hover:text-white">Test Connections</button>
+              <button type="button" data-set="clear" class="text-[11px] tracking-[.14em] uppercase px-3 py-3 underline underline-offset-4 text-charcoal-soft hover:text-noir">Remove keys from this device</button>
+              <p id="setMsg" class="text-xs w-full"></p>
+              <p class="text-[11px] text-charcoal-soft w-full">🔒 Keys are stored only in this browser on this device, never inside the website code. Set them up again on each device you use as admin.</p>
+            </div>
+          </form>
         </div>
       </div>
     </div>
@@ -611,6 +674,19 @@
     </div>
   </div>
 
+  <!-- ===== Admin: product editor / bulk tools (full-screen panel) ===== -->
+  <div id="pmPanel" class="fixed inset-0 z-[66] hidden bg-black/50 overflow-y-auto">
+    <div class="min-h-full flex items-start justify-center p-0 sm:p-6">
+      <div class="relative bg-white w-full max-w-5xl">
+        <div class="sticky top-0 z-10 bg-white border-b border-black/10 flex items-center justify-between px-5 sm:px-8 h-16">
+          <p id="pmTitle" class="font-serif text-2xl">Add Product</p>
+          <button type="button" data-pm="close" class="p-2 -mr-2" aria-label="Close"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+        </div>
+        <div id="pmBody" class="px-5 sm:px-8 py-6"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast -->
   <div id="toast" class="fade fixed bottom-24 left-1/2 -translate-x-1/2 z-[60] bg-noir text-white text-xs tracking-[.14em] uppercase px-6 py-3 opacity-0 pointer-events-none"></div>
 
@@ -689,17 +765,8 @@
   }
   const HIDE = ['no', 'false', '0', 'hide', 'hidden', 'inactive', 'off', 'draft'];
 
-  let productsHash = '';
-  async function loadProducts() {
-    const res = await fetch(`${CONFIG.productsUrl}?v=${Date.now()}`, { cache: 'no-store' });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const text = await res.text();
-    const data = JSON.parse(text);
-    if (!Array.isArray(data)) throw new Error('products.json must be a list [ ... ]');
-    const changed = text !== productsHash;
-    productsHash = text;
-
-    PRODUCTS = data.map((raw, i) => {
+  function normalizeProducts(data) {
+    return data.map((raw, i) => {
       if (!raw || typeof raw !== 'object') return null;
       // flatten arrays ("sizes": ["S","M"]) to text so one reader handles every format
       const row = {};
@@ -738,6 +805,18 @@
         ].map(([k, v]) => [String(k).trim(), String(v).trim()]).filter(([k, v]) => k && v)
       };
     }).filter(Boolean);
+  }
+  let productsHash = '';
+  async function loadProducts() {
+    const res = await fetch(`${CONFIG.productsUrl}?v=${Date.now()}`, { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    const data = JSON.parse(text);
+    if (!Array.isArray(data)) throw new Error('products.json must be a list [ ... ]');
+    const changed = text !== productsHash;
+    productsHash = text;
+
+    PRODUCTS = normalizeProducts(data);
     if (!PRODUCTS.length) throw new Error('No products found in products.json');
     return changed;
   }
@@ -1904,5 +1983,632 @@ Please confirm my order. Thank you.`;
 
   initAccounts();
   </script>
+
+  <!-- =====================================================================
+       ADMIN: PRODUCTS, PHOTOS, BULK IMPORT & AI IMAGE LISTING
+       Publishes to your GitHub repo (products.json + photos) → Vercel updates the site.
+       GitHub token & AI key are stored only in the admin's browser (Settings tab).
+       ===================================================================== -->
+  <script>
+  const PM = {
+    products: null,          // raw products.json from GitHub (source of truth for editing)
+    loading: false,
+    edit: null,              // product being edited in the panel
+    photos: [],              // [{src, path?, b64?}]
+    sheet: null              // parsed bulk sheet result
+  };
+  const ALL_SIZES = ['S', 'M', 'L', 'XL', 'XXL', '3XL', '4XL', '5XL'];
+  const ALL_COLORS = ['Black', 'White', 'Red', 'Pink', 'Blue', 'Navy', 'Green', 'Yellow', 'Purple', 'Grey', 'Beige', 'Maroon'];
+  const CATS4 = ['Lingerie', 'Nighty', 'Intimate Wear', 'Party Wear'];
+  const CAT_PREFIX = { 'Lingerie': 'L', 'Nighty': 'N', 'Intimate Wear': 'I', 'Party Wear': 'P' };
+  const AI_DEFAULT_MODEL = { claude: 'claude-sonnet-5', gemini: 'gemini-2.5-flash' };
+
+  /* ---------- Settings (this device only) ---------- */
+  const SET_KEY = 'scbd_admin_settings_v1';
+  function getSet() { try { return JSON.parse(localStorage.getItem(SET_KEY)) || {}; } catch (e) { return {}; } }
+  function putSet(v) { try { localStorage.setItem(SET_KEY, JSON.stringify(v)); } catch (e) { toast('Could not save settings on this device'); } }
+  function renderSettings() {
+    const s = getSet();
+    $('setRepo').value = s.repo || ''; $('setBranch').value = s.branch || 'main'; $('setToken').value = s.token || '';
+    $('setAi').value = s.ai || 'claude'; $('setAiKey').value = s.aiKey || ''; $('setAiModel').value = s.aiModel || AI_DEFAULT_MODEL[s.ai || 'claude'];
+  }
+  function readSetForm() {
+    const repo = $('setRepo').value.trim().replace(/^https?:\/\/github\.com\//, '').replace(/\.git$/, '').replace(/\/$/, '');
+    return { repo, branch: $('setBranch').value.trim() || 'main', token: $('setToken').value.trim(),
+      ai: $('setAi').value, aiKey: $('setAiKey').value.trim(), aiModel: $('setAiModel').value.trim() || AI_DEFAULT_MODEL[$('setAi').value] };
+  }
+  const setMsg = (m, ok) => { $('setMsg').innerHTML = m; $('setMsg').className = 'text-xs w-full ' + (ok ? 'text-[#1F7A45]' : 'text-[#9B1C1C]'); };
+  const ghReady = () => { const s = getSet(); return !!(s.repo && s.token); };
+  const aiReady = () => { const s = getSet(); return !!s.aiKey; };
+
+  /* ---------- GitHub API ---------- */
+  async function gh(path, opts = {}) {
+    const s = getSet();
+    const res = await fetch('https://api.github.com' + path, {
+      ...opts,
+      headers: { 'Accept': 'application/vnd.github+json', 'Authorization': 'Bearer ' + s.token, 'X-GitHub-Api-Version': '2022-11-28', ...(opts.body ? { 'Content-Type': 'application/json' } : {}) }
+    });
+    if (!res.ok) {
+      let msg = res.status + ' ' + res.statusText;
+      try { const j = await res.json(); msg = j.message || msg; } catch (e) {}
+      const err = new Error(msg); err.status = res.status; throw err;
+    }
+    return res.status === 204 ? null : res.json();
+  }
+  const ghErr = (e) => e.status === 401 ? 'GitHub token is wrong or expired (Settings tab).'
+    : e.status === 403 ? 'The GitHub token has no write permission for this repo (needs Contents: Read and write).'
+    : e.status === 404 ? 'Repository or branch not found. Check Settings (owner/name and branch).'
+    : 'GitHub: ' + e.message;
+  const b64ToText = (b64) => new TextDecoder().decode(Uint8Array.from(atob(b64.replace(/\s/g, '')), c => c.charCodeAt(0)));
+  const textToB64 = (text) => { const bytes = new TextEncoder().encode(text); let bin = ''; for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000)); return btoa(bin); };
+
+  async function ghLoadProducts() {
+    const s = getSet(), repo = s.repo;
+    const meta = await gh(`/repos/${repo}/contents/products.json?ref=${encodeURIComponent(s.branch)}`);
+    const b64 = meta.content ? meta.content : (await gh(`/repos/${repo}/git/blobs/${meta.sha}`)).content;
+    const data = JSON.parse(b64ToText(b64));
+    if (!Array.isArray(data)) throw new Error('products.json is not a list');
+    return data;
+  }
+  // One commit for everything: files = [{path, b64} | {path, fromPath} | {path, remove:true}]
+  async function ghCommit(files, message, attempt = 1) {
+    const s = getSet(), repo = s.repo, br = encodeURIComponent(s.branch);
+    const ref = await gh(`/repos/${repo}/git/ref/heads/${br}`);
+    const head = ref.object.sha;
+    const commit = await gh(`/repos/${repo}/git/commits/${head}`);
+    let treeMap = null;
+    const needMap = files.some(f => f.fromPath || f.remove);
+    if (needMap) {
+      const t = await gh(`/repos/${repo}/git/trees/${commit.tree.sha}?recursive=1`);
+      treeMap = Object.fromEntries(t.tree.filter(x => x.type === 'blob').map(x => [x.path, x.sha]));
+    }
+    const entries = [];
+    for (const f of files) {
+      if (f.remove) { if (treeMap[f.path]) entries.push({ path: f.path, mode: '100644', type: 'blob', sha: null }); continue; }
+      let sha;
+      if (f.fromPath) { sha = treeMap[f.fromPath]; if (!sha) continue; }
+      else sha = (await gh(`/repos/${repo}/git/blobs`, { method: 'POST', body: JSON.stringify({ content: f.b64, encoding: 'base64' }) })).sha;
+      entries.push({ path: f.path, mode: '100644', type: 'blob', sha });
+    }
+    const tree = await gh(`/repos/${repo}/git/trees`, { method: 'POST', body: JSON.stringify({ base_tree: commit.tree.sha, tree: entries }) });
+    const nc = await gh(`/repos/${repo}/git/commits`, { method: 'POST', body: JSON.stringify({ message, tree: tree.sha, parents: [head] }) });
+    try {
+      await gh(`/repos/${repo}/git/refs/heads/${br}`, { method: 'PATCH', body: JSON.stringify({ sha: nc.sha }) });
+    } catch (e) {
+      if (e.status === 422 && attempt < 3) return ghCommit(files, message, attempt + 1);   // someone else committed meanwhile
+      throw e;
+    }
+    return nc.sha;
+  }
+
+  /* ---------- Photos: resize in the browser before upload ---------- */
+  function loadImg(src) { return new Promise((ok, bad) => { const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => ok(i); i.onerror = () => bad(new Error('Could not read image')); i.src = src; }); }
+  async function toJpeg(fileOrSrc, max = 1600, q = 0.85) {
+    const src = typeof fileOrSrc === 'string' ? fileOrSrc : URL.createObjectURL(fileOrSrc);
+    const img = await loadImg(src);
+    const r = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+    const c = document.createElement('canvas'); c.width = Math.round(img.naturalWidth * r); c.height = Math.round(img.naturalHeight * r);
+    const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height); ctx.drawImage(img, 0, 0, c.width, c.height);
+    const dataUrl = c.toDataURL('image/jpeg', q);
+    if (typeof fileOrSrc !== 'string') URL.revokeObjectURL(src);
+    return { dataUrl, b64: dataUrl.split(',')[1] };
+  }
+
+  /* ---------- Helpers ---------- */
+  const imgNoOf = (p) => { const m = String(p.image || (p.images || [])[0] || '').match(/^(\d+)(?:-\d+)?\.\w+$/); return m ? Number(m[1]) : 0; };
+  const nextImgNo = () => Math.max(0, ...(PM.products || []).map(imgNoOf)) + 1;
+  function nextSku(cat) {
+    const pre = CAT_PREFIX[cat] || 'X';
+    const n = Math.max(0, ...(PM.products || []).map(p => { const m = String(p.id).match(new RegExp('^' + pre + '(\\d+)$')); return m ? Number(m[1]) : 0; })) + 1;
+    return pre + String(n).padStart(2, '0');
+  }
+  const pmNotice = (html) => { const n = $('pmNotice'); n.innerHTML = html; n.classList.toggle('hidden', !html); };
+  function openPanel(title, html) { $('pmTitle').textContent = title; $('pmBody').innerHTML = html; $('pmPanel').classList.remove('hidden'); document.body.classList.add('no-scroll'); }
+  function closePanel() { $('pmPanel').classList.add('hidden'); document.body.classList.remove('no-scroll'); PM.edit = null; PM.photos = []; PM.sheet = null; }
+  function afterPublish(data, what) {
+    PM.products = data;
+    PRODUCTS = normalizeProducts(data);          // admin sees the change immediately
+    renderHome(); if (state.view === 'catalog') renderCatalog();
+    renderProductList();
+    toast(`${what} published. Live for customers in about 1 minute.`);
+  }
+  const productsFile = (data) => ({ path: 'products.json', b64: textToB64(JSON.stringify(data, null, 2) + '\n') });
+
+  /* ---------- Products tab ---------- */
+  async function renderProductsTab(force) {
+    if (!ghReady()) {
+      pmNotice('<b>Connect GitHub first.</b> Go to the <button type="button" data-admtab="settings" class="underline">Settings</button> tab and add your repository and access token. Until then you can view products but not publish changes.');
+      if (!PM.products) PM.products = null;
+      renderProductList();
+      return;
+    }
+    if (PM.products && !force) { pmNotice(''); renderProductList(); return; }
+    PM.loading = true; renderProductList();
+    try { PM.products = await ghLoadProducts(); pmNotice(''); }
+    catch (e) { console.error(e); pmNotice('<b>Could not load products from GitHub.</b> ' + esc(ghErr(e))); }
+    PM.loading = false; renderProductList();
+  }
+  function renderProductList() {
+    const table = $('pmTable'); if (!table) return;
+    if (PM.loading) { table.innerHTML = '<tr><td class="px-4 py-10 text-center text-charcoal-soft">Loading products from GitHub…</td></tr>'; return; }
+    const src = PM.products || PRODUCTS.map(p => ({ ...p, active: true }));
+    const q = ($('pmSearch').value || '').trim().toLowerCase(), cat = $('pmCat').value;
+    const list = src.map((p, i) => ({ p, i })).filter(({ p }) => (!cat || p.category === cat) && (!q || (p.id + ' ' + p.name).toLowerCase().includes(q)));
+    $('pmCount').textContent = `${list.length} of ${src.length} products`;
+    const th = 'text-left font-medium text-[10px] tracking-[.14em] uppercase text-charcoal-soft px-4 py-3 border-b border-black/10 whitespace-nowrap';
+    const td = 'px-4 py-2.5 border-b border-black/5 align-middle';
+    const canEdit = !!PM.products;
+    table.innerHTML = `<thead><tr><th class="${th}">Photo</th><th class="${th}">SKU</th><th class="${th}">Name</th><th class="${th}">Category</th><th class="${th} text-right">Price</th><th class="${th}">Sections</th><th class="${th} text-right">Photos</th><th class="${th}">Show</th><th class="${th}"></th></tr></thead><tbody>` +
+      (list.length ? list.map(({ p, i }) => {
+        const imgs = (p.images && p.images.length ? p.images : [p.image]).filter(Boolean);
+        const tags = (p.tags || []).join(', ');
+        return `<tr class="hover:bg-black/[.02]">
+          <td class="${td}"><div class="w-10 h-12 img-ph overflow-hidden"><img src="${esc(imgs[0] || '')}" alt="" loading="lazy" class="w-full h-full object-cover" onerror="this.style.display='none'" /></div></td>
+          <td class="${td} font-mono">${esc(p.id)}</td><td class="${td}">${esc(p.name)}</td><td class="${td} text-charcoal-soft">${esc(p.category)}</td>
+          <td class="${td} text-right whitespace-nowrap">${taka(p.price)}</td><td class="${td} text-charcoal-soft">${esc(tags || '—')}</td>
+          <td class="${td} text-right">${imgs.length}</td><td class="${td}">${p.active === false ? '<span class="text-[#9B1C1C]">Hidden</span>' : 'Yes'}</td>
+          <td class="${td} whitespace-nowrap text-right">${canEdit ? `<button type="button" data-pmedit="${i}" class="border border-black/20 px-3 py-1.5 hover:bg-noir hover:text-white">Edit</button> <button type="button" data-pmdel="${i}" class="px-2 py-1.5 text-[#9B1C1C] hover:underline">Delete</button>` : ''}</td></tr>`;
+      }).join('') : `<tr><td colspan="9" class="px-4 py-10 text-center text-charcoal-soft">No products found.</td></tr>`) + '</tbody>';
+  }
+
+  /* ---------- Product editor (single product, with AI) ---------- */
+  const chipCls = (on) => `px-3 py-1.5 text-xs border transition ${on ? 'bg-noir text-white border-noir' : 'border-black/15 hover:border-noir'}`;
+  function openEditor(index) {
+    if (!PM.products) return toast('Connect GitHub in Settings first');
+    const isNew = index === undefined;
+    const p = isNew ? { id: '', name: '', category: 'Lingerie', price: '', oldPrice: null, tags: [], sizes: ALL_SIZES.slice(), colors: ALL_COLORS.slice(), description: '', badge: '', details: {}, active: true }
+                    : JSON.parse(JSON.stringify(PM.products[index]));
+    PM.edit = { index: isNew ? -1 : index, orig: isNew ? null : PM.products[index], p };
+    const imgs = isNew ? [] : ((p.images && p.images.length ? p.images : [p.image]).filter(Boolean));
+    PM.photos = imgs.map(path => ({ src: path, path }));
+    const d = p.details || {};
+    const extras = Object.entries(d).filter(([k]) => !['Fabric', 'Care'].includes(k));
+    const inp = 'w-full border border-black/15 px-3 py-2.5 text-sm focus:outline-none focus:border-noir';
+    openPanel(isNew ? 'Add Product' : `Edit ${p.id}`, `
+      <form id="pmForm" class="grid lg:grid-cols-[1fr_1.25fr] gap-8">
+        <div>
+          <p class="text-[11px] tracking-luxe uppercase mb-3">Photos <span class="text-charcoal-soft normal-case tracking-normal">(first = main photo)</span></p>
+          <label class="block border-2 border-dashed border-black/20 bg-blush-50 hover:border-noir text-center px-4 py-8 cursor-pointer mb-3">
+            <input id="pmFiles" type="file" accept="image/*" multiple class="hidden" />
+            <span class="font-serif text-lg block">Add product photos</span>
+            <span class="text-xs text-charcoal-soft">Choose one or many · JPG / PNG / WEBP · auto-resized</span>
+          </label>
+          <div id="pmPhotos" class="grid grid-cols-3 gap-2"></div>
+          <div class="mt-5 border border-black/10 p-4 bg-[#FAFAFA]">
+            <p class="font-serif text-lg mb-1">✨ AI Image Listing</p>
+            <p class="text-xs text-charcoal-soft mb-3">Reads the main photo and drafts the name, category, description, fabric, care and colors. Review before publishing.</p>
+            <button type="button" data-pm="ai" class="w-full bg-noir text-white text-[11px] tracking-[.14em] uppercase py-3 hover:bg-charcoal">Draft listing from photo</button>
+            <p id="pmAiMsg" class="text-xs mt-2"></p>
+          </div>
+        </div>
+        <div class="space-y-4">
+          <div class="grid grid-cols-2 gap-3">
+            <label class="text-xs">Category *<select id="pmCatSel" class="lux mt-1 ${inp} bg-white">${CATS4.map(c => `<option ${c === p.category ? 'selected' : ''}>${c}</option>`).join('')}</select></label>
+            <label class="text-xs">SKU *<input id="pmSku" value="${esc(p.id)}" placeholder="auto" class="mt-1 ${inp} font-mono uppercase" /></label>
+          </div>
+          <label class="block text-xs">Product name *<input id="pmName" value="${esc(p.name)}" class="mt-1 ${inp}" /></label>
+          <div class="grid grid-cols-2 gap-3">
+            <label class="text-xs">Price (৳) *<input id="pmPrice" type="number" min="1" step="1" value="${esc(p.price)}" class="mt-1 ${inp}" /></label>
+            <label class="text-xs">Old price (৳) <span class="text-charcoal-soft">optional</span><input id="pmOld" type="number" min="0" step="1" value="${esc(p.oldPrice || '')}" class="mt-1 ${inp}" /></label>
+          </div>
+          <div>
+            <p class="text-xs mb-2">Homepage sections</p>
+            <div class="flex flex-wrap gap-2">${['exclusive', 'popular', 'recommended'].map(t => `<button type="button" data-pmtag="${t}" class="${chipCls((p.tags || []).includes(t))}">${t[0].toUpperCase() + t.slice(1)}</button>`).join('')}</div>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-2"><p class="text-xs">Sizes</p><span class="text-[11px]"><button type="button" data-pmall="size" class="underline">All</button> · <button type="button" data-pmnone="size" class="underline">None</button></span></div>
+            <div id="pmSizes" class="flex flex-wrap gap-2">${ALL_SIZES.map(s => `<button type="button" data-pmsize="${s}" class="${chipCls((p.sizes || []).includes(s))}">${s}</button>`).join('')}</div>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-2"><p class="text-xs">Colors</p><span class="text-[11px]"><button type="button" data-pmall="color" class="underline">All 12</button> · <button type="button" data-pmnone="color" class="underline">None</button></span></div>
+            <div id="pmColors" class="flex flex-wrap gap-2">${ALL_COLORS.map(c => `<button type="button" data-pmcolor="${c}" class="${chipCls((p.colors || []).includes(c))}">${c}</button>`).join('')}</div>
+          </div>
+          <label class="block text-xs">Description<textarea id="pmDesc" rows="3" class="mt-1 ${inp}">${esc(p.description)}</textarea></label>
+          <div class="grid grid-cols-2 gap-3">
+            <label class="text-xs">Fabric<input id="pmFabric" value="${esc(d.Fabric || '')}" class="mt-1 ${inp}" /></label>
+            <label class="text-xs">Care<input id="pmCare" value="${esc(d.Care || '')}" class="mt-1 ${inp}" /></label>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <label class="text-xs">Badge<select id="pmBadge" class="lux mt-1 ${inp} bg-white">${['', 'Bestseller', 'New', 'Limited', 'Sale', 'Hot'].map(b => `<option value="${b}" ${b === (p.badge || '') ? 'selected' : ''}>${b || 'None'}</option>`).join('')}</select></label>
+            <label class="text-xs">Show on website<select id="pmActive" class="lux mt-1 ${inp} bg-white"><option value="yes" ${p.active !== false ? 'selected' : ''}>Yes</option><option value="no" ${p.active === false ? 'selected' : ''}>No (hidden)</option></select></label>
+          </div>
+          <label class="block text-xs">Extra details <span class="text-charcoal-soft">one per line, e.g. Fit: Regular</span><textarea id="pmExtra" rows="2" class="mt-1 ${inp}">${esc(extras.map(([k, v]) => k + ': ' + v).join('\n'))}</textarea></label>
+          <p id="pmErr" class="hidden text-sm text-[#9B1C1C]"></p>
+          <div class="flex flex-wrap gap-2 pt-2">
+            <button id="pmSave" class="flex-1 bg-noir text-white text-[11px] tracking-[.14em] uppercase py-4 hover:bg-charcoal">${isNew ? 'Publish Product' : 'Save & Publish'}</button>
+            <button type="button" data-pm="close" class="border border-noir text-[11px] tracking-[.14em] uppercase px-6 py-4">Cancel</button>
+          </div>
+        </div>
+      </form>`);
+    renderEditorPhotos();
+    if (isNew) $('pmSku').value = nextSku('Lingerie');
+    $('pmCatSel').addEventListener('change', () => { if (PM.edit.index === -1) $('pmSku').value = nextSku($('pmCatSel').value); });
+    $('pmFiles').addEventListener('change', async (e) => {
+      const files = [...e.target.files]; e.target.value = '';
+      for (const f of files) {
+        try { const j = await toJpeg(f); PM.photos.push({ src: j.dataUrl, b64: j.b64 }); } catch (err) { toast('Skipped ' + f.name + ': not a readable image'); }
+      }
+      renderEditorPhotos();
+    });
+    $('pmForm').addEventListener('submit', saveEditor);
+  }
+  function renderEditorPhotos() {
+    const box = $('pmPhotos'); if (!box) return;
+    box.innerHTML = PM.photos.length ? PM.photos.map((ph, k) => `
+      <div class="relative aspect-[3/4] img-ph overflow-hidden border ${k ? 'border-black/10' : 'border-noir border-2'}">
+        <img src="${esc(ph.src)}" alt="" class="absolute inset-0 w-full h-full object-cover" onerror="this.style.opacity=.15" />
+        ${k === 0 ? '<span class="absolute top-1 left-1 bg-noir text-white text-[9px] tracking-[.12em] uppercase px-1.5 py-0.5">Main</span>' : ''}
+        ${ph.b64 ? '<span class="absolute top-1 right-1 bg-[#1F9D55] text-white text-[9px] uppercase px-1.5 py-0.5">New</span>' : ''}
+        <div class="absolute bottom-0 inset-x-0 flex justify-between bg-white/90 text-xs">
+          <button type="button" data-phmove="${k}|-1" class="px-2 py-1 hover:bg-black/5" title="Move left">◀</button>
+          ${k ? `<button type="button" data-phmain="${k}" class="px-1 py-1 hover:bg-black/5 text-[10px]" title="Make main">Main</button>` : ''}
+          <button type="button" data-phdel="${k}" class="px-2 py-1 hover:bg-black/5 text-[#9B1C1C]" title="Remove">✕</button>
+          <button type="button" data-phmove="${k}|1" class="px-2 py-1 hover:bg-black/5" title="Move right">▶</button>
+        </div>
+      </div>`).join('') : '<p class="col-span-3 text-xs text-charcoal-soft">No photos yet.</p>';
+  }
+  const chipOn = (el) => el.classList.contains('bg-noir');
+  function setChip(el, on) { el.className = chipCls(on); }
+  const selected = (sel, attr) => [...document.querySelectorAll(sel)].filter(chipOn).map(b => b.getAttribute(attr));
+
+  async function saveEditor(e) {
+    e.preventDefault();
+    const err = $('pmErr'); err.classList.add('hidden');
+    const fail = (m) => { err.textContent = m; err.classList.remove('hidden'); };
+    const E = PM.edit, data = PM.products.slice();
+    const sku = $('pmSku').value.trim().toUpperCase(), name = $('pmName').value.trim(), category = $('pmCatSel').value;
+    const price = Number($('pmPrice').value), oldP = Number($('pmOld').value);
+    if (!sku) return fail('Add a SKU.');
+    if (data.some((p, i) => i !== E.index && String(p.id).toUpperCase() === sku)) return fail(`SKU ${sku} is already used by another product.`);
+    if (!name) return fail('Add a product name.');
+    if (!(price > 0)) return fail('Add a price (number only).');
+    if (!PM.photos.length) return fail('Add at least one photo.');
+    const sizes = selected('[data-pmsize]', 'data-pmsize'), colors = selected('[data-pmcolor]', 'data-pmcolor');
+    if (!sizes.length) return fail('Choose at least one size.');
+    if (!colors.length) return fail('Choose at least one color.');
+    const details = {};
+    if ($('pmFabric').value.trim()) details.Fabric = $('pmFabric').value.trim();
+    if ($('pmCare').value.trim()) details.Care = $('pmCare').value.trim();
+    $('pmExtra').value.split('\n').forEach(line => { const i = line.indexOf(':'); if (i > 0 && line.slice(i + 1).trim()) details[line.slice(0, i).trim()] = line.slice(i + 1).trim(); });
+
+    // Photo file names: 12.jpg, 12-1.jpg, 12-2.jpg … (matches the Excel / converter convention)
+    const n = E.orig ? (imgNoOf(E.orig) || nextImgNo()) : nextImgNo();
+    const targets = PM.photos.map((ph, k) => k ? `${n}-${k}.jpg` : `${n}.jpg`);
+    const files = [];
+    PM.photos.forEach((ph, k) => {
+      if (ph.b64) files.push({ path: targets[k], b64: ph.b64 });
+      else if (ph.path !== targets[k]) files.push({ path: targets[k], fromPath: ph.path });
+    });
+    const oldPaths = E.orig ? ((E.orig.images && E.orig.images.length ? E.orig.images : [E.orig.image]).filter(Boolean)) : [];
+    oldPaths.filter(pth => !targets.includes(pth) && /^\d+(-\d+)?\.\w+$/.test(pth)).forEach(pth => files.push({ path: pth, remove: true }));
+
+    const product = {
+      id: sku, name, category, price, oldPrice: oldP > price ? oldP : null,
+      image: targets[0], images: targets,
+      tags: selected('[data-pmtag]', 'data-pmtag'),
+      sizes, colors,
+      description: $('pmDesc').value.trim(), badge: $('pmBadge').value,
+      details, active: $('pmActive').value === 'yes'
+    };
+    if (E.index === -1) data.push(product); else data[E.index] = product;
+    files.push(productsFile(data));
+
+    const btn = $('pmSave'); btn.disabled = true; btn.classList.add('opacity-60'); btn.textContent = 'Publishing…';
+    try {
+      await ghCommit(files, `${E.index === -1 ? 'Add' : 'Update'} product ${sku} (admin panel)`);
+      closePanel(); afterPublish(data, `Product ${sku}`);
+    } catch (ex) {
+      console.error(ex); fail(ex.status ? ghErr(ex) : 'Publishing failed: ' + ex.message);
+      btn.disabled = false; btn.classList.remove('opacity-60'); btn.textContent = E.index === -1 ? 'Publish Product' : 'Save & Publish';
+    }
+  }
+
+  async function deleteProduct(index) {
+    const p = PM.products[index];
+    if (!confirm(`Delete ${p.id} "${p.name}" from the website? Its photos are removed too.`)) return;
+    const data = PM.products.filter((_, i) => i !== index);
+    const files = ((p.images && p.images.length ? p.images : [p.image]).filter(x => /^\d+(-\d+)?\.\w+$/.test(x || ''))).map(path => ({ path, remove: true }));
+    files.push(productsFile(data));
+    try { await ghCommit(files, `Delete product ${p.id} (admin panel)`); afterPublish(data, `Deletion of ${p.id}`); }
+    catch (ex) { console.error(ex); toast(ex.status ? ghErr(ex) : 'Delete failed'); }
+  }
+
+  /* ---------- AI Image Listing ---------- */
+  const AI_PROMPT = `You are a product listing writer for "Secret Collection BD", a premium women's lingerie, nightwear, intimate wear and party wear shop in Bangladesh.
+Look at the product photo and return ONLY a JSON object (no markdown) with these keys:
+"name": elegant product title, max 6 words, no brand names (e.g. "Floral Lace Balconette Set"),
+"category": exactly one of "Lingerie", "Nighty", "Intimate Wear", "Party Wear",
+"description": 2 short, tasteful sentences for customers (comfort, look, occasion), no exaggerated claims,
+"fabric": likely fabric in a few words (e.g. "Soft lace with satin trim"),
+"care": short care instruction (e.g. "Hand wash cold, dry in shade"),
+"colors": array of the colors visible in the product, chosen ONLY from: Black, White, Red, Pink, Blue, Navy, Green, Yellow, Purple, Grey, Beige, Maroon,
+"features": array of up to 3 short feature phrases (e.g. "Adjustable straps").`;
+
+  async function imageForAi(ph) {
+    if (ph.b64) return (await toJpeg(ph.src, 1024, 0.8)).b64;
+    return (await toJpeg(ph.src + (ph.src.includes('?') ? '&' : '?') + 'ai=' + Date.now(), 1024, 0.8)).b64;
+  }
+  async function callAi(b64) {
+    const s = getSet(), model = s.aiModel || AI_DEFAULT_MODEL[s.ai || 'claude'];
+    let text;
+    if ((s.ai || 'claude') === 'gemini') {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(s.aiKey)}`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ inline_data: { mime_type: 'image/jpeg', data: b64 } }, { text: AI_PROMPT }] }], generationConfig: { responseMimeType: 'application/json', temperature: 0.4 } })
+      });
+      const j = await res.json();
+      if (!res.ok) throw new Error((j.error && j.error.message) || res.statusText);
+      text = (((j.candidates || [])[0] || {}).content || {}).parts?.map(p => p.text || '').join('') || '';
+    } else {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': s.aiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+        body: JSON.stringify({ model, max_tokens: 800, messages: [{ role: 'user', content: [
+          { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: b64 } }, { type: 'text', text: AI_PROMPT }] }] })
+      });
+      const j = await res.json();
+      if (!res.ok) throw new Error((j.error && j.error.message) || res.statusText);
+      text = (j.content || []).map(c => c.text || '').join('');
+    }
+    const m = text.match(/\{[\s\S]*\}/);
+    if (!m) throw new Error('The AI did not return a listing. Try again.');
+    return JSON.parse(m[0]);
+  }
+  async function runAi() {
+    const msg = $('pmAiMsg');
+    const say = (t, ok) => { msg.textContent = t; msg.className = 'text-xs mt-2 ' + (ok ? 'text-[#1F7A45]' : ok === false ? 'text-[#9B1C1C]' : 'text-charcoal-soft'); };
+    if (!aiReady()) return say('Add your AI API key in the Settings tab first.', false);
+    if (!PM.photos.length) return say('Add a product photo first.', false);
+    say('Reading the photo…');
+    try {
+      const r = await callAi(await imageForAi(PM.photos[0]));
+      if (r.name) $('pmName').value = r.name;
+      if (CATS4.includes(r.category)) { $('pmCatSel').value = r.category; if (PM.edit.index === -1) $('pmSku').value = nextSku(r.category); }
+      if (r.description) $('pmDesc').value = r.description + (Array.isArray(r.features) && r.features.length ? ' ' + r.features.join(' · ') + '.' : '');
+      if (r.fabric) $('pmFabric').value = r.fabric;
+      if (r.care) $('pmCare').value = r.care;
+      if (Array.isArray(r.colors)) {
+        const cs = r.colors.map(c => ALL_COLORS.find(x => x.toLowerCase() === String(c).toLowerCase())).filter(Boolean);
+        if (cs.length) document.querySelectorAll('[data-pmcolor]').forEach(b => setChip(b, cs.includes(b.dataset.pmcolor)));
+      }
+      say('✓ Draft ready. Check the details, set the price and sections, then publish.', true);
+    } catch (ex) {
+      console.error(ex);
+      say('AI error: ' + ex.message + (/model/i.test(ex.message) ? ' (check the model name in Settings)' : ''), false);
+    }
+  }
+
+  /* ---------- Bulk photo upload ---------- */
+  function openBulkPhotos() {
+    if (!PM.products) return toast('Connect GitHub in Settings first');
+    PM.bulk = [];
+    openPanel('Bulk Upload Photos', `
+      <p class="text-sm text-charcoal-light mb-4">Name your files by product photo number before uploading: <b>12.jpg</b> (main), <b>12-1.jpg</b>, <b>12-2.jpg</b> … They are resized, saved to GitHub and attached to the matching products in one step.</p>
+      <label class="block border-2 border-dashed border-black/20 bg-blush-50 hover:border-noir text-center px-4 py-10 cursor-pointer mb-4">
+        <input id="bpFiles" type="file" accept="image/*" multiple class="hidden" />
+        <span class="font-serif text-xl block">Choose photos</span><span class="text-xs text-charcoal-soft">Select many at once</span>
+      </label>
+      <label class="flex items-center gap-2 text-sm mb-4"><input id="bpAttach" type="checkbox" checked class="w-4 h-4 accent-[#0F0F0F]" /> Attach photos to the matching products (by photo number)</label>
+      <div id="bpList" class="border border-black/10 max-h-[45vh] overflow-y-auto"></div>
+      <p id="bpMsg" class="text-sm mt-3"></p>
+      <button type="button" data-pm="bpgo" class="mt-4 w-full bg-noir text-white text-[11px] tracking-[.14em] uppercase py-4 hover:bg-charcoal">Upload &amp; Publish</button>`);
+    $('bpFiles').addEventListener('change', async (e) => {
+      const files = [...e.target.files]; e.target.value = '';
+      $('bpMsg').textContent = 'Preparing photos…';
+      for (const f of files) {
+        const m = f.name.toLowerCase().match(/^(\d+)(?:-(\d+))?\.(jpe?g|png|webp|heic|gif)$/);
+        const row = { name: f.name, ok: !!m };
+        if (m) {
+          row.no = Number(m[1]); row.k = m[2] ? Number(m[2]) : 0; row.path = row.k ? `${row.no}-${row.k}.jpg` : `${row.no}.jpg`;
+          try { const j = await toJpeg(f); row.b64 = j.b64; row.src = j.dataUrl; } catch (err) { row.ok = false; row.why = 'Not a readable image'; }
+        } else row.why = 'Rename to e.g. 12.jpg or 12-1.jpg';
+        const prod = row.ok && PM.products.find(p => imgNoOf(p) === row.no);
+        row.product = prod ? `${prod.id} · ${prod.name}` : '';
+        PM.bulk = PM.bulk.filter(x => x.path !== row.path || !row.ok); PM.bulk.push(row);
+      }
+      PM.bulk.sort((a, b) => (a.no || 0) - (b.no || 0) || (a.k || 0) - (b.k || 0));
+      $('bpMsg').textContent = '';
+      $('bpList').innerHTML = `<table class="w-full text-xs">${PM.bulk.map(r => `<tr class="border-b border-black/5">
+        <td class="p-2 w-12">${r.src ? `<img src="${r.src}" class="w-10 h-12 object-cover" />` : ''}</td>
+        <td class="p-2">${esc(r.name)}</td><td class="p-2 font-mono">${r.ok ? '→ ' + esc(r.path) : ''}</td>
+        <td class="p-2 ${r.ok ? '' : 'text-[#9B1C1C]'}">${r.ok ? (r.product ? esc(r.product) : '<span class="text-charcoal-soft">No product with this number yet (photo is still uploaded)</span>') : esc(r.why)}</td></tr>`).join('')}</table>`;
+    });
+  }
+  async function publishBulkPhotos() {
+    const good = (PM.bulk || []).filter(r => r.ok);
+    if (!good.length) return toast('Choose correctly named photos first');
+    const files = good.map(r => ({ path: r.path, b64: r.b64 }));
+    let data = PM.products;
+    if ($('bpAttach').checked) {
+      data = PM.products.map(p => {
+        const n = imgNoOf(p); const mine = good.filter(r => r.no === n); if (!mine.length) return p;
+        const set = new Set([...(p.images && p.images.length ? p.images : [p.image]).filter(Boolean), ...mine.map(r => r.path)]);
+        const images = [...set].sort((a, b) => { const k = x => { const m = x.match(/^\d+(?:-(\d+))?\./); return m ? Number(m[1] || 0) : 999; }; return k(a) - k(b); });
+        return { ...p, image: images[0], images };
+      });
+      files.push(productsFile(data));
+    }
+    $('bpMsg').textContent = `Publishing ${good.length} photo${good.length > 1 ? 's' : ''}…`;
+    try { await ghCommit(files, `Upload ${good.length} product photos (admin panel)`); closePanel(); afterPublish(data, `${good.length} photos`); }
+    catch (ex) { console.error(ex); $('bpMsg').textContent = ex.status ? ghErr(ex) : 'Upload failed: ' + ex.message; }
+  }
+
+  /* ---------- Bulk import CSV / Excel ---------- */
+  function loadXlsxLib() {
+    if (window.XLSX) return Promise.resolve();
+    return new Promise((ok, bad) => { const sc = document.createElement('script'); sc.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js'; sc.onload = ok; sc.onerror = () => bad(new Error('Could not load the Excel reader (check internet)')); document.head.appendChild(sc); });
+  }
+  const nrm = (s) => String(s ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  const SHEET_COLS = { id: ['sku', 'id', 'code'], name: ['productname', 'name', 'product'], category: ['category'], price: ['price', 'pricebdt'],
+    oldPrice: ['oldprice', 'oldpricebdt', 'regularprice', 'mrp'], imgNo: ['imageno', 'imagenumber', 'photono'], extra: ['extraphotos', 'morephotos'],
+    image: ['imagefile', 'image', 'image1', 'image1main', 'mainimage'], exclusive: ['exclusive'], popular: ['popular'], recommended: ['recommended'],
+    sizes: ['sizes', 'size'], colors: ['colors', 'colours', 'color'], description: ['description'], badge: ['badge'], active: ['showonwebsite', 'active', 'show'],
+    fabric: ['fabric'], care: ['care'], skip: ['check', 'photofiles'] };
+  const SHEET_KNOWN = Object.values(SHEET_COLS).flat();
+  const spick = (row, keys) => { for (const [k, v] of Object.entries(row)) if (keys.includes(nrm(k))) return v; return ''; };
+  const slist = (v) => String(v ?? '').split(/[,;|]+/).map(x => x.trim()).filter(Boolean);
+  const syes = (v) => /^(yes|y|true|1)$/i.test(String(v ?? '').trim());
+  function sheetToProducts(rows) {
+    const errors = [], out = [], seen = {};
+    const CATM = { lingerie: 'Lingerie', nighty: 'Nighty', nightie: 'Nighty', intimatewear: 'Intimate Wear', intimate: 'Intimate Wear', partywear: 'Party Wear', party: 'Party Wear' };
+    rows.forEach((row, i) => {
+      const line = i + 2;
+      if (!Object.entries(row).some(([k, v]) => !SHEET_COLS.skip.includes(nrm(k)) && String(v ?? '').trim())) return;
+      const id = String(spick(row, SHEET_COLS.id)).trim().toUpperCase(), name = String(spick(row, SHEET_COLS.name)).trim();
+      const category = CATM[nrm(spick(row, SHEET_COLS.category))], price = Number(String(spick(row, SHEET_COLS.price)).replace(/[^0-9.]/g, ''));
+      const oldP = Number(String(spick(row, SHEET_COLS.oldPrice)).replace(/[^0-9.]/g, ''));
+      let images = [];
+      const no = String(spick(row, SHEET_COLS.imgNo)).trim().replace(/\.0+$/, '');
+      if (no) { const ex = Math.max(0, Math.min(20, parseInt(spick(row, SHEET_COLS.extra), 10) || 0)); images = [`${no}.jpg`, ...Array.from({ length: ex }, (_, k) => `${no}-${k + 1}.jpg`)]; }
+      else { const f = String(spick(row, SHEET_COLS.image)).trim(); if (f) images = [/\.\w+$/.test(f) ? f : f + '.jpg']; }
+      const bad = [];
+      if (!id) bad.push('SKU missing'); else if (seen[id]) bad.push(`SKU ${id} repeated (row ${seen[id]})`);
+      if (!name) bad.push('name missing'); if (!category) bad.push('category must be Lingerie / Nighty / Intimate Wear / Party Wear');
+      if (!(price > 0)) bad.push('price must be a number'); if (!images.length) bad.push('Image No. missing');
+      if (bad.length) { errors.push(`Row ${line}${name ? ' (' + name + ')' : ''}: ${bad.join('; ')}`); return; }
+      seen[id] = line;
+      const details = {};
+      const fab = String(spick(row, SHEET_COLS.fabric)).trim(), care = String(spick(row, SHEET_COLS.care)).trim();
+      if (fab) details.Fabric = fab; if (care) details.Care = care;
+      for (const [k, v] of Object.entries(row)) if (!SHEET_KNOWN.includes(nrm(k)) && !/^__EMPTY/.test(k) && String(v ?? '').trim()) details[k.trim()] = String(v).trim();
+      const sizes = slist(spick(row, SHEET_COLS.sizes)), colors = slist(spick(row, SHEET_COLS.colors));
+      out.push({ id, name, category, price, oldPrice: oldP > price ? oldP : null, image: images[0], images,
+        tags: ['exclusive', 'popular', 'recommended'].filter(t => syes(spick(row, SHEET_COLS[t]))),
+        sizes: sizes.length ? sizes : ALL_SIZES.slice(), colors: colors.length ? colors : ALL_COLORS.slice(),
+        description: String(spick(row, SHEET_COLS.description)).trim(), badge: String(spick(row, SHEET_COLS.badge)).trim(),
+        details, active: !/^(no|n|false|0)$/i.test(String(spick(row, SHEET_COLS.active)).trim()) });
+    });
+    return { out, errors };
+  }
+  function openBulkSheet() {
+    if (!PM.products) return toast('Connect GitHub in Settings first');
+    PM.sheet = null;
+    openPanel('Bulk Import CSV / Excel', `
+      <p class="text-sm text-charcoal-light mb-4">Use your <b>SCBD_Products.xlsx</b> (or a CSV with the same columns). Products are matched by <b>SKU</b>.</p>
+      <label class="block border-2 border-dashed border-black/20 bg-blush-50 hover:border-noir text-center px-4 py-10 cursor-pointer mb-4">
+        <input id="bsFile" type="file" accept=".xlsx,.xls,.csv" class="hidden" />
+        <span class="font-serif text-xl block">Choose Excel or CSV file</span><span class="text-xs text-charcoal-soft">.xlsx · .xls · .csv</span>
+      </label>
+      <div class="flex flex-wrap gap-4 text-sm mb-4">
+        <label class="flex items-center gap-2"><input type="radio" name="bsMode" value="merge" checked class="accent-[#0F0F0F]" /> Add new &amp; update existing (keep other products)</label>
+        <label class="flex items-center gap-2"><input type="radio" name="bsMode" value="replace" class="accent-[#0F0F0F]" /> Replace ALL products with this file</label>
+      </div>
+      <div id="bsResult"></div>
+      <button type="button" data-pm="bsgo" class="mt-4 w-full bg-noir text-white text-[11px] tracking-[.14em] uppercase py-4 hover:bg-charcoal">Publish to Website</button>`);
+    $('bsFile').addEventListener('change', async (e) => {
+      const f = e.target.files[0]; if (!f) return;
+      try {
+        await loadXlsxLib();
+        const wb = XLSX.read(new Uint8Array(await f.arrayBuffer()), { type: 'array' });
+        const sh = wb.SheetNames.find(n => nrm(n) === 'products') || wb.SheetNames[0];
+        PM.sheet = sheetToProducts(XLSX.utils.sheet_to_json(wb.Sheets[sh], { defval: '', raw: true }));
+        const ids = new Set(PM.products.map(p => String(p.id).toUpperCase()));
+        const nNew = PM.sheet.out.filter(p => !ids.has(p.id)).length, nUpd = PM.sheet.out.length - nNew;
+        $('bsResult').innerHTML = `
+          ${PM.sheet.errors.length ? `<div class="bg-[#FDE8E8] text-[#9B1C1C] text-xs p-3 mb-3"><b>${PM.sheet.errors.length} row(s) skipped:</b><br>${PM.sheet.errors.map(esc).join('<br>')}</div>` : ''}
+          <div class="grid grid-cols-3 gap-2 text-center">
+            <div class="border border-black/10 p-3"><p class="text-[10px] uppercase tracking-[.14em] text-charcoal-soft">Ready</p><p class="font-serif text-2xl">${PM.sheet.out.length}</p></div>
+            <div class="border border-black/10 p-3"><p class="text-[10px] uppercase tracking-[.14em] text-charcoal-soft">New</p><p class="font-serif text-2xl">${nNew}</p></div>
+            <div class="border border-black/10 p-3"><p class="text-[10px] uppercase tracking-[.14em] text-charcoal-soft">Updates</p><p class="font-serif text-2xl">${nUpd}</p></div>
+          </div>`;
+      } catch (ex) { console.error(ex); $('bsResult').innerHTML = `<p class="text-sm text-[#9B1C1C]">${esc(ex.message)}</p>`; }
+    });
+  }
+  async function publishSheet() {
+    if (!PM.sheet || !PM.sheet.out.length) return toast('Choose a file with valid rows first');
+    const mode = document.querySelector('input[name="bsMode"]:checked').value;
+    let data;
+    if (mode === 'replace') {
+      if (!confirm(`Replace all ${PM.products.length} products with ${PM.sheet.out.length} from this file?`)) return;
+      data = PM.sheet.out;
+    } else {
+      data = PM.products.slice();
+      PM.sheet.out.forEach(p => { const i = data.findIndex(x => String(x.id).toUpperCase() === p.id); if (i >= 0) data[i] = p; else data.push(p); });
+    }
+    try { await ghCommit([productsFile(data)], `Bulk import ${PM.sheet.out.length} products (admin panel)`); closePanel(); afterPublish(data, `${PM.sheet.out.length} products`); }
+    catch (ex) { console.error(ex); toast(ex.status ? ghErr(ex) : 'Publish failed'); }
+  }
+
+  /* ---------- Export current products to Excel (same columns as SCBD_Products.xlsx) ---------- */
+  async function exportProducts() {
+    try { await loadXlsxLib(); } catch (e) { return toast(e.message); }
+    const src = PM.products || [];
+    if (!src.length) return toast('Load products first (Settings → GitHub)');
+    const extraKeys = [...new Set(src.flatMap(p => Object.keys(p.details || {}).filter(k => !['Fabric', 'Care'].includes(k))))];
+    const rows = src.map(p => {
+      const imgs = (p.images && p.images.length ? p.images : [p.image]).filter(Boolean);
+      const r = { 'SKU': p.id, 'Product Name': p.name, 'Category': p.category, 'Price (৳)': p.price, 'Old Price (৳)': p.oldPrice || '',
+        'Image No.': imgNoOf(p) || '', 'Extra Photos': Math.max(0, imgs.length - 1),
+        'Exclusive': (p.tags || []).includes('exclusive') ? 'Yes' : 'No', 'Popular': (p.tags || []).includes('popular') ? 'Yes' : 'No', 'Recommended': (p.tags || []).includes('recommended') ? 'Yes' : 'No',
+        'Sizes': (p.sizes || []).length === 8 ? '' : (p.sizes || []).join(', '), 'Colors': (p.colors || []).length === 12 ? '' : (p.colors || []).join(', '),
+        'Fabric': (p.details || {}).Fabric || '', 'Care': (p.details || {}).Care || '', 'Description': p.description || '', 'Badge': p.badge || '',
+        'Show on Website': p.active === false ? 'No' : 'Yes' };
+      extraKeys.forEach(k => r[k] = (p.details || {})[k] || '');
+      return r;
+    });
+    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), 'Products');
+    XLSX.writeFile(wb, `SCBD_Products_export_${new Date().toISOString().slice(0, 10)}.xlsx`);
+  }
+
+  /* ---------- Tabs & events ---------- */
+  let admTab = 'orders';
+  function showAdmTab(t) {
+    admTab = t;
+    document.querySelectorAll('.adm-tab').forEach(b => { const on = b.dataset.admtab === t; b.classList.toggle('border-noir', on); b.classList.toggle('border-transparent', !on); b.classList.toggle('text-charcoal-soft', !on); });
+    $('admTabOrders').classList.toggle('hidden', t !== 'orders');
+    $('admTabProducts').classList.toggle('hidden', t !== 'products');
+    $('admTabSettings').classList.toggle('hidden', t !== 'settings');
+    if (t === 'products') renderProductsTab();
+    if (t === 'settings') renderSettings();
+  }
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-admtab],[data-pm],[data-pmedit],[data-pmdel],[data-pmtag],[data-pmsize],[data-pmcolor],[data-pmall],[data-pmnone],[data-phmove],[data-phdel],[data-phmain],[data-set]');
+    if (!b) return;
+    const d = b.dataset;
+    if (d.admtab) return showAdmTab(d.admtab);
+    if (d.pm === 'add') return openEditor();
+    if (d.pm === 'close') return closePanel();
+    if (d.pm === 'ai') return runAi();
+    if (d.pm === 'bulkphotos') return openBulkPhotos();
+    if (d.pm === 'bpgo') return publishBulkPhotos();
+    if (d.pm === 'bulksheet') return openBulkSheet();
+    if (d.pm === 'bsgo') return publishSheet();
+    if (d.pm === 'export') return exportProducts();
+    if (d.pm === 'reload') return renderProductsTab(true);
+    if (d.pmedit) return openEditor(Number(d.pmedit));
+    if (d.pmdel) return deleteProduct(Number(d.pmdel));
+    if (d.pmtag || d.pmsize || d.pmcolor) return setChip(b, !chipOn(b));
+    if (d.pmall || d.pmnone) { const on = !!d.pmall; document.querySelectorAll(d.pmall === 'size' || d.pmnone === 'size' ? '[data-pmsize]' : '[data-pmcolor]').forEach(x => setChip(x, on)); return; }
+    if (d.phmove) { const [k, dir] = d.phmove.split('|').map(Number); const j = k + dir; if (j >= 0 && j < PM.photos.length) { [PM.photos[k], PM.photos[j]] = [PM.photos[j], PM.photos[k]]; renderEditorPhotos(); } return; }
+    if (d.phmain) { const k = Number(d.phmain); PM.photos.unshift(PM.photos.splice(k, 1)[0]); renderEditorPhotos(); return; }
+    if (d.phdel) { PM.photos.splice(Number(d.phdel), 1); renderEditorPhotos(); return; }
+    if (d.set === 'clear') { if (confirm('Remove the GitHub token and AI key from this device?')) { putSet({}); renderSettings(); PM.products = null; setMsg('Keys removed from this device.', true); } return; }
+    if (d.set === 'test') return testConnections();
+  });
+  document.addEventListener('input', (e) => { if (e.target.id === 'pmSearch') renderProductList(); });
+  document.addEventListener('change', (e) => {
+    if (e.target.id === 'pmCat') renderProductList();
+    if (e.target.id === 'setAi') $('setAiModel').value = AI_DEFAULT_MODEL[e.target.value];
+  });
+  $('setForm').addEventListener('submit', (e) => { e.preventDefault(); putSet(readSetForm()); PM.products = null; setMsg('✓ Saved on this device.', true); });
+  async function testConnections() {
+    putSet(readSetForm());
+    const s = getSet(), out = [];
+    if (s.repo && s.token) {
+      try { const r = await gh(`/repos/${s.repo}`); const can = r.permissions ? r.permissions.push : true; PM.products = await ghLoadProducts();
+        out.push(can ? `✓ GitHub connected: ${esc(r.full_name)} (${PM.products.length} products)` : '✗ GitHub: token can read but not write. Give it Contents: Read and write.'); }
+      catch (e) { out.push('✗ ' + esc(ghErr(e))); }
+    } else out.push('✗ GitHub: add repository and token.');
+    if (s.aiKey) {
+      try {
+        const px = document.createElement('canvas'); px.width = px.height = 8; const c = px.getContext('2d'); c.fillStyle = '#e8c4c0'; c.fillRect(0, 0, 8, 8);
+        await callAi(px.toDataURL('image/jpeg').split(',')[1]).catch(err => { if (/JSON|listing/i.test(err.message)) return {}; throw err; });
+        out.push(`✓ AI connected (${esc(s.ai === 'gemini' ? 'Gemini' : 'Claude')}, ${esc(s.aiModel)})`);
+      } catch (e) { out.push('✗ AI: ' + esc(e.message)); }
+    } else out.push('– AI: no key added (optional).');
+    setMsg(out.join('<br>'), out.every(x => !x.startsWith('✗')));
+  }
+  </script>
+
 </body>
 </html>
