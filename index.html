@@ -2001,7 +2001,7 @@ Please confirm my order. Thank you.`;
   const ALL_COLORS = ['Black', 'White', 'Red', 'Pink', 'Blue', 'Navy', 'Green', 'Yellow', 'Purple', 'Grey', 'Beige', 'Maroon'];
   const CATS4 = ['Lingerie', 'Nighty', 'Intimate Wear', 'Party Wear'];
   const CAT_PREFIX = { 'Lingerie': 'L', 'Nighty': 'N', 'Intimate Wear': 'I', 'Party Wear': 'P' };
-  const AI_DEFAULT_MODEL = { claude: 'claude-sonnet-5', gemini: 'gemini-2.5-flash' };
+  const AI_DEFAULT_MODEL = { claude: 'claude-sonnet-5', gemini: 'gemini-3.8-flash' };
 
   /* ---------- Settings (this device only) ---------- */
   const SET_KEY = 'scbd_admin_settings_v1';
@@ -2337,7 +2337,18 @@ Look at the product photo and return ONLY a JSON object (no markdown) with these
         body: JSON.stringify({ contents: [{ parts: [{ inline_data: { mime_type: 'image/jpeg', data: b64 } }, { text: AI_PROMPT }] }], generationConfig: { responseMimeType: 'application/json', temperature: 0.4 } })
       });
       const j = await res.json();
-      if (!res.ok) throw new Error((j.error && j.error.message) || res.statusText);
+      if (!res.ok) {
+        const msg = (j.error && j.error.message) || res.statusText;
+        // Google retires models over time and names the replacement in the error: switch to it automatically
+        const repl = msg.match(/use\s+(?:models\/)?(gemini-[\w.-]+)/i);
+        if (repl && repl[1] !== model && !callAi._retried) {
+          putSet({ ...s, aiModel: repl[1] });
+          if ($('setAiModel')) $('setAiModel').value = repl[1];
+          callAi._retried = true;
+          try { return await callAi(b64); } finally { callAi._retried = false; }
+        }
+        throw new Error(msg);
+      }
       text = (((j.candidates || [])[0] || {}).content || {}).parts?.map(p => p.text || '').join('') || '';
     } else {
       const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -2603,7 +2614,7 @@ Look at the product photo and return ONLY a JSON object (no markdown) with these
       try {
         const px = document.createElement('canvas'); px.width = px.height = 8; const c = px.getContext('2d'); c.fillStyle = '#e8c4c0'; c.fillRect(0, 0, 8, 8);
         await callAi(px.toDataURL('image/jpeg').split(',')[1]).catch(err => { if (/JSON|listing/i.test(err.message)) return {}; throw err; });
-        out.push(`✓ AI connected (${esc(s.ai === 'gemini' ? 'Gemini' : 'Claude')}, ${esc(s.aiModel)})`);
+        out.push(`✓ AI connected (${esc(s.ai === 'gemini' ? 'Gemini' : 'Claude')}, ${esc(getSet().aiModel)})`);
       } catch (e) { out.push('✗ AI: ' + esc(e.message)); }
     } else out.push('– AI: no key added (optional).');
     setMsg(out.join('<br>'), out.every(x => !x.startsWith('✗')));
