@@ -2328,7 +2328,23 @@ Look at the product photo and return ONLY a JSON object (no markdown) with these
     if (ph.b64) return (await toJpeg(ph.src, 1024, 0.8)).b64;
     return (await toJpeg(ph.src + (ph.src.includes('?') ? '&' : '?') + 'ai=' + Date.now(), 1024, 0.8)).b64;
   }
+  // Busy / rate-limited AI servers: wait and try again automatically (about 2s, 5s, 10s)
+  const AI_BUSY = /high demand|overload|unavailable|try again later|rate limit|resource.?exhausted|quota exceeded per minute|529|503|429/i;
   async function callAi(b64) {
+    const waits = [2000, 5000, 10000];
+    for (let attempt = 0; ; attempt++) {
+      try { return await callAiOnce(b64); }
+      catch (e) {
+        if (!AI_BUSY.test(e.message) || attempt >= waits.length) {
+          if (AI_BUSY.test(e.message)) e.busy = true;
+          throw e;
+        }
+        const m = $('pmAiMsg'); if (m) m.textContent = `AI is busy, retrying in ${waits[attempt] / 1000}s… (${attempt + 1}/${waits.length})`;
+        await new Promise(r => setTimeout(r, waits[attempt]));
+      }
+    }
+  }
+  async function callAiOnce(b64) {
     const s = getSet(), model = s.aiModel || AI_DEFAULT_MODEL[s.ai || 'claude'];
     let text;
     if ((s.ai || 'claude') === 'gemini') {
@@ -2345,7 +2361,7 @@ Look at the product photo and return ONLY a JSON object (no markdown) with these
           putSet({ ...s, aiModel: repl[1] });
           if ($('setAiModel')) $('setAiModel').value = repl[1];
           callAi._retried = true;
-          try { return await callAi(b64); } finally { callAi._retried = false; }
+          try { return await callAiOnce(b64); } finally { callAi._retried = false; }
         }
         throw new Error(msg);
       }
@@ -2385,7 +2401,7 @@ Look at the product photo and return ONLY a JSON object (no markdown) with these
       say('✓ Draft ready. Check the details, set the price and sections, then publish.', true);
     } catch (ex) {
       console.error(ex);
-      say('AI error: ' + ex.message + (/model/i.test(ex.message) ? ' (check the model name in Settings)' : ''), false);
+      say(ex.busy ? 'The AI service is very busy right now (a temporary problem on Google/Anthropic\'s side). Wait a minute and click again. You can also fill the details yourself and publish.' : 'AI error: ' + ex.message + (/model/i.test(ex.message) ? ' (check the model name in Settings)' : ''), false);
     }
   }
 
@@ -2604,6 +2620,7 @@ Look at the product photo and return ONLY a JSON object (no markdown) with these
   $('setForm').addEventListener('submit', (e) => { e.preventDefault(); putSet(readSetForm()); PM.products = null; setMsg('✓ Saved on this device.', true); });
   async function testConnections() {
     putSet(readSetForm());
+    setMsg('Testing… (can take up to 20 seconds if the AI service is busy)', true);
     const s = getSet(), out = [];
     if (s.repo && s.token) {
       try { const r = await gh(`/repos/${s.repo}`); const can = r.permissions ? r.permissions.push : true; PM.products = await ghLoadProducts();
@@ -2615,7 +2632,7 @@ Look at the product photo and return ONLY a JSON object (no markdown) with these
         const px = document.createElement('canvas'); px.width = px.height = 8; const c = px.getContext('2d'); c.fillStyle = '#e8c4c0'; c.fillRect(0, 0, 8, 8);
         await callAi(px.toDataURL('image/jpeg').split(',')[1]).catch(err => { if (/JSON|listing/i.test(err.message)) return {}; throw err; });
         out.push(`✓ AI connected (${esc(s.ai === 'gemini' ? 'Gemini' : 'Claude')}, ${esc(getSet().aiModel)})`);
-      } catch (e) { out.push('✗ AI: ' + esc(e.message)); }
+      } catch (e) { out.push(e.busy ? `✓ AI key accepted (${esc(getSet().aiModel)}), but the AI service is busy right now. That is temporary on the provider's side; just try again in a few minutes.` : '✗ AI: ' + esc(e.message)); }
     } else out.push('– AI: no key added (optional).');
     setMsg(out.join('<br>'), out.every(x => !x.startsWith('✗')));
   }
