@@ -602,9 +602,10 @@
       <p class="font-serif text-3xl mb-3">Order Placed</p>
       <p class="text-sm text-charcoal-light mb-1">Your order number</p>
       <p id="doneNo" class="font-mono text-xl mb-5"></p>
-      <p class="text-sm text-charcoal-light mb-8">Please send the WhatsApp message that just opened so we can verify your payment. We'll confirm shortly.</p>
+      <p id="doneNote" class="hidden text-xs bg-blush-50 border border-black/10 px-4 py-3 mb-4 text-charcoal-light"></p>
+      <p class="text-sm text-charcoal-light mb-8">WhatsApp is opening with your order details. Please press <b>Send</b> there so we can verify your payment. If WhatsApp didn't open, tap the button below.</p>
       <div class="flex flex-col sm:flex-row gap-2 justify-center">
-        <a id="doneWa" href="#" target="_blank" rel="noopener" class="bg-[#25D366] text-white text-[11px] tracking-luxe uppercase px-6 py-3">Open WhatsApp Again</a>
+        <a id="doneWa" href="#" rel="noopener" class="bg-[#25D366] text-white text-[11px] tracking-luxe uppercase px-6 py-3">Send Order on WhatsApp</a>
         <button type="button" data-doneclose class="border border-noir text-[11px] tracking-luxe uppercase px-6 py-3">Continue Shopping</button>
       </div>
     </div>
@@ -1154,6 +1155,7 @@
   }
 
   /* ---------- WhatsApp checkout ---------- */
+  const withTimeout = (promise, ms) => Promise.race([promise, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
   async function checkout(e) {
     e.preventDefault();
     const name = $('fName').value.trim();
@@ -1208,36 +1210,49 @@ TrxID / Ref: ${trx}
 Please confirm my order. Thank you.`;
     const url = `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(text)}`;
 
-    if (!acctOn) { window.open(url, '_blank', 'noopener'); return; }
+    const btn = $('fSubmit');
+    const btnHTML = btn.innerHTML;
+    btn.disabled = true; btn.classList.add('opacity-60'); btn.innerHTML = 'Placing your order…';
 
-    // open the WhatsApp tab now (browsers block pop-ups opened after a delay)
-    const win = window.open('', '_blank');
-    const btn = $('fSubmit'); btn.disabled = true; btn.classList.add('opacity-60');
-    try {
-      await saveOrder({
-        orderNo, source: 'website',
-        customer: { name, phone, email, address },
-        payment: { method, trx },
-        items: lines, subtotal: sub, delivery: 0, total
-      }, wantAccount ? { email, pass } : null);
-    } catch (ex) {
-      console.error('Order save failed:', ex);
-      if (ex && String(ex.code || '').startsWith('auth/')) {      // account problem: let the customer fix it
-        if (win) win.close();
-        err.textContent = authMsg(ex) + (ex.code === 'auth/email-already-in-use' ? ' Or untick "Create an account" to order as a guest.' : '');
-        err.classList.remove('hidden');
-        btn.disabled = false; btn.classList.remove('opacity-60');
-        return;
-      }
-      // anything else: never lose the sale, WhatsApp still goes through
+    // Phones & in-app browsers (Facebook / Instagram): open WhatsApp in the same tab (most reliable).
+    // Computers: open WhatsApp Web in a new tab, reserved now so the pop-up blocker allows it.
+    const isMobile = /Android|iPhone|iPad|iPod|Mobile|FBAN|FBAV|Instagram/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && innerWidth < 1024);
+    const win = !isMobile ? window.open('', '_blank') : null;
+
+    let note = '';
+    if (acctOn) {
+      const order = { orderNo, source: 'website', customer: { name, phone, email, address }, payment: { method, trx }, items: lines, subtotal: sub, delivery: 0, total };
+      const work = (async () => {
+        // 1) create the account (a failure never blocks the order)
+        if (wantAccount) {
+          try { await createCustomer({ ...order.customer, pass }); }
+          catch (ex) {
+            console.warn('Account not created:', ex);
+            note = ex && ex.code === 'auth/email-already-in-use'
+              ? 'You already have an account with this phone number. Your order was placed; sign in anytime from the 👤 icon.'
+              : 'Your order was placed, but the account could not be created right now. You can create it later from the 👤 icon.';
+          }
+        }
+        // 2) save the order for your dashboard
+        await saveOrder(order, null);
+      })();
+      // never keep the customer waiting more than 8 seconds; WhatsApp always opens
+      try { await withTimeout(work, 8000); }
+      catch (ex) { console.warn('Order not fully saved online, continuing to WhatsApp:', ex); }
     }
-    btn.disabled = false; btn.classList.remove('opacity-60');
-    if (win && !win.closed) win.location.href = url; else location.href = url;
 
+    btn.disabled = false; btn.classList.remove('opacity-60'); btn.innerHTML = btnHTML;
     cart = []; saveCart(); renderCart(); closeCart();
     $('fTrx').value = ''; $('fPass').value = ''; $('fCreate').checked = false; $('fPassWrap').classList.add('hidden');
-    $('doneNo').textContent = orderNo; $('doneWa').href = url;
+    $('doneNo').textContent = orderNo || '—';
+    $('doneNo').classList.toggle('hidden', !orderNo);
+    $('doneNote').textContent = note; $('doneNote').classList.toggle('hidden', !note);
+    $('doneWa').href = url; $('doneWa').target = isMobile ? '_self' : '_blank';
     $('orderDone').classList.remove('hidden'); $('orderDone').classList.add('flex');
+
+    if (win && !win.closed) { try { win.location.href = url; } catch (e) { location.href = url; } }
+    else setTimeout(() => { location.href = url; }, 700);   // same tab: opens the WhatsApp app
+
   }
 
 
@@ -1347,6 +1362,7 @@ Please confirm my order. Thank you.`;
   const FIREBASE_CONFIG = {
     apiKey: 'AIzaSyB_xMPnzuNieOtMZWE3ozmdBa0jxGKHkO4',
     authDomain: 'secret-collection-bd.firebaseapp.com',
+    databaseURL: 'https://secret-collection-bd-default-rtdb.asia-southeast1.firebasedatabase.app',
     projectId: 'secret-collection-bd',
     storageBucket: 'secret-collection-bd.firebasestorage.app',
     messagingSenderId: '793518451226',
