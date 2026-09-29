@@ -1,14 +1,34 @@
 // POST /api/notify  { text, orderNo, saved }
-// Sends the new-order message to the shop's own WhatsApp number (admin notification only).
+// Sends each new website order to the shop owner's WhatsApp (admin notification only).
 // The customer is never sent to WhatsApp. No packages needed.
 //
-// Vercel → Project → Settings → Environment Variables:
-//   CALLMEBOT_APIKEY   the key CallMeBot sent you on WhatsApp            (free, recommended)
-//   NOTIFY_PHONE       optional, default 8801786789182 (must be the number you activated)
-//   TEXTMEBOT_APIKEY   optional alternative to CallMeBot (textmebot.com)
+// Vercel → Project → Settings → Environment Variables (set at least one key):
+//   CALLMEBOT_APIKEY   free — key from the CallMeBot WhatsApp bot
+//   TEXTMEBOT_APIKEY   backup — key from textmebot.com ($1/month, 2-day free trial)
+//   NOTIFY_PHONE       WhatsApp number that receives the alerts, with 88
+//                      (default 8801786789182)
+// If both keys are set, CallMeBot is tried first and TextMeBot is used only if it fails.
 
 const PHONE = '+' + String(process.env.NOTIFY_PHONE || '8801786789182').replace(/\D/g, '');
 const seen = new Map();   // orderNo -> time, stops duplicate sends on the same server
+
+async function get(url) {
+  const ctrl = new AbortController(); const timer = setTimeout(() => ctrl.abort(), 9000);
+  try { const r = await fetch(url, { signal: ctrl.signal }); return { ok: r.ok, status: r.status, body: await r.text() }; }
+  finally { clearTimeout(timer); }
+}
+const BAD = /(apikey is (invalid|wrong|not valid)|invalid apikey|not (been )?activated|invalid (phone|recipient)|not connected|disconnected|expired)/i;
+
+async function viaCallMeBot(message) {
+  const r = await get(`https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent(PHONE)}&text=${encodeURIComponent(message)}&apikey=${encodeURIComponent(process.env.CALLMEBOT_APIKEY)}`);
+  const reply = r.body.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 200);
+  if (!r.ok || BAD.test(reply)) throw new Error('CallMeBot: ' + (reply || r.status));
+}
+async function viaTextMeBot(message) {
+  const r = await get(`https://api.textmebot.com/send.php?recipient=${encodeURIComponent(PHONE)}&apikey=${encodeURIComponent(process.env.TEXTMEBOT_APIKEY)}&text=${encodeURIComponent(message)}`);
+  const reply = r.body.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 200);
+  if (!r.ok || BAD.test(reply)) throw new Error('TextMeBot: ' + (reply || r.status));
+}
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
@@ -25,29 +45,18 @@ module.exports = async (req, res) => {
   for (const [k, t] of seen) if (now - t > 3600e3) seen.delete(k);
   if (seen.has(orderNo)) return res.status(200).json({ sent: true, duplicate: true });
 
-  const header = body.saved === false
-    ? '⚠️ Not saved in the dashboard — keep this message.\n\n'
-    : '';
+  const header = body.saved === false ? '⚠️ Not saved in the dashboard — keep this message.\n\n' : '';
   const message = header + text.replace(/\nPlease confirm my order\. Thank you\.\s*$/, '');
 
-  const CMB = process.env.CALLMEBOT_APIKEY, TMB = process.env.TEXTMEBOT_APIKEY;
-  if (!CMB && !TMB) return res.status(503).json({ sent: false, error: 'WhatsApp notifications are not set up (CALLMEBOT_APIKEY missing).' });
+  const senders = [];
+  if (process.env.CALLMEBOT_APIKEY) senders.push(['callmebot', viaCallMeBot]);
+  if (process.env.TEXTMEBOT_APIKEY) senders.push(['textmebot', viaTextMeBot]);
+  if (!senders.length) return res.status(503).json({ sent: false, error: 'WhatsApp alerts are not set up (add CALLMEBOT_APIKEY or TEXTMEBOT_APIKEY in Vercel).' });
 
-  const url = CMB
-    ? `https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent(PHONE)}&text=${encodeURIComponent(message)}&apikey=${encodeURIComponent(CMB)}`
-    : `https://api.textmebot.com/send.php?recipient=${encodeURIComponent(PHONE)}&apikey=${encodeURIComponent(TMB)}&text=${encodeURIComponent(message)}`;
-
-  try {
-    const ctrl = new AbortController(); const timer = setTimeout(() => ctrl.abort(), 9000);
-    const r = await fetch(url, { signal: ctrl.signal }); clearTimeout(timer);
-    const reply = (await r.text()).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 200);
-    // CallMeBot answers 200 even for some problems, so also look at the words
-    const ok = r.ok && !/(apikey is (invalid|wrong|not valid)|invalid apikey|not (been )?activated|invalid (phone|recipient))/i.test(reply);
-    if (!ok) { console.error('WhatsApp notify failed:', r.status, reply); return res.status(502).json({ sent: false, error: reply || 'Send failed' }); }
-    seen.set(orderNo, now);
-    return res.status(200).json({ sent: true });
-  } catch (err) {
-    console.error('WhatsApp notify error:', err);
-    return res.status(502).json({ sent: false, error: 'Could not reach the WhatsApp service' });
+  const errors = [];
+  for (const [name, send] of senders) {
+    try { await send(message); seen.set(orderNo, now); return res.status(200).json({ sent: true, via: name }); }
+    catch (err) { console.error('WhatsApp alert failed:', err.message || err); errors.push(String(err.message || err)); }
   }
+  return res.status(502).json({ sent: false, error: errors.join(' | ') });
 };
