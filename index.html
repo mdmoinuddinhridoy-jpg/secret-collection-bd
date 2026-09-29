@@ -2844,11 +2844,58 @@ Look at the product photo and return ONLY a JSON object (no markdown) with these
   }
   // Busy / rate-limited AI servers: wait and try again automatically (about 2s, 5s, 10s)
   const AI_BUSY = /high demand|overload|unavailable|try again later|rate limit|resource.?exhausted|quota exceeded per minute|529|503|429/i;
+  // Free-tier quota ("You exceeded your current quota … limit: 20") → wait briefly once, then try other free Gemini models
+  const AI_QUOTA = /exceeded your current quota|quota exceeded for metric|free_tier/i;
+  const EXHAUSTED_KEY = 'scbd_ai_exhausted_v1';
+  const exhausted = () => { try { const o = JSON.parse(localStorage.getItem(EXHAUSTED_KEY) || '{}'); const now = Date.now(); return Object.fromEntries(Object.entries(o).filter(([, t]) => now - t < 12 * 3600e3)); } catch (e) { return {}; } };
+  const markExhausted = (m) => { try { localStorage.setItem(EXHAUSTED_KEY, JSON.stringify({ ...exhausted(), [m]: Date.now() })); } catch (e) {} };
+  async function geminiFallbacks(current) {
+    const s = getSet();
+    try {
+      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?pageSize=200&key=${encodeURIComponent(s.aiKey)}`);
+      const j = await r.json();
+      const skip = exhausted();
+      const ver = (n) => parseFloat((n.match(/gemini-(\d+(?:\.\d+)?)/) || [])[1] || 0);
+      return (j.models || [])
+        .filter(m => (m.supportedGenerationMethods || []).includes('generateContent'))
+        .map(m => String(m.name).replace(/^models\//, ''))
+        .filter(n => /^gemini-/.test(n) && /flash/.test(n) && !/(image|tts|audio|live|embed|thinking|exp)/.test(n) && n !== current && !skip[n])
+        .sort((a, b) => (ver(b) - ver(a)) || (/lite/.test(b) - /lite/.test(a)) || (/preview/.test(a) - /preview/.test(b)))
+        .slice(0, 5);
+    } catch (e) { return []; }
+  }
   async function callAi(b64) {
+    const s = getSet();
+    const first = s.aiModel || AI_DEFAULT_MODEL[s.ai || 'claude'];
+    try { return await callAiBusy(b64, (s.ai || 'claude') === 'gemini' && exhausted()[first] ? null : first); }
+    catch (e) {
+      if ((s.ai || 'claude') !== 'gemini' || !(AI_QUOTA.test(e.message) || e.skipped)) throw e;
+      if (!e.skipped) markExhausted(first);
+      const say = (t) => { const m = $('pmAiMsg'); if (m) m.textContent = t; };
+      for (const alt of await geminiFallbacks(first)) {
+        say(`Free limit reached on ${first}, trying ${alt}…`);
+        try { const r = await callAiBusy(b64, alt); r._model = alt; return r; }
+        catch (e2) { if (AI_QUOTA.test(e2.message)) { markExhausted(alt); continue; } if (/not found|not supported/i.test(e2.message)) continue; throw e2; }
+      }
+      const err = new Error('quota'); err.quota = true; throw err;
+    }
+  }
+  async function callAiBusy(b64, model) {
+    if (!model) { const e = new Error('skipped'); e.skipped = true; throw e; }
     const waits = [2000, 5000, 10000];
+    let quotaWaited = false;
     for (let attempt = 0; ; attempt++) {
-      try { return await callAiOnce(b64); }
+      try { return await callAiOnce(b64, model); }
       catch (e) {
+        // per-minute limit: Google says "retry in 3.4s" — wait that long once and try again
+        const wait = (e.message.match(/retry in ([\d.]+)s/i) || [])[1];
+        if (AI_QUOTA.test(e.message) && wait && Number(wait) <= 60 && !quotaWaited) {
+          quotaWaited = true;
+          const m = $('pmAiMsg'); if (m) m.textContent = `Free-tier limit, waiting ${Math.ceil(Number(wait))}s and trying again…`;
+          await new Promise(r => setTimeout(r, Math.ceil(Number(wait)) * 1000 + 500));
+          continue;
+        }
+        if (AI_QUOTA.test(e.message)) throw e;
         if (!AI_BUSY.test(e.message) || attempt >= waits.length) {
           if (AI_BUSY.test(e.message)) e.busy = true;
           throw e;
@@ -2858,8 +2905,8 @@ Look at the product photo and return ONLY a JSON object (no markdown) with these
       }
     }
   }
-  async function callAiOnce(b64) {
-    const s = getSet(), model = s.aiModel || AI_DEFAULT_MODEL[s.ai || 'claude'];
+  async function callAiOnce(b64, modelOverride) {
+    const s = getSet(), model = modelOverride || s.aiModel || AI_DEFAULT_MODEL[s.ai || 'claude'];
     let text;
     if ((s.ai || 'claude') === 'gemini') {
       const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(s.aiKey)}`, {
@@ -2875,7 +2922,7 @@ Look at the product photo and return ONLY a JSON object (no markdown) with these
           putSet({ ...s, aiModel: repl[1] });
           if ($('setAiModel')) $('setAiModel').value = repl[1];
           callAi._retried = true;
-          try { return await callAiOnce(b64); } finally { callAi._retried = false; }
+          try { return await callAiOnce(b64, repl[1]); } finally { callAi._retried = false; }
         }
         throw new Error(msg);
       }
@@ -2912,9 +2959,10 @@ Look at the product photo and return ONLY a JSON object (no markdown) with these
         const cs = r.colors.map(c => ALL_COLORS.find(x => x.toLowerCase() === String(c).toLowerCase())).filter(Boolean);
         if (cs.length) document.querySelectorAll('[data-pmcolor]').forEach(b => setChip(b, cs.includes(b.dataset.pmcolor)));
       }
-      say('✓ Draft ready. Check the details, set the price and sections, then publish.', true);
+      say('✓ Draft ready' + (r._model ? ` (used ${r._model} — today's free limit on your main model is used up)` : '') + '. Check the details, set the price and sections, then publish.', true);
     } catch (ex) {
       console.error(ex);
+      if (ex.quota) return say('Today\'s free Gemini limit is used up on all free models. It resets daily around 1–2 PM Bangladesh time. Until then: fill the details yourself, switch to Claude in Settings, or turn on billing for your key in Google AI Studio (very cheap, about ৳0.10–0.50 per photo).', false);
       say(ex.busy ? 'The AI service is very busy right now (a temporary problem on Google/Anthropic\'s side). Wait a minute and click again. You can also fill the details yourself and publish.' : 'AI error: ' + ex.message + (/model/i.test(ex.message) ? ' (check the model name in Settings)' : ''), false);
     }
   }
@@ -3148,7 +3196,7 @@ Look at the product photo and return ONLY a JSON object (no markdown) with these
         const px = document.createElement('canvas'); px.width = px.height = 8; const c = px.getContext('2d'); c.fillStyle = '#e8c4c0'; c.fillRect(0, 0, 8, 8);
         await callAi(px.toDataURL('image/jpeg').split(',')[1]).catch(err => { if (/JSON|listing/i.test(err.message)) return {}; throw err; });
         out.push(`✓ AI connected (${esc(s.ai === 'gemini' ? 'Gemini' : 'Claude')}, ${esc(getSet().aiModel)})`);
-      } catch (e) { out.push(e.busy ? `✓ AI key accepted (${esc(getSet().aiModel)}), but the AI service is busy right now. That is temporary on the provider's side; just try again in a few minutes.` : '✗ AI: ' + esc(e.message)); }
+      } catch (e) { out.push(e.quota ? `✓ AI key accepted, but today's free Gemini limit is used up (resets around 1–2 PM Bangladesh time).` : e.busy ? `✓ AI key accepted (${esc(getSet().aiModel)}), but the AI service is busy right now. That is temporary on the provider's side; just try again in a few minutes.` : '✗ AI: ' + esc(e.message)); }
     } else out.push('– AI: no key added (optional).');
     setMsg(out.join('<br>'), out.every(x => !x.startsWith('✗')));
   }
