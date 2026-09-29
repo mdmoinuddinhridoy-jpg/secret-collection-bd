@@ -3,7 +3,7 @@
 //   { action: 'create', parcel: { invoice, recipient_name, recipient_phone, recipient_address,
 //                                 cod_amount, note, item_description, total_lot, recipient_email } }
 //                                                           → { consignment: { consignment_id, tracking_code, status, … } }
-//   { action: 'status', consignmentId }                     → { delivery_status }
+//   { action: 'status', consignmentId, trackingCode, invoice } → { delivery_status }
 //
 // Vercel → Project → Settings → Environment Variables:
 //   STEADFAST_API_KEY      from Steadfast merchant panel → API
@@ -61,11 +61,22 @@ module.exports = async (req, res) => {
     }
 
     if (body.action === 'status') {
-      const id = String(body.consignmentId || '').replace(/\D/g, '');
-      if (!id) return res.status(400).json({ error: 'Missing consignment ID' });
-      const r = await sf('/status_by_cid/' + id);
-      if (!r.ok || !r.json || (r.json.status && Number(r.json.status) !== 200)) return res.status(502).json({ error: sfError(r) });
-      return res.status(200).json({ delivery_status: r.json.delivery_status });
+      // try consignment ID, then tracking code, then invoice (order number)
+      const tries = [];
+      const cid = String(body.consignmentId || '').replace(/\D/g, '');
+      const code = String(body.trackingCode || '').replace(/[^A-Za-z0-9]/g, '');
+      const inv = String(body.invoice || '').replace(/[^A-Za-z0-9_-]/g, '');
+      if (cid) tries.push('/status_by_cid/' + cid);
+      if (code) tries.push('/status_by_trackingcode/' + code);
+      if (inv) tries.push('/status_by_invoice/' + inv);
+      if (!tries.length) return res.status(400).json({ error: 'Missing consignment ID / tracking code' });
+      let last;
+      for (const path of tries) {
+        last = await sf(path);
+        if (last.ok && last.json && last.json.delivery_status && (!last.json.status || Number(last.json.status) === 200))
+          return res.status(200).json({ delivery_status: last.json.delivery_status });
+      }
+      return res.status(502).json({ error: sfError(last) });
     }
 
     if (body.action === 'create') {
