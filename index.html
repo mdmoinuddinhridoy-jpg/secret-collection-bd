@@ -327,6 +327,7 @@
         <div class="flex gap-1 border-b border-black/10 mb-8 overflow-x-auto">
           <button type="button" data-admtab="orders" class="adm-tab px-5 py-3 text-[11px] tracking-[.16em] uppercase whitespace-nowrap border-b-2 border-noir">Orders &amp; Reports</button>
           <button type="button" data-admtab="products" class="adm-tab px-5 py-3 text-[11px] tracking-[.16em] uppercase whitespace-nowrap border-b-2 border-transparent text-charcoal-soft">Products &amp; Photos</button>
+          <button type="button" data-admtab="delivery" class="adm-tab px-5 py-3 text-[11px] tracking-[.16em] uppercase whitespace-nowrap border-b-2 border-transparent text-charcoal-soft">Delivery Partner</button>
           <button type="button" data-admtab="settings" class="adm-tab px-5 py-3 text-[11px] tracking-[.16em] uppercase whitespace-nowrap border-b-2 border-transparent text-charcoal-soft">Settings</button>
         </div>
 
@@ -399,6 +400,9 @@
           </div>
           <div class="bg-white border border-black/10 overflow-x-auto"><table id="pmTable" class="w-full text-xs"></table></div>
         </div>
+
+        <!-- ===== DELIVERY PARTNER TAB (Steadfast) ===== -->
+        <div id="admTabDelivery" class="hidden"></div>
 
         <!-- ===== SETTINGS TAB ===== -->
         <div id="admTabSettings" class="hidden">
@@ -638,16 +642,6 @@
           </select>
           <input id="fTrx" type="text" placeholder="bKash / Nagad TrxID *" class="w-full border border-black/15 px-4 py-3 text-sm font-mono uppercase focus:outline-none focus:border-noir" />
           </div>
-          <div id="fCreateWrap" data-account-ui class="hidden border border-black/10 bg-blush-50/60 p-4">
-            <label class="flex items-start gap-3 cursor-pointer text-sm">
-              <input id="fCreate" type="checkbox" class="mt-0.5 w-4 h-4 accent-[#0F0F0F]" />
-              <span><b class="font-medium">Create an account with this order</b><br><span class="text-xs text-charcoal-soft">Track your orders and check out faster next time.</span></span>
-            </label>
-            <div id="fPassWrap" class="hidden mt-3">
-              <input id="fPass" type="password" autocomplete="new-password" placeholder="Choose a password (min 6 characters) *" class="w-full border border-black/15 bg-white px-4 py-3 text-sm focus:outline-none focus:border-noir" />
-              <p class="text-[11px] text-charcoal-soft mt-1">Sign in next time with your phone number and this password.</p>
-            </div>
-          </div>
           <p id="fError" class="hidden text-sm text-red-600"></p>
           <button id="fSubmit" type="submit" class="w-full flex items-center justify-center gap-3 bg-noir hover:bg-charcoal text-white text-xs tracking-luxe uppercase py-4 transition">
             <span id="fSubmitLabel">Confirm Your Order</span>
@@ -674,10 +668,11 @@
         <form id="authForm" novalidate class="space-y-3">
           <div data-signup-only class="space-y-3">
             <input id="aName" type="text" autocomplete="name" placeholder="Full Name *" class="w-full border border-black/15 px-4 py-3 text-sm focus:outline-none focus:border-noir" />
+            <input id="aMail" type="email" autocomplete="email" placeholder="Email Address *" class="w-full border border-black/15 px-4 py-3 text-sm focus:outline-none focus:border-noir" />
             <input id="aPhone" type="tel" inputmode="numeric" autocomplete="tel" placeholder="Phone Number * (01XXXXXXXXX)" class="w-full border border-black/15 px-4 py-3 text-sm focus:outline-none focus:border-noir" />
-            <input id="aMail" type="email" autocomplete="email" placeholder="Email (optional)" class="w-full border border-black/15 px-4 py-3 text-sm focus:outline-none focus:border-noir" />
+            <p class="text-[11px] text-charcoal-soft -mt-1">Use the phone number you order with — your orders will show in your account.</p>
           </div>
-          <input id="aId" data-login-only type="text" autocomplete="username" placeholder="Phone number or email *" class="w-full border border-black/15 px-4 py-3 text-sm focus:outline-none focus:border-noir" />
+          <input id="aId" data-login-only type="email" autocomplete="email" placeholder="Email Address *" class="w-full border border-black/15 px-4 py-3 text-sm focus:outline-none focus:border-noir" />
           <input id="aPass" type="password" autocomplete="current-password" placeholder="Password *" class="w-full border border-black/15 px-4 py-3 text-sm focus:outline-none focus:border-noir" />
           <p id="aError" class="hidden text-sm text-red-600"></p>
           <p id="aInfo" class="hidden text-sm text-[#1F9D55]"></p>
@@ -880,6 +875,7 @@
     const sub = dark ? 'text-white/50' : 'text-charcoal-soft';
     const selCls = dark ? 'bg-transparent border-white/20 text-white [&>option]:text-noir' : 'bg-white border-black/15 text-noir';
     const btnCls = dark ? 'bg-white text-noir hover:bg-blush-100' : 'bg-noir text-white hover:bg-charcoal';
+    const buyCls = dark ? 'border-white text-white hover:bg-white hover:text-noir' : 'border-noir text-noir hover:bg-noir hover:text-white';
     const alt = p.hoverImage || (p.images && p.images[1]) || '';   // 2nd photo shows on hover
     return `
     <article class="group flex flex-col reveal" data-pid="${esc(p.id)}">
@@ -900,7 +896,10 @@
           ${p.colors.map(c => `<option>${esc(c)}</option>`).join('')}
         </select>
       </div>
-      <button data-add="${esc(p.id)}" class="${btnCls} text-[11px] tracking-luxe uppercase py-3 transition">Add to Cart</button>
+      <div class="grid grid-cols-2 gap-2">
+        <button data-buy="${esc(p.id)}" class="${buyCls} border text-[9px] min-[400px]:text-[10px] sm:text-[11px] tracking-normal sm:tracking-[.18em] uppercase py-3 px-0.5 transition whitespace-nowrap">Buy Now</button>
+        <button data-add="${esc(p.id)}" class="${btnCls} text-[9px] min-[400px]:text-[10px] sm:text-[11px] tracking-normal sm:tracking-[.18em] uppercase py-3 px-0.5 transition whitespace-nowrap">Add to Cart</button>
+      </div>
     </article>`;
   }
 
@@ -1301,7 +1300,6 @@
     btn.disabled = true; btn.classList.add('opacity-60'); label.textContent = 'Opening secure payment…';
     const fail = (m) => { err.textContent = m; err.classList.remove('hidden'); btn.disabled = false; btn.classList.remove('opacity-60'); syncPayWay(); };
     try {
-      if (o.wantAccount) { try { await withTimeout(createCustomer({ name: o.name, phone: o.phone, email: o.email, address: o.address, pass: o.pass }), 12000); } catch (ex) { console.warn('Account not created:', ex); } }
       const key = await withTimeout(saveOrder({
         orderNo: o.orderNo, source: 'website', customer: { name: o.name, phone: o.phone, email: o.email, address: o.address },
         payment: { method: 'Online (SSLCommerz)', trx: '' }, paymentStatus: 'Unpaid',
@@ -1372,8 +1370,7 @@
     const method = $('fMethod').value;
     const trx = $('fTrx').value.trim().toUpperCase();
     const acctOn = typeof Account !== 'undefined' && Account.enabled;
-    const wantAccount = acctOn && !Account.user && $('fCreate').checked;
-    const pass = $('fPass').value;
+    const wantAccount = false, pass = '';   // accounts are created from My Account (email + phone + password)
     const err = $('fError');
     const online = payWay() === 'online';
 
@@ -1386,7 +1383,6 @@
     else if (!online && !method) msg = 'Please choose bKash or Nagad.';
     else if (!online && trx.length < 4) msg = 'Please enter your TrxID / payment reference.';
     else if (online && !acctOn) msg = 'Online payment is loading. Please wait a moment and try again, or choose Send Money.';
-    else if (wantAccount && pass.length < 6) msg = 'Please choose a password of at least 6 characters.';
     if (msg) { err.textContent = msg; err.classList.remove('hidden'); return; }
     err.classList.add('hidden');
 
@@ -1424,31 +1420,21 @@ Please confirm my order. Thank you.`;
     const btnHTML = btn.innerHTML;
     btn.disabled = true; btn.classList.add('opacity-60'); btn.innerHTML = 'Placing your order…';
 
-    let note = '', saved = false, accountMade = false;
+    let note = '', saved = false;
     if (acctOn) {
       const order = { orderNo, source: 'website', customer: { name, phone, email, address }, payment: { method, trx }, items: lines, subtotal: sub, delivery: 0, total };
       const work = (async () => {
-        // 1) create the account (a failure never blocks the order)
-        if (wantAccount) {
-          try { await createCustomer({ ...order.customer, pass }); accountMade = true; }
-          catch (ex) {
-            console.warn('Account not created:', ex);
-            note = ex && ex.code === 'auth/email-already-in-use'
-              ? 'You already have an account with this phone number. Sign in to track this order.'
-              : 'Your order was placed, but the account could not be created right now. You can create it below.';
-          }
-        }
-        // 2) save the order (admin dashboard + customer tracking)
+        // save the order (admin dashboard + customer tracking)
         await saveOrder(order, null);
         saved = true;
       })();
       try { await withTimeout(work, 10000); }
       catch (ex) { console.warn('Order not saved online:', ex); }
     }
-    // 3) admin WhatsApp notification in the background — the customer is NOT sent to WhatsApp
+    // admin email notification in the background — the customer is NOT sent anywhere
     const notified = notifyAdmin(text, orderNo, saved);
     if (!saved) {
-      // not in the database: wait for the WhatsApp notification, it is then the only record
+      // not in the database: wait for the email notification, it is then the only record
       if (!(await notified)) {
         btn.disabled = false; btn.classList.remove('opacity-60'); btn.innerHTML = btnHTML;
         err.innerHTML = `We couldn't place your order — please check your internet and tap <b>Confirm Your Order</b> again. Still not working? <a class="underline" target="_blank" rel="noopener" href="https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(text)}">Send the order on WhatsApp</a>.`;
@@ -1459,16 +1445,16 @@ Please confirm my order. Thank you.`;
 
     btn.disabled = false; btn.classList.remove('opacity-60'); btn.innerHTML = btnHTML;
     cart = []; saveCart(); renderCart(); closeCart();
-    $('fTrx').value = ''; $('fPass').value = ''; $('fCreate').checked = false; $('fPassWrap').classList.add('hidden');
+    $('fTrx').value = '';
     $('doneNo').textContent = orderNo;
     $('doneNote').textContent = note; $('doneNote').classList.toggle('hidden', !note);
     const signedIn = acctOn && Account.user && !Account.isAdmin;
     $('doneTrack').innerHTML = signedIn
       ? `<a href="#track/${orderNo}" data-doneclose class="font-medium underline underline-offset-4 hover:text-charcoal-soft">Track your order →</a>
-         <p class="text-xs text-charcoal-soft mt-2">${accountMade ? 'Your account is ready. ' : ''}See live status updates in <b>My Account</b>.</p>`
+         <p class="text-xs text-charcoal-soft mt-2">See live status updates in <b>My Account</b>.</p>`
       : acctOn
         ? `<a href="#" data-trackacct="${esc(phone)}" data-trackname="${esc(name)}" data-trackmail="${esc(email)}" class="font-medium underline underline-offset-4 hover:text-charcoal-soft">Track your order →</a>
-           <p class="text-xs text-charcoal-soft mt-2 leading-relaxed">Create an account with the same phone number <b class="font-mono">${esc(phone)}</b> to track this order. Already have one? <a href="#" data-trackacct="${esc(phone)}" data-tracklogin="1" class="underline">Sign in</a>.</p>`
+           <p class="text-xs text-charcoal-soft mt-2 leading-relaxed">Create an account with your email and the same phone number <b class="font-mono">${esc(phone)}</b> to track this order. Already have one? <a href="#" data-trackacct="${esc(phone)}" data-trackmail="${esc(email)}" data-tracklogin="1" class="underline">Sign in</a>.</p>`
         : `<p class="text-xs text-charcoal-soft">Keep your Order ID to check your order status with us.</p>`;
     $('orderDone').classList.remove('hidden'); $('orderDone').classList.add('flex');
   }
@@ -1493,10 +1479,11 @@ Please confirm my order. Thank you.`;
       return;
     }
 
-    if (d.add || d.quick) {
+    if (d.add || d.quick || d.buy) {
       const card = el.closest('[data-pid]');
-      const id = d.add || d.quick;
+      const id = d.add || d.quick || d.buy;
       addToCart(id, card?.querySelector('[data-size]')?.value || 'Free Size', card?.querySelector('[data-color]')?.value || 'Default');
+      if (d.buy) openCart();
       return;
     }
     if (d.inc) return changeQty(d.inc, 1);
@@ -1656,19 +1643,34 @@ Please confirm my order. Thank you.`;
     } catch (e) { /* fall through */ }
     return email;
   }
+  // New accounts: email + password login. The phone number is linked (one account per number)
+  // so orders placed with that number — even as a guest — appear in the account.
   async function createCustomer({ name, phone, email, address, pass }) {
     const F = Account.fb;
-    const cred = await F.createUserWithEmailAndPassword(Account.auth, await phoneLogin(phone), pass);
+    const p = normPhone(phone);
+    if (!p) throw { code: 'x', message: 'Please enter a valid Bangladeshi phone number (01XXXXXXXXX).' };
+    const pk = await phoneKey(p);
+    let taken = false;
+    try { taken = (await F.get(R('phoneIndex/' + pk))).exists(); } catch (e) { /* checked again below */ }
+    if (taken) throw { code: 'auth/phone-in-use' };
+    const cred = await F.createUserWithEmailAndPassword(Account.auth, email, pass);
+    try { await F.set(R('phoneIndex/' + pk), cred.user.uid); }
+    catch (e) {
+      console.warn('Phone link failed', e);
+      try { await cred.user.delete(); } catch (x) { await F.signOut(Account.auth).catch(() => {}); }
+      throw { code: 'auth/phone-in-use' };
+    }
     await F.updateProfile(cred.user, { displayName: name }).catch(() => {});
-    const profile = clean({ name, phone, email: email || '', address: address || '', createdAt: Date.now() });
+    const profile = clean({ name, phone: p, email, address: address || '', phoneKey: pk, createdAt: Date.now() });
     await F.set(R('users/' + cred.user.uid), profile);
-    if (email) await F.set(R('emailIndex/' + await sha(email)), cred.user.email).catch(() => {});
     Account.profile = profile;
+    await onAuthChange(cred.user);           // reload with the linked phone orders
     return cred.user;
   }
 
   async function onAuthChange(user) {
     const F = Account.fb;
+    const gen = Account.gen = (Account.gen || 0) + 1;
     Account.user = user;
     Account.isAdmin = !!(user && ADMIN_EMAILS.includes(String(user.email).toLowerCase()));
     if (Account.unsubMine) { Account.unsubMine(); Account.unsubMine = null; }
@@ -1682,6 +1684,7 @@ Please confirm my order. Thank you.`;
         if (snap.exists()) Account.profile = snap.val();
         else if (!Account.profile) Account.profile = { name: user.displayName || '', email: Account.isAdmin ? user.email : '' };
       } catch (e) { if (!Account.profile) Account.profile = { name: user.displayName || '' }; }
+      if (gen !== Account.gen) return;           // a newer sign-in event took over
       // live: this customer's own orders — placed while signed in (userOrders) + any order placed with
       // the same phone number, even as a guest before the account existed (phoneOrders)
       const mine = { uid: {}, phone: {} };
@@ -1697,8 +1700,9 @@ Please confirm my order. Thank you.`;
       };
       const subs = [F.onValue(R('userOrders/' + user.uid), snap => { mine.uid = snap.val() || {}; merge(); }, err => console.error(err))];
       const em = String(user.email || '').toLowerCase();
-      if (em.endsWith(MEMBER_DOMAIN))
-        subs.push(F.onValue(R('phoneOrders/' + em.slice(0, -MEMBER_DOMAIN.length)), snap => { mine.phone = snap.val() || {}; merge(); }, err => console.warn('Phone orders not readable — update Database rules', err)));
+      const myPk = (Account.profile && Account.profile.phoneKey) || (em.endsWith(MEMBER_DOMAIN) ? em.slice(0, -MEMBER_DOMAIN.length) : '');
+      if (myPk)
+        subs.push(F.onValue(R('phoneOrders/' + myPk), snap => { mine.phone = snap.val() || {}; merge(); }, err => console.warn('Phone orders not readable — update Database rules', err)));
       Account.unsubMine = () => subs.forEach(fn => fn());
       // live: every order, admin only
       if (Account.isAdmin) {
@@ -1724,7 +1728,6 @@ Please confirm my order. Thank you.`;
     const u = Account.user, p = Account.profile || {};
     $('accountDot').classList.toggle('hidden', !u);
     $('accountBtn').setAttribute('aria-label', u ? 'My account' : 'Sign in');
-    $('fCreateWrap').classList.toggle('hidden', !!u || !Account.enabled);
     $('fSignedIn').classList.toggle('hidden', !u);
     if (u) {
       $('fSignedIn').textContent = `Ordering as ${p.name || 'you'}${p.phone ? ' · ' + p.phone : ''}`;
@@ -1740,10 +1743,11 @@ Please confirm my order. Thank you.`;
   const phoneKey = async (phone) => { const p = normPhone(phone); return p ? (await phoneLogin(p)).split('@')[0] : ''; };
   const MEMBER_DOMAIN = '@members.secretcollectionbd.com';
   // Public, no personal data: what "Check your order status" shows
-  const statusCard = (o) => clean({ status: o.status, createdAt: o.createdAt, updatedAt: o.updatedAt || null, total: o.total, itemCount: (o.items || []).reduce((n, i) => n + (Number(i.qty) || 1), 0) });
+  const pubDelivery = (d) => d && d.trackingCode ? clean({ partner: d.partner || 'Steadfast', trackingCode: d.trackingCode, status: d.status || null, sentAt: d.sentAt || null }) : null;
+  const statusCard = (o) => clean({ status: o.status, createdAt: o.createdAt, updatedAt: o.updatedAt || null, total: o.total, itemCount: (o.items || []).reduce((n, i) => n + (Number(i.qty) || 1), 0), delivery: pubDelivery(o.delivery) });
   // Customer's own copy, readable only by the account with the same phone number
   const phoneCopy = (o) => clean({ orderNo: o.orderNo, status: o.status, createdAt: o.createdAt, updatedAt: o.updatedAt || null, total: o.total, subtotal: o.subtotal, delivery: o.delivery || 0,
-    payment: o.payment || {}, paymentStatus: o.paymentStatus || null,
+    payment: o.payment || {}, paymentStatus: o.paymentStatus || null, delivery: pubDelivery(o.delivery),
     items: (o.items || []).map(i => ({ id: i.id, name: i.name, size: i.size, color: i.color, qty: i.qty, price: i.price, lineTotal: i.lineTotal })) });
 
   async function saveOrder(order, newAccount) {
@@ -1783,6 +1787,9 @@ Please confirm my order. Thank you.`;
         <span class="mt-2 px-0.5 text-[10px] sm:text-[11px] leading-tight ${n === at ? 'font-semibold text-noir' : n < at ? 'text-noir' : 'text-charcoal-soft'}">${s === 'Payment Verified' ? 'Verified' : s}</span>
       </div>`).join('')}</div>`;
   }
+  const SF_TRACK = (code) => `https://steadfast.com.bd/t/${encodeURIComponent(code)}`;
+  const parcelLink = (d) => d && d.trackingCode
+    ? `<p class="text-xs mb-3 mt-2">Courier: <b>${esc(d.partner || 'Steadfast')}</b> · Tracking <a href="${SF_TRACK(d.trackingCode)}" target="_blank" rel="noopener" class="font-mono underline underline-offset-2">${esc(d.trackingCode)} ↗</a></p>` : '';
   function normOrderNo(v) {
     let s = String(v || '').trim().toUpperCase().replace(/\s+/g, '').replace(/^#/, '');
     if (/^\d{6}-?[A-Z0-9]{4}$/.test(s)) s = 'SCB-' + s;
@@ -1812,6 +1819,7 @@ Please confirm my order. Thank you.`;
         </div>
         ${trackSteps(o.status)}
         <p class="text-sm text-charcoal-light mt-4">${esc(STATUS_TEXT[o.status] || '')}</p>
+        ${parcelLink(o.delivery)}
         ${o.items ? `<ul class="text-sm text-charcoal-light space-y-1 mt-3">${o.items.map(i => `<li>${esc(i.name)} <span class="text-charcoal-soft">· ${esc(i.size)} · ${esc(i.color)} · ×${i.qty}</span></li>`).join('')}</ul>`
                   : (o.itemCount ? `<p class="text-xs text-charcoal-soft mt-2">${o.itemCount} item${o.itemCount > 1 ? 's' : ''}</p>` : '')}
         <div class="flex justify-between text-sm pt-3 mt-3 border-t border-black/5"><span class="text-charcoal-soft">${upd ? 'Updated ' + fmtDate(upd) + ' ' + fmtTime(upd) : ''}</span><b>${o.total != null ? taka(o.total) : ''}</b></div>
@@ -1855,12 +1863,13 @@ Please confirm my order. Thank you.`;
   }
   function closeAuth() { const m = $('authModal'); m.classList.add('hidden'); m.classList.remove('flex'); }
   const AUTH_ERRORS = {
-    'auth/invalid-credential': 'Wrong phone/email or password.',
-    'auth/wrong-password': 'Wrong phone/email or password.',
+    'auth/invalid-credential': 'Wrong email or password.',
+    'auth/wrong-password': 'Wrong email or password.',
     'auth/user-not-found': 'No account found. Please create one.',
-    'auth/email-already-in-use': 'An account with this phone number already exists. Please sign in.',
+    'auth/email-already-in-use': 'An account with this email already exists. Please sign in.',
+    'auth/phone-in-use': 'This phone number is already linked to an account. Please sign in with your email.',
     'auth/weak-password': 'Password must be at least 6 characters.',
-    'auth/invalid-email': 'Please enter a valid phone number or email.',
+    'auth/invalid-email': 'Please enter a valid email address.',
     'auth/too-many-requests': 'Too many attempts. Please wait a minute and try again.',
     'auth/network-request-failed': 'Network problem. Check your internet and try again.'
   };
@@ -1877,14 +1886,15 @@ Please confirm my order. Thank you.`;
       let adminLogin = false;
       if (authMode === 'login') {
         const loginId = await resolveLogin($('aId').value);
-        if (!loginId) throw { code: 'x', message: 'Please enter your phone number (01XXXXXXXXX) or email.' };
+        if (!loginId) throw { code: 'x', message: 'Please enter your email address.' };
         adminLogin = ADMIN_EMAILS.includes(loginId);
         await F.signInWithEmailAndPassword(Account.auth, loginId, pass);
       } else {
         const name = $('aName').value.trim(), phone = normPhone($('aPhone').value), email = $('aMail').value.trim().toLowerCase();
         if (!name) throw { code: 'x', message: 'Please enter your name.' };
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) throw { code: 'x', message: 'Please enter a valid email address.' };
+        if (email.endsWith(MEMBER_DOMAIN) || ADMIN_EMAILS.includes(email)) throw { code: 'x', message: 'Please use your own email address.' };
         if (!phone) throw { code: 'x', message: 'Please enter a valid Bangladeshi phone number (01XXXXXXXXX).' };
-        if (email && !/^\S+@\S+\.\S+$/.test(email)) throw { code: 'x', message: 'Please enter a valid email, or leave it empty.' };
         await createCustomer({ name, phone, email, pass });
       }
       closeAuth();
@@ -1897,12 +1907,20 @@ Please confirm my order. Thank you.`;
   }
   async function forgotPassword() {
     const id = $('aId').value.trim().toLowerCase();
-    if (ADMIN_EMAILS.includes(id)) {
+    if (/^\S+@\S+\.\S+$/.test(id)) {
       try {
+        const target = await resolveLogin(id);   // older phone-based accounts that added an email
+        if (target && target.endsWith(MEMBER_DOMAIN)) throw { code: 'legacy' };
         await Account.fb.sendPasswordResetEmail(Account.auth, id);
         $('aError').classList.add('hidden');
-        $('aInfo').textContent = 'Password reset link sent to your email.'; $('aInfo').classList.remove('hidden');
-      } catch (ex) { $('aError').textContent = authMsg(ex); $('aError').classList.remove('hidden'); }
+        $('aInfo').textContent = 'If an account exists for this email, a password reset link has been sent. Check your inbox and spam folder.'; $('aInfo').classList.remove('hidden');
+        return;
+      } catch (ex) {
+        if (ex.code !== 'legacy') { $('aError').textContent = authMsg(ex); $('aError').classList.remove('hidden'); return; }
+      }
+    } else if (!normPhone(id)) {
+      $('aInfo').classList.add('hidden');
+      $('aError').textContent = 'Type your email address above, then tap "Forgot password?" again.'; $('aError').classList.remove('hidden');
       return;
     }
     window.open(`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent('Hi, I forgot my Secret Collection BD account password. My phone number is: ' + id)}`, '_blank', 'noopener');
@@ -1932,7 +1950,7 @@ Please confirm my order. Thank you.`;
             <button type="button" data-authopen="login" class="bg-noir text-white text-[11px] tracking-luxe uppercase px-10 py-4">Sign In</button>
             <button type="button" data-authopen="signup" class="border border-noir text-[11px] tracking-luxe uppercase px-10 py-4">Create Account</button>
           </div>
-          <p class="text-xs text-charcoal-soft mt-5 max-w-md mx-auto">Ordered as a guest? Create an account with the <b>same phone number</b> you used for the order — all your orders will appear here automatically.</p>
+          <p class="text-xs text-charcoal-soft mt-5 max-w-md mx-auto">Ordered as a guest? Create an account with your email and the <b>same phone number</b> you used for the order — all your orders will appear here automatically.</p>
         </div>
         <div class="max-w-2xl mx-auto">${trackBox('Works without signing in. You can find the Order ID on your order confirmation.')}</div>`;
       wireTrackBox();
@@ -1940,6 +1958,7 @@ Please confirm my order. Thank you.`;
     }
     const p = Account.profile || {};
     const orders = Account.myOrders;
+    const legacy = String(u.email || '').toLowerCase().endsWith(MEMBER_DOMAIN);   // older phone-login accounts
     box.innerHTML = `
       <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10 pb-6 border-b border-black/10">
         <div>
@@ -1958,10 +1977,10 @@ Please confirm my order. Thank you.`;
         <form id="profileForm" class="space-y-3">
           <h2 class="text-[11px] tracking-luxe uppercase mb-4">My Details</h2>
           <input id="pName" value="${esc(p.name || '')}" placeholder="Full Name" class="w-full border border-black/15 px-4 py-3 text-sm focus:outline-none focus:border-noir" />
-          <input id="pPhone" value="${esc(p.phone || '')}" placeholder="Phone Number" inputmode="numeric" ${p.phone ? 'readonly title="Your phone number is your login"' : ''} class="read-only:bg-black/[.03] w-full border border-black/15 px-4 py-3 text-sm focus:outline-none focus:border-noir" />
+          <input id="pPhone" value="${esc(p.phone || '')}" placeholder="Phone Number" inputmode="numeric" ${p.phone ? 'readonly title="Linked to your orders"' : ''} class="read-only:bg-black/[.03] w-full border border-black/15 px-4 py-3 text-sm focus:outline-none focus:border-noir" />
           <textarea id="pAddress" rows="3" placeholder="Delivery Address" class="w-full border border-black/15 px-4 py-3 text-sm focus:outline-none focus:border-noir">${esc(p.address || '')}</textarea>
-          <input id="pEmail" type="email" value="${esc(p.email || '')}" placeholder="Email (optional)" class="w-full border border-black/15 px-4 py-3 text-sm focus:outline-none focus:border-noir" />
-          <p class="text-xs text-charcoal-soft">Sign in with your phone number${p.email ? ' or email' : ''}.</p>
+          <input id="pEmail" type="email" value="${esc(legacy ? (p.email || '') : u.email)}" placeholder="Email" ${legacy ? '' : 'readonly title="Your email is your login"'} class="read-only:bg-black/[.03] w-full border border-black/15 px-4 py-3 text-sm focus:outline-none focus:border-noir" />
+          <p class="text-xs text-charcoal-soft">${legacy ? 'Sign in with your phone number' + (p.email ? ' or email' : '') : 'Sign in with your email'}. Orders placed with ${p.phone ? '<b>' + esc(p.phone) + '</b>' : 'your phone number'} appear here.</p>
           <button class="w-full bg-noir text-white text-[11px] tracking-luxe uppercase py-3 hover:bg-charcoal transition">Save Details</button>
         </form>
 
@@ -1974,6 +1993,7 @@ Please confirm my order. Thank you.`;
                 ${statusPill(o.status)}
               </div>
               <p class="text-xs text-charcoal-soft -mt-1 mb-3">${esc(STATUS_TEXT[o.status] || '')}${o.updatedAt ? ` · Updated ${fmtDate(new Date(o.updatedAt))} ${fmtTime(new Date(o.updatedAt))}` : ''}</p>
+              ${parcelLink(o.delivery)}
               <ul class="text-sm text-charcoal-light space-y-1 mb-3">
                 ${(o.items || []).map(i => `<li>${esc(i.name)} <span class="text-charcoal-soft">· ${esc(i.size)} · ${esc(i.color)} · ×${i.qty}</span></li>`).join('')}
               </ul>
@@ -1984,12 +2004,12 @@ Please confirm my order. Thank you.`;
     wireTrackBox();
     $('profileForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const email = $('pEmail').value.trim().toLowerCase();
+      const email = legacy ? $('pEmail').value.trim().toLowerCase() : String(u.email).toLowerCase();
       if (email && !/^\S+@\S+\.\S+$/.test(email)) return toast('Please enter a valid email');
       const data = { name: $('pName').value.trim(), phone: (Account.profile && Account.profile.phone) || normPhone($('pPhone').value), address: $('pAddress').value.trim(), email };
       try {
         await Account.fb.update(R('users/' + u.uid), clean(data));
-        if (email && !Account.isAdmin) await Account.fb.set(R('emailIndex/' + await sha(email)), u.email).catch(() => {});
+        if (email && legacy) await Account.fb.set(R('emailIndex/' + await sha(email)), u.email).catch(() => {});
         Account.profile = { ...Account.profile, ...data };
         updateAuthUI(); toast('Details saved');
       } catch (err) { console.error(err); toast('Could not save — please try again'); }
@@ -2061,6 +2081,7 @@ Please confirm my order. Thank you.`;
     renderAdminChart(live);
     renderSku(live);
     renderAdminOrders(list);
+    if (typeof admTab !== 'undefined' && admTab === 'delivery') renderDelivery();
   }
 
   function renderAdminChart(live) {
@@ -2155,6 +2176,11 @@ Please confirm my order. Thank you.`;
                   <tr><td colspan="4" class="pt-2 text-right text-charcoal-soft">Delivery</td><td class="pt-2 text-right">FREE</td></tr>
                   <tr><td colspan="4" class="text-right font-medium">Total</td><td class="text-right font-medium">${taka(o.total)}</td></tr></table>
                 ${o.updatedAt ? `<p class="text-[10px] text-charcoal-soft mt-3">Last status change: ${fmtDate(new Date(o.updatedAt))} ${fmtTime(new Date(o.updatedAt))}</p>` : ''}
+                <div class="mt-4 pt-3 border-t border-black/10 flex flex-wrap items-center gap-3">
+                  <span class="text-[10px] tracking-[.14em] uppercase text-charcoal-soft">Delivery</span>
+                  ${o.delivery ? `<span>Steadfast · CID <b class="font-mono">${esc(o.delivery.consignmentId)}</b> · <a href="${SF_TRACK(o.delivery.trackingCode)}" target="_blank" rel="noopener" class="font-mono underline">${esc(o.delivery.trackingCode)} ↗</a> · ${sfPill(o.delivery.status)}</span>`
+                    : `<button type="button" data-sfsend="${o._id}" class="bg-noir text-white px-4 py-2 text-[10px] tracking-[.14em] uppercase hover:bg-charcoal">Send to Delivery</button><span class="text-charcoal-soft">Steadfast pickup · COD ৳0 (prepaid). Change COD in the Delivery Partner tab.</span>`}
+                </div>
               </div>
             </div></td></tr>` : ''}`;
       }).join('') : `<tr><td colspan="7" class="px-4 py-10 text-center text-charcoal-soft">No orders match these filters.</td></tr>`}</tbody>`;
@@ -2195,6 +2221,174 @@ Please confirm my order. Thank you.`;
     }
   }
 
+
+  /* ---------- Delivery Partner: Steadfast ---------- */
+  const dlv = { filter: 'ready', search: '', balance: null, balMsg: '', busy: {}, cod: {}, note: {}, addr: {} };
+  const SF_STYLE = { delivered: 'bg-[#E3F5E9] text-[#1F7A45]', partial_delivered: 'bg-[#E3F5E9] text-[#1F7A45]', cancelled: 'bg-[#FDE8E8] text-[#9B1C1C]', hold: 'bg-[#FFF4D6] text-[#7A5A00]', in_review: 'bg-[#E3F0FF] text-[#1D4E89]', pending: 'bg-[#EDE7FF] text-[#4B3A8C]' };
+  const sfLabel = (s) => ({ in_review: 'In review', pending: 'In transit', delivered: 'Delivered', partial_delivered: 'Partly delivered', cancelled: 'Cancelled', hold: 'On hold', unknown: 'Unknown' }[s] || String(s || 'Sent').replace(/_/g, ' ').replace(/^./, c => c.toUpperCase()));
+  const sfPill = (s) => `<span class="inline-block whitespace-nowrap px-2 py-0.5 text-[9px] tracking-[.12em] uppercase ${SF_STYLE[s] || (/approval/.test(s || '') ? 'bg-[#FFF4D6] text-[#7A5A00]' : 'bg-black/5')}">${esc(sfLabel(s))}</span>`;
+
+  async function sfApi(payload) {
+    const u = Account.auth && Account.auth.currentUser;
+    if (!u || !Account.isAdmin) throw new Error('Please sign in as admin.');
+    const idToken = await u.getIdToken();
+    let r;
+    try { r = await withTimeout(fetch('/api/steadfast', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...payload, idToken }) }), 25000); }
+    catch (e) { throw new Error(e.message === 'timeout' ? 'Steadfast is taking too long. Please try again.' : 'Network problem. Please try again.'); }
+    const j = await r.json().catch(() => ({}));
+    if (r.status === 404) throw new Error('The delivery function is not uploaded yet (api/steadfast.js).');
+    if (!r.ok) throw new Error(j.error || ('Error ' + r.status));
+    return j;
+  }
+
+  async function saveDelivery(o, delivery) {
+    const id = o._id;
+    const upd = { [`orders/${id}/delivery`]: delivery };
+    if (o.uid) upd[`userOrders/${o.uid}/${id}/delivery`] = delivery;
+    await Account.fb.update(R(''), upd);
+    try {                                                    // customer tracking copies
+      const full = { ...o, delivery };
+      const pk = o.phoneKey || await phoneKey(o.customer && o.customer.phone);
+      const extra = { [`orderStatus/${o.orderNo}`]: statusCard(full) };
+      if (pk) extra[`phoneOrders/${pk}/${id}`] = phoneCopy(full);
+      await Account.fb.update(R(''), extra);
+    } catch (e) { console.warn('Tracking copy not updated', e); }
+  }
+
+  async function sendToDelivery(id) {
+    const o = Account.adminOrders.find(x => x._id === id);
+    if (!o) return;
+    if (o.delivery) return toast('Already sent to Steadfast');
+    if (dlv.busy[id]) return;
+    const c = o.customer || {};
+    const cod = Math.max(0, Math.round(Number(dlv.cod[id] ?? 0) || 0));
+    const note = String(dlv.note[id] ?? '').trim();
+    const address = String(dlv.addr[id] ?? c.address ?? '').trim();
+    const qty = (o.items || []).reduce((n, i) => n + (Number(i.qty) || 1), 0);
+    if (!confirm(`Send ${o.orderNo} to Steadfast for pickup?\n\n${c.name} · ${c.phone}\n${address}\n\nItems: ${qty} · Order total ${taka(o.total)}\nCash to collect (COD): ৳${cod}${note ? '\nNote: ' + note : ''}`)) return;
+    dlv.busy[id] = true; renderDelivery(); if (adm.open === id) renderAdminOrders(adminFiltered());
+    try {
+      const j = await sfApi({ action: 'create', parcel: {
+        invoice: o.orderNo, recipient_name: c.name, recipient_phone: c.phone, recipient_address: address,
+        cod_amount: cod, note, recipient_email: c.email || '', total_lot: qty,
+        item_description: 'SCBD ' + (o.items || []).map(i => `${i.id} x${i.qty}`).join(', ')   // SKU codes only — discreet
+      } });
+      const k = j.consignment || {};
+      const delivery = clean({ partner: 'Steadfast', consignmentId: k.consignment_id, trackingCode: k.tracking_code, status: k.status || 'in_review',
+        cod, note, address, sentAt: Date.now(), checkedAt: Date.now() });
+      await saveDelivery(o, delivery);
+      toast(`Sent to Steadfast ✓  Tracking ${k.tracking_code || ''}`);
+    } catch (e) { alert('Could not send to Steadfast:\n\n' + e.message); }
+    finally { dlv.busy[id] = false; renderDelivery(); if (adm.open === id) renderAdminOrders(adminFiltered()); }
+  }
+
+  async function refreshDelivery(id, quiet) {
+    const o = Account.adminOrders.find(x => x._id === id);
+    if (!o || !o.delivery || !o.delivery.consignmentId) return;
+    dlv.busy[id] = true; if (!quiet) renderDelivery();
+    try {
+      const j = await sfApi({ action: 'status', consignmentId: o.delivery.consignmentId });
+      const st = j.delivery_status || o.delivery.status;
+      await saveDelivery(o, { ...o.delivery, status: st, checkedAt: Date.now() });
+      if (st === 'delivered' && o.status !== 'Delivered') await setOrderStatus(id, 'Delivered');
+      if (!quiet) toast(`${o.orderNo}: ${sfLabel(st)}`);
+    } catch (e) { if (!quiet) alert('Could not check status:\n\n' + e.message); else throw e; }
+    finally { dlv.busy[id] = false; if (!quiet) renderDelivery(); }
+  }
+  async function refreshAllDeliveries() {
+    const list = Account.adminOrders.filter(o => o.delivery && o.delivery.consignmentId && !['delivered', 'cancelled', 'partial_delivered'].includes(o.delivery.status)).slice(0, 40);
+    if (!list.length) return toast('Nothing to update');
+    dlv.balMsg = `Updating ${list.length}…`; renderDelivery();
+    let ok = 0, fail = 0;
+    for (const o of list) { try { await refreshDelivery(o._id, true); ok++; } catch (e) { fail++; } }
+    dlv.balMsg = ''; renderDelivery();
+    toast(`Updated ${ok} parcel${ok === 1 ? '' : 's'}${fail ? ` · ${fail} failed` : ''}`);
+  }
+  async function checkSteadfast() {
+    dlv.balMsg = 'Checking…'; renderDelivery();
+    try { const j = await sfApi({ action: 'balance' }); dlv.balance = j.balance; dlv.balMsg = ''; }
+    catch (e) { dlv.balance = null; dlv.balMsg = e.message; }
+    renderDelivery();
+  }
+
+  function renderDelivery() {
+    const box = $('admTabDelivery'); if (!box) return;
+    const all = Account.adminOrders || [];
+    const notSent = all.filter(o => !o.delivery && !['Cancelled', 'Delivered'].includes(o.status));
+    const ready = notSent.filter(o => ['Payment Verified', 'Confirmed'].includes(o.status));
+    const sent = all.filter(o => o.delivery);
+    const q = dlv.search.trim().toLowerCase();
+    let list = dlv.filter === 'ready' ? ready : dlv.filter === 'all' ? notSent : sent;
+    if (q) list = list.filter(o => [o.orderNo, o.customer?.name, o.customer?.phone, o.delivery?.trackingCode, o.delivery?.consignmentId].join(' ').toLowerCase().includes(q));
+    const chip = (k, label, n) => `<button type="button" data-sffilter="${k}" class="px-4 py-2 text-[11px] tracking-[.12em] uppercase border ${dlv.filter === k ? 'bg-noir text-white border-noir' : 'bg-white border-black/15 hover:border-noir'}">${label} (${n})</button>`;
+    const th = 'text-left font-medium text-[10px] tracking-[.14em] uppercase text-charcoal-soft px-4 py-3 border-y border-black/10 whitespace-nowrap';
+    const td = 'px-4 py-3 border-b border-black/5 align-top';
+    const inp = 'border border-black/15 bg-white px-2 py-1.5 text-xs focus:outline-none focus:border-noir';
+    const focused = document.activeElement && document.activeElement.id === 'sfSearch';
+
+    box.innerHTML = `
+      <div class="bg-white border border-black/10 p-5 sm:p-6 mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h2 class="font-serif text-2xl">Steadfast Courier</h2>
+          <p class="text-xs text-charcoal-soft mt-1 max-w-xl">Click <b>Send to Delivery</b> to create a Steadfast pickup request with the customer's name, phone and address. Parcels are listed by SKU code only, to keep them discreet.</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs ${dlv.balMsg && dlv.balance == null && !/…$/.test(dlv.balMsg) ? 'text-red-600' : 'text-charcoal-soft'}">${esc(dlv.balMsg) || (dlv.balance != null ? `Connected · Balance <b class="text-noir">${taka(Number(dlv.balance) || 0)}</b>` : '')}</span>
+          <button type="button" data-sfbal class="border border-noir bg-white text-[11px] tracking-[.12em] uppercase px-4 py-2.5 hover:bg-noir hover:text-white">Check Connection</button>
+          <button type="button" data-sfrefreshall class="border border-noir bg-white text-[11px] tracking-[.12em] uppercase px-4 py-2.5 hover:bg-noir hover:text-white">Update All Statuses</button>
+        </div>
+      </div>
+      <div class="flex flex-wrap items-center gap-2 mb-4">
+        ${chip('ready', 'Ready to Send', ready.length)}${chip('all', 'All Not Sent', notSent.length)}${chip('sent', 'Sent to Steadfast', sent.length)}
+        <input id="sfSearch" type="search" value="${esc(dlv.search)}" placeholder="Search order no, name, phone, tracking…" class="flex-1 min-w-[200px] ${inp} px-4 py-2" />
+      </div>
+      ${dlv.filter === 'ready' ? `<p class="text-xs text-charcoal-soft mb-3">Orders with status <b>Payment Verified</b> or <b>Confirmed</b> that are not sent yet. Change the status in Orders &amp; Reports.</p>` : ''}
+      <div class="bg-white border border-black/10 overflow-x-auto"><table class="w-full text-xs">
+      ${dlv.filter !== 'sent' ? `
+        <thead><tr><th class="${th}">Order</th><th class="${th}">Customer</th><th class="${th}">Delivery Address</th><th class="${th} text-right">Total</th><th class="${th}">COD (৳)</th><th class="${th}">Note for rider</th><th class="${th}"></th></tr></thead>
+        <tbody>${list.length ? list.map(o => { const c = o.customer || {}; const n = (o.items || []).reduce((a, i) => a + (Number(i.qty) || 0), 0); return `<tr>
+          <td class="${td} whitespace-nowrap"><p class="font-mono">${esc(o.orderNo)}</p><p class="text-charcoal-soft">${fmtDate(o.date)}</p><div class="mt-1">${statusPill(o.status)}</div></td>
+          <td class="${td}">${esc(c.name)}<br><span class="text-charcoal-soft">${esc(c.phone)}</span></td>
+          <td class="${td} min-w-[220px]"><textarea data-sfaddr="${o._id}" rows="2" class="${inp} w-full">${esc(dlv.addr[o._id] ?? c.address ?? '')}</textarea></td>
+          <td class="${td} text-right whitespace-nowrap">${taka(o.total)}<br><span class="text-charcoal-soft">${n} item${n === 1 ? '' : 's'} · ${esc(o.payment?.method || '')}</span></td>
+          <td class="${td}"><input data-sfcod="${o._id}" type="number" min="0" step="1" value="${esc(dlv.cod[o._id] ?? 0)}" class="${inp} w-24" /><br><button type="button" data-sffull="${o._id}" class="text-[10px] underline text-charcoal-soft mt-1">Collect full ${taka(o.total)}</button></td>
+          <td class="${td}"><input data-sfnote="${o._id}" value="${esc(dlv.note[o._id] ?? '')}" placeholder="e.g. Call before delivery" class="${inp} w-44" /></td>
+          <td class="${td} text-right"><button type="button" data-sfsend="${o._id}" ${dlv.busy[o._id] ? 'disabled' : ''} class="bg-noir text-white px-4 py-2.5 text-[10px] tracking-[.14em] uppercase whitespace-nowrap hover:bg-charcoal disabled:opacity-50">${dlv.busy[o._id] ? 'Sending…' : 'Send to Delivery'}</button></td>
+        </tr>`; }).join('') : `<tr><td colspan="7" class="px-4 py-10 text-center text-charcoal-soft">${dlv.filter === 'ready' ? 'No orders ready. Set an order to Payment Verified or Confirmed first.' : 'No orders waiting.'}</td></tr>`}</tbody>`
+      : `
+        <thead><tr><th class="${th}">Order</th><th class="${th}">Customer</th><th class="${th}">Consignment ID</th><th class="${th}">Tracking</th><th class="${th}">Steadfast Status</th><th class="${th} text-right">COD</th><th class="${th}"></th></tr></thead>
+        <tbody>${list.length ? list.map(o => { const c = o.customer || {}, d = o.delivery || {}; return `<tr>
+          <td class="${td} whitespace-nowrap"><p class="font-mono">${esc(o.orderNo)}</p><p class="text-charcoal-soft">Sent ${fmtDate(d.sentAt ? new Date(d.sentAt) : null)}</p></td>
+          <td class="${td}">${esc(c.name)}<br><span class="text-charcoal-soft">${esc(c.phone)}</span></td>
+          <td class="${td} font-mono">${esc(d.consignmentId)}</td>
+          <td class="${td}"><a href="${SF_TRACK(d.trackingCode)}" target="_blank" rel="noopener" class="font-mono underline">${esc(d.trackingCode)} ↗</a></td>
+          <td class="${td}">${sfPill(d.status)}${d.checkedAt ? `<br><span class="text-[10px] text-charcoal-soft">checked ${fmtDate(new Date(d.checkedAt))} ${fmtTime(new Date(d.checkedAt))}</span>` : ''}</td>
+          <td class="${td} text-right">${taka(Number(d.cod) || 0)}</td>
+          <td class="${td} text-right"><button type="button" data-sfrefresh="${o._id}" ${dlv.busy[o._id] ? 'disabled' : ''} class="border border-noir px-3 py-2 text-[10px] tracking-[.14em] uppercase whitespace-nowrap hover:bg-noir hover:text-white disabled:opacity-50">${dlv.busy[o._id] ? 'Checking…' : 'Refresh'}</button></td>
+        </tr>`; }).join('') : `<tr><td colspan="7" class="px-4 py-10 text-center text-charcoal-soft">Nothing sent yet.</td></tr>`}</tbody>`}
+      </table></div>`;
+    if (focused) { const s = $('sfSearch'); s.focus(); s.setSelectionRange(s.value.length, s.value.length); }
+  }
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-sfsend],[data-sfrefresh],[data-sffilter],[data-sfbal],[data-sfrefreshall],[data-sffull]');
+    if (!b) return;
+    const d = b.dataset;
+    if (d.sfsend) return sendToDelivery(d.sfsend);
+    if (d.sfrefresh) return refreshDelivery(d.sfrefresh);
+    if (d.sffilter) { dlv.filter = d.sffilter; return renderDelivery(); }
+    if (d.sfbal !== undefined) return checkSteadfast();
+    if (d.sfrefreshall !== undefined) return refreshAllDeliveries();
+    if (d.sffull) { const o = Account.adminOrders.find(x => x._id === d.sffull); dlv.cod[d.sffull] = o ? Math.round(o.total) : 0; return renderDelivery(); }
+  });
+  let sfT;
+  document.addEventListener('input', (e) => {
+    const t = e.target, d = t.dataset || {};
+    if (d.sfcod) dlv.cod[d.sfcod] = t.value;
+    if (d.sfnote) dlv.note[d.sfnote] = t.value;
+    if (d.sfaddr) dlv.addr[d.sfaddr] = t.value;
+    if (t.id === 'sfSearch') { clearTimeout(sfT); sfT = setTimeout(() => { dlv.search = t.value; renderDelivery(); }, 250); }
+  });
+
   /* ---------- Events ---------- */
   document.addEventListener('click', (e) => {
     const t = e.target.closest('[data-authopen],[data-authtab],[data-authclose],[data-signout],[data-admperiod],[data-admstatus],[data-export],[data-doneclose],[data-trackacct],#accountBtn,#aForgot,[data-admrow]');
@@ -2204,9 +2398,9 @@ Please confirm my order. Thank you.`;
       e.preventDefault();
       $('orderDone').classList.add('hidden'); $('orderDone').classList.remove('flex');
       window.__trackNo = $('doneNo').textContent.trim();
-      if (d.tracklogin) { openAuth('login'); $('aId').value = d.trackacct; }
+      if (d.tracklogin) { openAuth('login'); $('aId').value = d.trackmail || ''; }
       else { openAuth('signup'); $('aName').value = d.trackname || ''; $('aPhone').value = d.trackacct; $('aMail').value = d.trackmail || ''; setTimeout(() => $('aPass').focus(), 80); }
-      $('aInfo').textContent = 'Use the same phone number as your order to see it in My Account.'; $('aInfo').classList.remove('hidden');
+      $('aInfo').textContent = d.tracklogin ? 'Sign in with your email to see this order.' : 'Use the same phone number as your order to see it in My Account.'; $('aInfo').classList.remove('hidden');
       return;
     }
     if (t.id === 'accountBtn') {
@@ -2228,7 +2422,6 @@ Please confirm my order. Thank you.`;
     const s = e.target.closest('[data-admset]');
     if (s) setOrderStatus(s.dataset.admset, s.value);
     if (e.target.id === 'admStatus') { adm.status = e.target.value; renderAdmin(); }
-    if (e.target.id === 'fCreate') $('fPassWrap').classList.toggle('hidden', !e.target.checked);
   });
   let admT;
   document.addEventListener('input', (e) => {
@@ -2850,6 +3043,8 @@ Look at the product photo and return ONLY a JSON object (no markdown) with these
     $('admTabOrders').classList.toggle('hidden', t !== 'orders');
     $('admTabProducts').classList.toggle('hidden', t !== 'products');
     $('admTabSettings').classList.toggle('hidden', t !== 'settings');
+    $('admTabDelivery').classList.toggle('hidden', t !== 'delivery');
+    if (t === 'delivery') renderDelivery();
     if (t === 'products') renderProductsTab();
     if (t === 'settings') renderSettings();
   }
