@@ -1619,7 +1619,7 @@ Please confirm my order. Thank you.`;
       console.error('Firebase failed to load — accounts disabled for this visit.', err);
     }
   }
-  const R = (path) => Account.fb.ref(Account.db, path);
+  const R = (path) => path ? Account.fb.ref(Account.db, path) : Account.fb.ref(Account.db);   // no path = database root
   const clean = (o) => JSON.parse(JSON.stringify(o));          // Realtime Database rejects "undefined"
 
   /* ---------- Phone / email login helpers ----------
@@ -2276,10 +2276,33 @@ Please confirm my order. Thank you.`;
       const k = j.consignment || {};
       const delivery = clean({ partner: 'Steadfast', consignmentId: k.consignment_id, trackingCode: k.tracking_code, status: k.status || 'in_review',
         cod, note, address, sentAt: Date.now(), checkedAt: Date.now() });
-      await saveDelivery(o, delivery);
+      try { await saveDelivery(o, delivery); }
+      catch (e) {
+        console.error(e);
+        alert(`The parcel WAS created in Steadfast, but it could not be saved here.\n\nConsignment ID: ${k.consignment_id}\nTracking code: ${k.tracking_code}\n\nPlease note these, then use "Link Existing Parcel" on this order.`);
+        return;
+      }
       toast(`Sent to Steadfast ✓  Tracking ${k.tracking_code || ''}`);
-    } catch (e) { alert('Could not send to Steadfast:\n\n' + e.message); }
+    } catch (e) {
+      const dup = /invoice/i.test(e.message) && /(taken|exist|already|duplicate|unique)/i.test(e.message);
+      alert('Could not send to Steadfast:\n\n' + e.message + (dup ? '\n\nThis order is already in your Steadfast panel. Copy its Consignment ID and Tracking Code from Steadfast, then click "Link Existing Parcel" on this order.' : ''));
+    }
     finally { dlv.busy[id] = false; renderDelivery(); if (adm.open === id) renderAdminOrders(adminFiltered()); }
+  }
+
+  // For a parcel that already exists in Steadfast (e.g. created earlier or from the Steadfast panel)
+  async function linkExistingParcel(id) {
+    const o = Account.adminOrders.find(x => x._id === id);
+    if (!o) return;
+    const cid = String(prompt(`Link ${o.orderNo} to an existing Steadfast parcel.\n\nConsignment ID (from your Steadfast panel):`) || '').replace(/\D/g, '');
+    if (!cid) return;
+    const code = String(prompt('Tracking code (from your Steadfast panel):') || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (!code) return;
+    const delivery = clean({ partner: 'Steadfast', consignmentId: Number(cid), trackingCode: code, status: 'in_review',
+      cod: Math.max(0, Math.round(Number(dlv.cod[id] ?? 0) || 0)), address: (o.customer || {}).address || '', sentAt: Date.now(), checkedAt: Date.now() });
+    try { await saveDelivery(o, delivery); toast('Linked ✓ Checking status…'); await refreshDelivery(id, true).catch(() => {}); }
+    catch (e) { console.error(e); alert('Could not save: ' + e.message); }
+    renderDelivery();
   }
 
   async function refreshDelivery(id, quiet) {
@@ -2353,7 +2376,7 @@ Please confirm my order. Thank you.`;
           <td class="${td} text-right whitespace-nowrap">${taka(o.total)}<br><span class="text-charcoal-soft">${n} item${n === 1 ? '' : 's'} · ${esc(o.payment?.method || '')}</span></td>
           <td class="${td}"><input data-sfcod="${o._id}" type="number" min="0" step="1" value="${esc(dlv.cod[o._id] ?? 0)}" class="${inp} w-24" /><br><button type="button" data-sffull="${o._id}" class="text-[10px] underline text-charcoal-soft mt-1">Collect full ${taka(o.total)}</button></td>
           <td class="${td}"><input data-sfnote="${o._id}" value="${esc(dlv.note[o._id] ?? '')}" placeholder="e.g. Call before delivery" class="${inp} w-44" /></td>
-          <td class="${td} text-right"><button type="button" data-sfsend="${o._id}" ${dlv.busy[o._id] ? 'disabled' : ''} class="bg-noir text-white px-4 py-2.5 text-[10px] tracking-[.14em] uppercase whitespace-nowrap hover:bg-charcoal disabled:opacity-50">${dlv.busy[o._id] ? 'Sending…' : 'Send to Delivery'}</button></td>
+          <td class="${td} text-right"><button type="button" data-sfsend="${o._id}" ${dlv.busy[o._id] ? 'disabled' : ''} class="bg-noir text-white px-4 py-2.5 text-[10px] tracking-[.14em] uppercase whitespace-nowrap hover:bg-charcoal disabled:opacity-50">${dlv.busy[o._id] ? 'Sending…' : 'Send to Delivery'}</button><br><button type="button" data-sflink="${o._id}" class="mt-2 text-[10px] underline text-charcoal-soft hover:text-noir whitespace-nowrap">Link Existing Parcel</button></td>
         </tr>`; }).join('') : `<tr><td colspan="7" class="px-4 py-10 text-center text-charcoal-soft">${dlv.filter === 'ready' ? 'No orders ready. Set an order to Payment Verified or Confirmed first.' : 'No orders waiting.'}</td></tr>`}</tbody>`
       : `
         <thead><tr><th class="${th}">Order</th><th class="${th}">Customer</th><th class="${th}">Consignment ID</th><th class="${th}">Tracking</th><th class="${th}">Steadfast Status</th><th class="${th} text-right">COD</th><th class="${th}"></th></tr></thead>
@@ -2370,9 +2393,10 @@ Please confirm my order. Thank you.`;
     if (focused) { const s = $('sfSearch'); s.focus(); s.setSelectionRange(s.value.length, s.value.length); }
   }
   document.addEventListener('click', (e) => {
-    const b = e.target.closest('[data-sfsend],[data-sfrefresh],[data-sffilter],[data-sfbal],[data-sfrefreshall],[data-sffull]');
+    const b = e.target.closest('[data-sfsend],[data-sfrefresh],[data-sffilter],[data-sfbal],[data-sfrefreshall],[data-sffull],[data-sflink]');
     if (!b) return;
     const d = b.dataset;
+    if (d.sflink) return linkExistingParcel(d.sflink);
     if (d.sfsend) return sendToDelivery(d.sfsend);
     if (d.sfrefresh) return refreshDelivery(d.sfrefresh);
     if (d.sffilter) { dlv.filter = d.sffilter; return renderDelivery(); }
