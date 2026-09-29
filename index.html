@@ -576,10 +576,39 @@
           </div>
         </div>
 
-        <!-- Payment info -->
+        <!-- Payment -->
         <div class="mt-8">
-          <p class="text-[11px] tracking-luxe uppercase mb-3">Payment: bKash or Nagad</p>
-          <div class="border border-black/10 p-4 text-sm space-y-2">
+          <p class="text-[11px] tracking-luxe uppercase mb-3">Payment</p>
+          <div class="space-y-2">
+            <!-- Online (SSLCommerz) -->
+            <label id="payOnlineOpt" class="block cursor-pointer">
+              <input type="radio" name="payWay" value="online" class="peer sr-only" checked />
+              <div class="border border-black/15 peer-checked:border-noir peer-checked:bg-blush-50 p-4">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="font-medium text-sm">Pay Online</span>
+                  <span class="text-[10px] tracking-[.12em] uppercase text-[#1F7A45]">Instant confirmation</span>
+                </div>
+                <div class="mt-2 flex flex-wrap gap-1.5 text-[10px] font-semibold">
+                  <span class="px-2 py-0.5 border border-black/10 bg-white">Mobile wallets:</span>
+                  <span class="px-2 py-0.5 bg-[#E2136E] text-white">bKash</span><span class="px-2 py-0.5 bg-[#EC1C24] text-white">Nagad</span><span class="px-2 py-0.5 bg-[#8C3494] text-white">Rocket</span><span class="px-2 py-0.5 bg-[#F7941D] text-white">Upay</span>
+                </div>
+                <div class="mt-1.5 flex flex-wrap gap-1.5 text-[10px] font-semibold">
+                  <span class="px-2 py-0.5 border border-black/10 bg-white">Cards &amp; bank:</span>
+                  <span class="px-2 py-0.5 bg-[#1A1F71] text-white">VISA</span><span class="px-2 py-0.5 bg-[#222] text-white">Mastercard</span><span class="px-2 py-0.5 bg-[#2E77BC] text-white">AMEX</span><span class="px-2 py-0.5 border border-black/20 bg-white">Internet Banking</span>
+                </div>
+                <p class="text-[11px] text-charcoal-soft mt-2">You'll choose your wallet, card or bank on the secure SSLCommerz payment page.</p>
+              </div>
+            </label>
+            <!-- Manual Send Money -->
+            <label class="block cursor-pointer">
+              <input type="radio" name="payWay" value="manual" class="peer sr-only" />
+              <div class="border border-black/15 peer-checked:border-noir peer-checked:bg-blush-50 p-4">
+                <span class="font-medium text-sm">Send Money manually (bKash / Nagad)</span>
+                <p class="text-[11px] text-charcoal-soft mt-1">Send the amount yourself and enter the TrxID. Confirmed after we check it.</p>
+              </div>
+            </label>
+          </div>
+          <div id="manualBox" class="hidden mt-3 border border-black/10 p-4 text-sm space-y-2">
             <div class="flex items-center justify-between">
               <span class="flex items-center gap-2"><span class="bg-[#E2136E] text-white text-[10px] font-bold px-2 py-0.5 tracking-wider">bKash</span><span class="text-xs text-charcoal-soft">Personal</span></span>
               <span class="flex items-center gap-2"><b id="bkNumber" class="font-mono"></b><button type="button" data-copy="bkNumber" class="text-[10px] uppercase tracking-wider border border-black/15 px-2 py-0.5 hover:bg-noir hover:text-white">Copy</button></span>
@@ -600,12 +629,14 @@
           <input id="fPhone" type="tel" inputmode="numeric" autocomplete="tel" placeholder="Phone Number * (01XXXXXXXXX)" class="w-full border border-black/15 px-4 py-3 text-sm focus:outline-none focus:border-noir" />
           <input id="fEmail" type="email" autocomplete="email" placeholder="Email (optional)" class="w-full border border-black/15 px-4 py-3 text-sm focus:outline-none focus:border-noir" />
           <textarea id="fAddress" rows="2" autocomplete="street-address" placeholder="Full Address * (House, Road, Area, District)" class="w-full border border-black/15 px-4 py-3 text-sm focus:outline-none focus:border-noir"></textarea>
+          <div id="manualFields" class="hidden space-y-4">
           <select id="fMethod" class="lux w-full border border-black/15 px-4 py-3 text-sm bg-white focus:outline-none focus:border-noir">
             <option value="">Payment Method *</option>
             <option>bKash</option>
             <option>Nagad</option>
           </select>
           <input id="fTrx" type="text" placeholder="bKash / Nagad TrxID *" class="w-full border border-black/15 px-4 py-3 text-sm font-mono uppercase focus:outline-none focus:border-noir" />
+          </div>
           <div id="fCreateWrap" data-account-ui class="hidden border border-black/10 bg-blush-50/60 p-4">
             <label class="flex items-start gap-3 cursor-pointer text-sm">
               <input id="fCreate" type="checkbox" class="mt-0.5 w-4 h-4 accent-[#0F0F0F]" />
@@ -619,7 +650,7 @@
           <p id="fError" class="hidden text-sm text-red-600"></p>
           <button id="fSubmit" type="submit" class="w-full flex items-center justify-center gap-3 bg-noir hover:bg-charcoal text-white text-xs tracking-luxe uppercase py-4 transition">
             <svg class="w-5 h-5 text-[#25D366]" fill="currentColor" viewBox="0 0 24 24"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.9 9.9 0 004.74 1.21c5.46 0 9.91-4.45 9.91-9.91C21.95 6.45 17.5 2 12.04 2z"/></svg>
-            Confirm &amp; Order via WhatsApp
+            <span id="fSubmitLabel">Confirm &amp; Order via WhatsApp</span>
           </button>
           <p class="text-[11px] text-center text-charcoal-soft">Your order is confirmed once payment is verified. All details stay private.</p>
         </form>
@@ -687,6 +718,18 @@
     </div>
   </div>
 
+  <!-- ===== Online payment result ===== -->
+  <div id="payResult" class="fixed inset-0 z-[65] hidden items-center justify-center p-4">
+    <div data-payclose class="absolute inset-0 bg-black/50"></div>
+    <div class="relative bg-white w-full max-w-md px-8 py-10 text-center">
+      <div id="prIcon" class="mx-auto mb-4 w-14 h-14 rounded-full flex items-center justify-center text-2xl"></div>
+      <p id="prTitle" class="font-serif text-3xl mb-2"></p>
+      <p id="prNo" class="font-mono text-lg mb-3"></p>
+      <p id="prText" class="text-sm text-charcoal-light mb-8"></p>
+      <div id="prBtns" class="flex flex-col sm:flex-row gap-2 justify-center"></div>
+    </div>
+  </div>
+
   <!-- Toast -->
   <div id="toast" class="fade fixed bottom-24 left-1/2 -translate-x-1/2 z-[60] bg-noir text-white text-xs tracking-[.14em] uppercase px-6 py-3 opacity-0 pointer-events-none"></div>
 
@@ -696,6 +739,7 @@
      ===================================================================== */
   const CONFIG = {
     whatsapp: '8801786789182',          // 880 + 10-digit number (no +, no spaces)
+    onlinePayments: false,              // ON HOLD. Set true after SSLCommerz + Vercel setup to show 'Pay Online' (bKash, Nagad, cards, banks).
     bkash: '01786789182',               // bKash personal number
     nagad: '01854109062',               // Nagad personal number
     sizes: ['S', 'M', 'L', 'XL', 'XXL', '3XL', '4XL', '5XL'],
@@ -1116,6 +1160,8 @@
   function route() {
     const h = decodeURIComponent(location.hash.slice(1));
     if (h.startsWith('product/')) return showProduct(h.slice(8));
+    const pr = h.match(/^(paid|payfail|paycancel)\/(.+)$/);
+    if (pr) return showPayResult(pr[1], pr[2]);
     const match = CATS.find(c => catSlug(c) === h);
     if (match) return openCategory(match);
     if (h === 'shop') return openCategory('All');
@@ -1156,6 +1202,7 @@
     $('tSub').textContent = taka(sub);
     $('tTotal').textContent = taka(total);
     $('payAmt').textContent = taka(total);
+    if ($('fSubmitLabel')) syncPayWay();
 
     $('cartItems').innerHTML = cart.map(i => {
       const p = findP(i.id);
@@ -1235,6 +1282,69 @@
 
   /* ---------- WhatsApp checkout ---------- */
   const withTimeout = (promise, ms) => Promise.race([promise, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
+  const payWay = () => (CONFIG.onlinePayments && document.querySelector('input[name="payWay"]:checked')?.value) || 'manual';
+  function syncPayWay() {
+    if (!CONFIG.onlinePayments) { $('payOnlineOpt').classList.add('hidden'); const m = document.querySelector('input[name="payWay"][value="manual"]'); if (m) m.checked = true; }
+    const online = payWay() === 'online';
+    $('manualBox').classList.toggle('hidden', online);
+    $('manualFields').classList.toggle('hidden', online);
+    $('fSubmitLabel').textContent = online ? `Pay ${taka(totals().total)} Securely` : 'Confirm & Order via WhatsApp';
+  }
+  document.addEventListener('change', e => { if (e.target.name === 'payWay') syncPayWay(); });
+
+  // Online payment: save the order, then go to the SSLCommerz page (bKash · Nagad · Rocket · cards · internet banking)
+  async function checkoutOnline(o) {
+    const err = $('fError'), btn = $('fSubmit'), label = $('fSubmitLabel');
+    const lines = cart.map(i => { const p = findP(i.id); return { id: p.id, name: p.name, category: p.category, size: i.size, color: i.color, qty: i.qty, price: p.price, lineTotal: p.price * i.qty, image: p.image }; });
+    btn.disabled = true; btn.classList.add('opacity-60'); label.textContent = 'Opening secure payment…';
+    const fail = (m) => { err.textContent = m; err.classList.remove('hidden'); btn.disabled = false; btn.classList.remove('opacity-60'); syncPayWay(); };
+    try {
+      if (o.wantAccount) { try { await withTimeout(createCustomer({ name: o.name, phone: o.phone, email: o.email, address: o.address, pass: o.pass }), 12000); } catch (ex) { console.warn('Account not created:', ex); } }
+      const key = await withTimeout(saveOrder({
+        orderNo: o.orderNo, source: 'website', customer: { name: o.name, phone: o.phone, email: o.email, address: o.address },
+        payment: { method: 'Online (SSLCommerz)', trx: '' }, paymentStatus: 'Unpaid',
+        items: lines, subtotal: o.sub, delivery: 0, total: o.total
+      }, null), 12000);
+      const res = await withTimeout(fetch('/api/pay/init', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orderKey: key }) }), 20000);
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok || !j.url) throw new Error(j.error || 'Payment page could not be opened');
+      try { sessionStorage.setItem('scbd_pay', JSON.stringify({ key, orderNo: o.orderNo, total: j.amount || o.total, name: o.name })); } catch (e) {}
+      location.href = j.url;                     // SSLCommerz: Mobile Banking · Cards · Net Banking tabs
+    } catch (ex) {
+      console.error(ex);
+      fail((ex.message === 'timeout' ? 'The connection is slow.' : ex.message) + ' Please try again, or choose "Send Money manually".');
+    }
+  }
+
+  // Back from SSLCommerz: #paid/<key>, #payfail/<key>, #paycancel/<key>
+  function showPayResult(kind, key) {
+    let info = {}; try { info = JSON.parse(sessionStorage.getItem('scbd_pay')) || {}; } catch (e) {}
+    const same = info.key === key;
+    const ok = kind === 'paid';
+    if (ok && same) { cart = []; saveCart(); renderCart(); try { sessionStorage.removeItem('scbd_pay'); } catch (e) {} }
+    $('prIcon').className = 'mx-auto mb-4 w-14 h-14 rounded-full flex items-center justify-center text-2xl ' + (ok ? 'bg-[#E3F5E9] text-[#1F7A45]' : 'bg-[#FDE8E8] text-[#9B1C1C]');
+    $('prIcon').textContent = ok ? '✓' : '!';
+    $('prTitle').textContent = ok ? 'Payment Successful' : kind === 'paycancel' ? 'Payment Cancelled' : 'Payment Not Completed';
+    $('prNo').textContent = same && info.orderNo ? info.orderNo : '';
+    $('prText').textContent = ok
+      ? `Thank you${same && info.name ? ', ' + info.name.split(' ')[0] : ''}! We received ${same && info.total ? taka(info.total) : 'your payment'}. Your order is confirmed and will be packed discreetly. FREE delivery across Bangladesh.`
+      : 'No money was taken for this attempt. Your bag is still saved, so you can try again or choose Send Money manually.';
+    const wa = `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(ok ? `Hi, I just paid online for order ${info.orderNo || ''}. Please confirm delivery.` : `Hi, my online payment for order ${info.orderNo || ''} did not complete. Please help.`)}`;
+    $('prBtns').innerHTML = ok
+      ? `<button type="button" data-payclose class="bg-noir text-white text-[11px] tracking-luxe uppercase px-6 py-3">Continue Shopping</button>
+         ${Account && Account.user ? '<a href="#account" data-payclose class="border border-noir text-[11px] tracking-luxe uppercase px-6 py-3">My Orders</a>' : `<a href="${wa}" target="_blank" rel="noopener" class="border border-noir text-[11px] tracking-luxe uppercase px-6 py-3">Message us on WhatsApp</a>`}`
+      : `<button type="button" data-payretry class="bg-noir text-white text-[11px] tracking-luxe uppercase px-6 py-3">Try Again</button>
+         <a href="${wa}" target="_blank" rel="noopener" class="border border-noir text-[11px] tracking-luxe uppercase px-6 py-3">Get Help on WhatsApp</a>`;
+    $('payResult').classList.remove('hidden'); $('payResult').classList.add('flex');
+    history.replaceState(null, '', location.pathname);
+    showView('home');
+  }
+  document.addEventListener('click', e => {
+    const c = e.target.closest('[data-payclose],[data-payretry]'); if (!c) return;
+    $('payResult').classList.add('hidden'); $('payResult').classList.remove('flex');
+    if (c.dataset.payretry !== undefined) openCart();
+  });
+
   async function checkout(e) {
     e.preventDefault();
     const name = $('fName').value.trim();
@@ -1247,6 +1357,7 @@
     const wantAccount = acctOn && !Account.user && $('fCreate').checked;
     const pass = $('fPass').value;
     const err = $('fError');
+    const online = payWay() === 'online';
 
     let msg = '';
     if (!cart.length) msg = 'Your bag is empty.';
@@ -1254,14 +1365,16 @@
     else if (!/^(\+?88)?01[3-9]\d{8}$/.test(phone)) msg = 'Please enter a valid Bangladeshi phone number (01XXXXXXXXX).';
     else if (email && !/^\S+@\S+\.\S+$/.test(email)) msg = 'Please enter a valid email.';
     else if (address.length < 8) msg = 'Please enter your full delivery address.';
-    else if (!method) msg = 'Please choose a payment method.';
-    else if (trx.length < 4) msg = 'Please enter your TrxID / payment reference.';
+    else if (!online && !method) msg = 'Please choose bKash or Nagad.';
+    else if (!online && trx.length < 4) msg = 'Please enter your TrxID / payment reference.';
+    else if (online && !acctOn) msg = 'Online payment is loading. Please wait a moment and try again, or choose Send Money.';
     else if (wantAccount && pass.length < 6) msg = 'Please choose a password of at least 6 characters.';
     if (msg) { err.textContent = msg; err.classList.remove('hidden'); return; }
     err.classList.add('hidden');
 
     const orderNo = acctOn ? makeOrderNo() : '';
     const { sub, total } = totals();
+    if (online) return checkoutOnline({ orderNo, name, phone, email, address, wantAccount, pass, sub, total });
     const lines = cart.map(i => { const p = findP(i.id); return { id: p.id, name: p.name, category: p.category, size: i.size, color: i.color, qty: i.qty, price: p.price, lineTotal: p.price * i.qty, image: p.image }; });
     const itemsText = lines.map((l, n) => `${n + 1}. ${l.name} (${l.id})\n   Size: ${l.size} | Color: ${l.color}\n   ${l.qty} × ${taka(l.price)} = ${taka(l.lineTotal)}`).join('\n\n');
 
@@ -1460,6 +1573,7 @@ Please confirm my order. Thank you.`;
     'Delivered':        'bg-[#E3F5E9] text-[#1F7A45]',
     'Cancelled':        'bg-[#FDE8E8] text-[#9B1C1C]'
   };
+  const payBadge = (o) => !o.paymentStatus ? '' : `<br><span class="inline-block mt-1 px-2 py-0.5 text-[9px] tracking-[.12em] uppercase ${o.paymentStatus === 'Paid' ? 'bg-[#E3F5E9] text-[#1F7A45]' : /Fail|Cancel/.test(o.paymentStatus) ? 'bg-[#FDE8E8] text-[#9B1C1C]' : 'bg-[#FFF4D6] text-[#7A5A00]'}">${o.paymentStatus === 'Paid' ? '✓ Paid online' : esc(o.paymentStatus)}</span>`;
   const statusPill = (s) => `<span class="inline-block whitespace-nowrap px-2.5 py-1 text-[10px] tracking-[.12em] uppercase ${STATUS_STYLE[s] || 'bg-black/5'}">${esc(s)}</span>`;
   const fmtDate = (d) => d ? d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
   const fmtTime = (d) => d ? d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '';
@@ -1590,6 +1704,7 @@ Please confirm my order. Thank you.`;
     const data = clean({ ...order, uid: u ? u.uid : null, status: 'Pending', createdAt: Date.now() });
     await F.set(R('orders/' + key), data);
     if (u) await F.set(R(`userOrders/${u.uid}/${key}`), data).catch(err => console.warn('Order copy for customer failed', err));
+    return key;
   }
   function makeOrderNo() {
     const d = new Date(), p = (n) => String(n).padStart(2, '0');
@@ -1731,7 +1846,7 @@ Please confirm my order. Thank you.`;
               <ul class="text-sm text-charcoal-light space-y-1 mb-3">
                 ${(o.items || []).map(i => `<li>${esc(i.name)} <span class="text-charcoal-soft">· ${esc(i.size)} · ${esc(i.color)} · ×${i.qty}</span></li>`).join('')}
               </ul>
-              <div class="flex justify-between text-sm pt-3 border-t border-black/5"><span class="text-charcoal-soft">${esc(o.payment?.method || '')} · ${esc(o.payment?.trx || '')}</span><b>${taka(o.total)}</b></div>
+              <div class="flex justify-between text-sm pt-3 border-t border-black/5"><span class="text-charcoal-soft">${esc(o.payment?.method || '')}${o.payment?.trx ? ' · ' + esc(o.payment.trx) : ''}${payBadge(o).replace('<br>', ' ')}</span><b>${taka(o.total)}</b></div>
             </div>`).join('') : `<div class="border border-dashed border-black/15 p-10 text-center text-charcoal-soft">No orders yet. <a href="#shop" class="underline">Start shopping</a></div>`}
         </div>
       </div>`;
@@ -1890,7 +2005,7 @@ Please confirm my order. Thank you.`;
           <td class="${td}">${esc(o.customer?.name)}<br><span class="text-charcoal-soft">${esc(o.customer?.phone)}</span>${o.uid ? ' <span class="text-[9px] uppercase tracking-wider border border-black/15 px-1">Member</span>' : ''}</td>
           <td class="${td} text-right">${n}</td>
           <td class="${td} text-right font-medium whitespace-nowrap">${taka(o.total)}</td>
-          <td class="${td} whitespace-nowrap">${esc(o.payment?.method)}<br><span class="font-mono text-charcoal-soft">${esc(o.payment?.trx)}</span></td>
+          <td class="${td} whitespace-nowrap">${esc(o.payment?.method)}<br><span class="font-mono text-charcoal-soft">${esc(o.payment?.trx)}</span>${payBadge(o)}</td>
           <td class="${td}">
             <select data-admset="${o._id}" class="lux border border-black/15 bg-white px-2 py-1.5 text-xs focus:outline-none focus:border-noir">
               ${ORDER_STATUSES.map(s => `<option ${s === o.status ? 'selected' : ''}>${s}</option>`).join('')}
