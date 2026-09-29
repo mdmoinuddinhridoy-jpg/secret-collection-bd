@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Secret Collection BD | Luxury Lingerie, Nighty, Intimate & Party Wear</title>
-  <meta name="description" content="Secret Collection BD — luxury lingerie, nighties and intimate wear for women in Bangladesh. 100% private and discreet packaging. Order via WhatsApp." />
+  <meta name="description" content="Secret Collection BD — luxury lingerie, nighties and intimate wear for women in Bangladesh. 100% private and discreet packaging. Order online with bKash or Nagad." />
   <meta name="theme-color" content="#0F0F0F" />
   <link rel="icon" type="image/png" href="favicon.png" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
@@ -82,11 +82,11 @@
       <span class="px-8">Discreet packaging nationwide</span><span class="px-8">·</span>
       <span class="px-8">FREE delivery across Bangladesh</span><span class="px-8">·</span>
       <span class="px-8">Pay with bKash or Nagad</span><span class="px-8">·</span>
-      <span class="px-8">Order easily on WhatsApp</span><span class="px-8">·</span>
+      <span class="px-8">Track your order online</span><span class="px-8">·</span>
       <span class="px-8">Discreet packaging nationwide</span><span class="px-8">·</span>
       <span class="px-8">FREE delivery across Bangladesh</span><span class="px-8">·</span>
       <span class="px-8">Pay with bKash or Nagad</span><span class="px-8">·</span>
-      <span class="px-8">Order easily on WhatsApp</span><span class="px-8">·</span>
+      <span class="px-8">Track your order online</span><span class="px-8">·</span>
     </div>
   </div>
 
@@ -464,7 +464,7 @@
         <li class="bg-white p-8"><p class="font-serif text-4xl text-blush-500 mb-4">01</p><p class="font-medium mb-1">Choose your pieces</p><p class="text-sm text-charcoal-soft">Pick size &amp; color, then add to your bag.</p></li>
         <li class="bg-white p-8"><p class="font-serif text-4xl text-blush-500 mb-4">02</p><p class="font-medium mb-1">Pay via bKash or Nagad</p><p class="text-sm text-charcoal-soft">Send Money the total to our number.</p></li>
         <li class="bg-white p-8"><p class="font-serif text-4xl text-blush-500 mb-4">03</p><p class="font-medium mb-1">Enter your details</p><p class="text-sm text-charcoal-soft">Name, phone, address &amp; TrxID.</p></li>
-        <li class="bg-white p-8"><p class="font-serif text-4xl text-blush-500 mb-4">04</p><p class="font-medium mb-1">Confirm on WhatsApp</p><p class="text-sm text-charcoal-soft">We verify and ship discreetly.</p></li>
+        <li class="bg-white p-8"><p class="font-serif text-4xl text-blush-500 mb-4">04</p><p class="font-medium mb-1">Confirm your order</p><p class="text-sm text-charcoal-soft">Get your Order ID and track it in your account.</p></li>
       </ol>
     </div>
     <!-- Payment & delivery lines -->
@@ -507,6 +507,7 @@
         <p class="text-[11px] tracking-luxe uppercase text-white mb-5">Contact</p>
         <ul class="space-y-3 text-sm">
           <li>WhatsApp: <a id="footerWa" href="#" target="_blank" rel="noopener" class="text-white hover:text-blush-200"></a></li>
+          <li><a href="#track" class="text-white hover:text-blush-200 underline underline-offset-4">Track Your Order</a></li>
           <li>Delivery: FREE across Bangladesh</li>
           <li>bKash: <span class="text-white font-mono">01786789182</span></li>
           <li>Nagad: <span class="text-white font-mono">01854109062</span></li>
@@ -604,7 +605,7 @@
               <input type="radio" name="payWay" value="manual" class="peer sr-only" />
               <div class="border border-black/15 peer-checked:border-noir peer-checked:bg-blush-50 p-4">
                 <span class="font-medium text-sm">Send Money manually (bKash / Nagad)</span>
-                <p class="text-[11px] text-charcoal-soft mt-1">Send the amount yourself and enter the TrxID. Confirmed after we check it.</p>
+                <p class="text-[10px] sm:text-[11px] text-charcoal-soft mt-1 leading-snug sm:whitespace-nowrap">We will confirm the order after checking your successful payment.</p>
               </div>
             </label>
           </div>
@@ -649,10 +650,9 @@
           </div>
           <p id="fError" class="hidden text-sm text-red-600"></p>
           <button id="fSubmit" type="submit" class="w-full flex items-center justify-center gap-3 bg-noir hover:bg-charcoal text-white text-xs tracking-luxe uppercase py-4 transition">
-            <svg class="w-5 h-5 text-[#25D366]" fill="currentColor" viewBox="0 0 24 24"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.9 9.9 0 004.74 1.21c5.46 0 9.91-4.45 9.91-9.91C21.95 6.45 17.5 2 12.04 2z"/></svg>
-            <span id="fSubmitLabel">Confirm &amp; Order via WhatsApp</span>
+            <span id="fSubmitLabel">Confirm Your Order</span>
           </button>
-          <p class="text-[11px] text-center text-charcoal-soft">Your order is confirmed once payment is verified. All details stay private.</p>
+          <p class="text-[11px] text-center text-charcoal-soft">All your details stay private.</p>
         </form>
       </div>
     </div>
@@ -691,17 +691,15 @@
   <!-- ===== Order placed modal ===== -->
   <div id="orderDone" class="fixed inset-0 z-[65] hidden items-center justify-center p-4">
     <div data-doneclose class="absolute inset-0 bg-black/50"></div>
-    <div class="relative bg-white w-full max-w-md px-8 py-10 text-center">
-      <p class="text-[11px] tracking-luxe uppercase text-charcoal-soft mb-3">Thank you</p>
-      <p class="font-serif text-3xl mb-3">Order Placed</p>
-      <p class="text-sm text-charcoal-light mb-1">Your order number</p>
-      <p id="doneNo" class="font-mono text-xl mb-5"></p>
+    <div class="relative bg-white w-full max-w-md max-h-[92vh] overflow-y-auto px-6 sm:px-8 py-10 text-center">
+      <div class="mx-auto mb-4 w-14 h-14 rounded-full bg-[#E3F5E9] text-[#1F7A45] flex items-center justify-center text-2xl">✓</div>
+      <p class="font-serif text-2xl sm:text-3xl mb-5 leading-snug">Order has been placed successfully!</p>
+      <p class="text-[11px] tracking-luxe uppercase text-charcoal-soft mb-1">Your Order ID</p>
+      <p class="mb-5 flex items-center justify-center gap-2"><span id="doneNo" class="font-mono text-xl"></span><button type="button" data-copy="doneNo" class="text-[10px] uppercase tracking-wider border border-black/15 px-2 py-0.5 hover:bg-noir hover:text-white">Copy</button></p>
       <p id="doneNote" class="hidden text-xs bg-blush-50 border border-black/10 px-4 py-3 mb-4 text-charcoal-light"></p>
-      <p class="text-sm text-charcoal-light mb-8">WhatsApp is opening with your order details. Please press <b>Send</b> there so we can verify your payment. If WhatsApp didn't open, tap the button below.</p>
-      <div class="flex flex-col sm:flex-row gap-2 justify-center">
-        <a id="doneWa" href="#" rel="noopener" class="bg-[#25D366] text-white text-[11px] tracking-luxe uppercase px-6 py-3">Send Order on WhatsApp</a>
-        <button type="button" data-doneclose class="border border-noir text-[11px] tracking-luxe uppercase px-6 py-3">Continue Shopping</button>
-      </div>
+      <p class="text-sm text-charcoal-light mb-5">We will confirm your order after checking your payment. Please save your Order ID.</p>
+      <div id="doneTrack" class="text-sm border-t border-black/10 pt-5 mb-7"></div>
+      <button type="button" data-doneclose class="w-full bg-noir text-white text-[11px] tracking-luxe uppercase px-6 py-4 hover:bg-charcoal transition">Continue Shopping</button>
     </div>
   </div>
 
@@ -1062,8 +1060,10 @@
               <span id="pvQty" class="w-10 text-center">1</span>
               <button type="button" data-pvqty="1" class="w-11 h-full min-h-[48px] hover:bg-blush-50" aria-label="Increase">+</button>
             </div>
-            <button type="button" data-pvadd="${esc(p.id)}" class="flex-1 min-w-[160px] bg-noir text-white text-[11px] tracking-luxe uppercase py-4 hover:bg-charcoal transition">Add to Cart</button>
-            <button type="button" data-pvbuy="${esc(p.id)}" class="flex-1 min-w-[160px] border border-noir text-[11px] tracking-luxe uppercase py-4 hover:bg-noir hover:text-white transition">Buy Now</button>
+            <div class="flex gap-3 w-full sm:w-auto sm:flex-1">
+              <button type="button" data-pvbuy="${esc(p.id)}" class="flex-1 min-w-0 border border-noir text-[11px] tracking-luxe uppercase py-4 hover:bg-noir hover:text-white transition">Buy Now</button>
+              <button type="button" data-pvadd="${esc(p.id)}" class="flex-1 min-w-0 bg-noir text-white text-[11px] tracking-luxe uppercase py-4 hover:bg-charcoal transition">Add to Cart</button>
+            </div>
           </div>
 
           <h2 class="text-[11px] tracking-luxe uppercase mb-4">Product Details</h2>
@@ -1166,6 +1166,8 @@
     if (match) return openCategory(match);
     if (h === 'shop') return openCategory('All');
     if (h === 'account' || h === 'admin') return showView(h);
+    const tr = h.match(/^track(?:\/(.*))?$/i);
+    if (tr) { window.__trackNo = (tr[1] || '').trim().toUpperCase(); return showView('account'); }
     if (!h || state.view !== 'home') showView('home');
   }
 
@@ -1288,7 +1290,7 @@
     const online = payWay() === 'online';
     $('manualBox').classList.toggle('hidden', online);
     $('manualFields').classList.toggle('hidden', online);
-    $('fSubmitLabel').textContent = online ? `Pay ${taka(totals().total)} Securely` : 'Confirm & Order via WhatsApp';
+    $('fSubmitLabel').textContent = online ? `Pay ${taka(totals().total)} Securely` : 'Confirm Your Order';
   }
   document.addEventListener('change', e => { if (e.target.name === 'payWay') syncPayWay(); });
 
@@ -1345,6 +1347,22 @@
     if (c.dataset.payretry !== undefined) openCart();
   });
 
+  function makeOrderNo() {
+    const d = new Date(), p = (n) => String(n).padStart(2, '0');
+    const r = [...crypto.getRandomValues(new Uint8Array(4))].map(b => '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'[b % 36]).join('');
+    return `SCB-${String(d.getFullYear()).slice(2)}${p(d.getMonth() + 1)}${p(d.getDate())}-${r}`;
+  }
+
+  // Admin notification: sends the order message to the shop's WhatsApp in the background (the customer stays here)
+  async function notifyAdmin(text, orderNo, saved) {
+    try {
+      const r = await withTimeout(fetch('/api/notify', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, orderNo, saved }) }), 10000);
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok || !j.sent) console.warn('WhatsApp notification not sent:', j.error || r.status);
+      return !!(r.ok && j.sent);
+    } catch (e) { console.warn('WhatsApp notification failed:', e); return false; }
+  }
+
   async function checkout(e) {
     e.preventDefault();
     const name = $('fName').value.trim();
@@ -1372,14 +1390,15 @@
     if (msg) { err.textContent = msg; err.classList.remove('hidden'); return; }
     err.classList.add('hidden');
 
-    const orderNo = acctOn ? makeOrderNo() : '';
+    const orderNo = makeOrderNo();
     const { sub, total } = totals();
     if (online) return checkoutOnline({ orderNo, name, phone, email, address, wantAccount, pass, sub, total });
     const lines = cart.map(i => { const p = findP(i.id); return { id: p.id, name: p.name, category: p.category, size: i.size, color: i.color, qty: i.qty, price: p.price, lineTotal: p.price * i.qty, image: p.image }; });
     const itemsText = lines.map((l, n) => `${n + 1}. ${l.name} (${l.id})\n   Size: ${l.size} | Color: ${l.color}\n   ${l.qty} × ${taka(l.price)} = ${taka(l.lineTotal)}`).join('\n\n');
 
     const text =
-`*NEW ORDER — SECRET COLLECTION BD*${orderNo ? `\nOrder No: *${orderNo}*` : ''}
+`*NEW ORDER — SECRET COLLECTION BD*
+Order No: *${orderNo}*
 ━━━━━━━━━━━━━━━
 
 *ORDER ITEMS*
@@ -1400,51 +1419,58 @@ Method: ${method}
 TrxID / Ref: ${trx}
 
 Please confirm my order. Thank you.`;
-    const url = `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(text)}`;
 
     const btn = $('fSubmit');
     const btnHTML = btn.innerHTML;
     btn.disabled = true; btn.classList.add('opacity-60'); btn.innerHTML = 'Placing your order…';
 
-    // Phones & in-app browsers (Facebook / Instagram): open WhatsApp in the same tab (most reliable).
-    // Computers: open WhatsApp Web in a new tab, reserved now so the pop-up blocker allows it.
-    const isMobile = /Android|iPhone|iPad|iPod|Mobile|FBAN|FBAV|Instagram/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && innerWidth < 1024);
-    const win = !isMobile ? window.open('', '_blank') : null;
-
-    let note = '';
+    let note = '', saved = false, accountMade = false;
     if (acctOn) {
       const order = { orderNo, source: 'website', customer: { name, phone, email, address }, payment: { method, trx }, items: lines, subtotal: sub, delivery: 0, total };
       const work = (async () => {
         // 1) create the account (a failure never blocks the order)
         if (wantAccount) {
-          try { await createCustomer({ ...order.customer, pass }); }
+          try { await createCustomer({ ...order.customer, pass }); accountMade = true; }
           catch (ex) {
             console.warn('Account not created:', ex);
             note = ex && ex.code === 'auth/email-already-in-use'
-              ? 'You already have an account with this phone number. Your order was placed; sign in anytime from the 👤 icon.'
-              : 'Your order was placed, but the account could not be created right now. You can create it later from the 👤 icon.';
+              ? 'You already have an account with this phone number. Sign in to track this order.'
+              : 'Your order was placed, but the account could not be created right now. You can create it below.';
           }
         }
-        // 2) save the order for your dashboard
+        // 2) save the order (admin dashboard + customer tracking)
         await saveOrder(order, null);
+        saved = true;
       })();
-      // never keep the customer waiting more than 8 seconds; WhatsApp always opens
-      try { await withTimeout(work, 8000); }
-      catch (ex) { console.warn('Order not fully saved online, continuing to WhatsApp:', ex); }
+      try { await withTimeout(work, 10000); }
+      catch (ex) { console.warn('Order not saved online:', ex); }
+    }
+    // 3) admin WhatsApp notification in the background — the customer is NOT sent to WhatsApp
+    const notified = notifyAdmin(text, orderNo, saved);
+    if (!saved) {
+      // not in the database: wait for the WhatsApp notification, it is then the only record
+      if (!(await notified)) {
+        btn.disabled = false; btn.classList.remove('opacity-60'); btn.innerHTML = btnHTML;
+        err.innerHTML = `We couldn't place your order — please check your internet and tap <b>Confirm Your Order</b> again. Still not working? <a class="underline" target="_blank" rel="noopener" href="https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(text)}">Send the order on WhatsApp</a>.`;
+        err.classList.remove('hidden');
+        return;
+      }
     }
 
     btn.disabled = false; btn.classList.remove('opacity-60'); btn.innerHTML = btnHTML;
     cart = []; saveCart(); renderCart(); closeCart();
     $('fTrx').value = ''; $('fPass').value = ''; $('fCreate').checked = false; $('fPassWrap').classList.add('hidden');
-    $('doneNo').textContent = orderNo || '—';
-    $('doneNo').classList.toggle('hidden', !orderNo);
+    $('doneNo').textContent = orderNo;
     $('doneNote').textContent = note; $('doneNote').classList.toggle('hidden', !note);
-    $('doneWa').href = url; $('doneWa').target = isMobile ? '_self' : '_blank';
+    const signedIn = acctOn && Account.user && !Account.isAdmin;
+    $('doneTrack').innerHTML = signedIn
+      ? `<a href="#track/${orderNo}" data-doneclose class="font-medium underline underline-offset-4 hover:text-charcoal-soft">Track your order →</a>
+         <p class="text-xs text-charcoal-soft mt-2">${accountMade ? 'Your account is ready. ' : ''}See live status updates in <b>My Account</b>.</p>`
+      : acctOn
+        ? `<a href="#" data-trackacct="${esc(phone)}" data-trackname="${esc(name)}" data-trackmail="${esc(email)}" class="font-medium underline underline-offset-4 hover:text-charcoal-soft">Track your order →</a>
+           <p class="text-xs text-charcoal-soft mt-2 leading-relaxed">Create an account with the same phone number <b class="font-mono">${esc(phone)}</b> to track this order. Already have one? <a href="#" data-trackacct="${esc(phone)}" data-tracklogin="1" class="underline">Sign in</a>.</p>`
+        : `<p class="text-xs text-charcoal-soft">Keep your Order ID to check your order status with us.</p>`;
     $('orderDone').classList.remove('hidden'); $('orderDone').classList.add('flex');
-
-    if (win && !win.closed) { try { win.location.href = url; } catch (e) { location.href = url; } }
-    else setTimeout(() => { location.href = url; }, 700);   // same tab: opens the WhatsApp app
-
   }
 
 
@@ -1656,10 +1682,24 @@ Please confirm my order. Thank you.`;
         if (snap.exists()) Account.profile = snap.val();
         else if (!Account.profile) Account.profile = { name: user.displayName || '', email: Account.isAdmin ? user.email : '' };
       } catch (e) { if (!Account.profile) Account.profile = { name: user.displayName || '' }; }
-      // live: this customer's own orders
-      Account.unsubMine = F.onValue(R('userOrders/' + user.uid),
-        snap => { Account.myOrders = toOrders(snap.val()); if (state.view === 'account') renderAccount(); },
-        err => console.error(err));
+      // live: this customer's own orders — placed while signed in (userOrders) + any order placed with
+      // the same phone number, even as a guest before the account existed (phoneOrders)
+      const mine = { uid: {}, phone: {} };
+      const merge = () => {
+        const byNo = new Map();
+        toOrders(mine.phone).forEach(o => byNo.set(o.orderNo || o._id, o));
+        toOrders(mine.uid).forEach(o => {
+          const p = byNo.get(o.orderNo || o._id);
+          byNo.set(o.orderNo || o._id, p && (p.updatedAt || 0) > (o.updatedAt || 0) ? { ...o, status: p.status, updatedAt: p.updatedAt } : o);
+        });
+        Account.myOrders = [...byNo.values()].sort((a, b) => (b.date || 0) - (a.date || 0));
+        if (state.view === 'account') renderAccount();
+      };
+      const subs = [F.onValue(R('userOrders/' + user.uid), snap => { mine.uid = snap.val() || {}; merge(); }, err => console.error(err))];
+      const em = String(user.email || '').toLowerCase();
+      if (em.endsWith(MEMBER_DOMAIN))
+        subs.push(F.onValue(R('phoneOrders/' + em.slice(0, -MEMBER_DOMAIN.length)), snap => { mine.phone = snap.val() || {}; merge(); }, err => console.warn('Phone orders not readable — update Database rules', err)));
+      Account.unsubMine = () => subs.forEach(fn => fn());
       // live: every order, admin only
       if (Account.isAdmin) {
         Account.unsubAdmin = F.onValue(F.query(R('orders'), F.orderByChild('createdAt'), F.limitToLast(5000)),
@@ -1696,19 +1736,104 @@ Please confirm my order. Thank you.`;
   }
 
   /* ---------- Save order (called from checkout) ---------- */
+  // Private tracking key made from the phone number (same as the account login ID, so only that account can read it)
+  const phoneKey = async (phone) => { const p = normPhone(phone); return p ? (await phoneLogin(p)).split('@')[0] : ''; };
+  const MEMBER_DOMAIN = '@members.secretcollectionbd.com';
+  // Public, no personal data: what "Check your order status" shows
+  const statusCard = (o) => clean({ status: o.status, createdAt: o.createdAt, updatedAt: o.updatedAt || null, total: o.total, itemCount: (o.items || []).reduce((n, i) => n + (Number(i.qty) || 1), 0) });
+  // Customer's own copy, readable only by the account with the same phone number
+  const phoneCopy = (o) => clean({ orderNo: o.orderNo, status: o.status, createdAt: o.createdAt, updatedAt: o.updatedAt || null, total: o.total, subtotal: o.subtotal, delivery: o.delivery || 0,
+    payment: o.payment || {}, paymentStatus: o.paymentStatus || null,
+    items: (o.items || []).map(i => ({ id: i.id, name: i.name, size: i.size, color: i.color, qty: i.qty, price: i.price, lineTotal: i.lineTotal })) });
+
   async function saveOrder(order, newAccount) {
     const F = Account.fb;
     if (newAccount) await createCustomer({ ...order.customer, pass: newAccount.pass });
     const u = Account.auth.currentUser;
     const key = F.push(R('orders')).key;
-    const data = clean({ ...order, uid: u ? u.uid : null, status: 'Pending', createdAt: Date.now() });
-    await F.set(R('orders/' + key), data);
-    if (u) await F.set(R(`userOrders/${u.uid}/${key}`), data).catch(err => console.warn('Order copy for customer failed', err));
+    const pk = await phoneKey(order.customer && order.customer.phone);
+    const data = clean({ ...order, uid: u ? u.uid : null, phoneKey: pk || null, status: 'Pending', createdAt: Date.now() });
+    await F.set(R('orders/' + key), data);                                     // the order itself (admin dashboard)
+    // tracking copies — a failure here never loses the order
+    await Promise.all([
+      F.set(R('orderStatus/' + data.orderNo), statusCard(data)).catch(err => console.warn('Order status not published', err)),
+      pk ? F.set(R(`phoneOrders/${pk}/${key}`), phoneCopy(data)).catch(err => console.warn('Phone tracking copy failed', err)) : null,
+      u ? F.set(R(`userOrders/${u.uid}/${key}`), data).catch(err => console.warn('Order copy for customer failed', err)) : null
+    ]);
     return key;
   }
-  function makeOrderNo() {
-    const d = new Date(), p = (n) => String(n).padStart(2, '0');
-    return `SCB-${String(d.getFullYear()).slice(2)}${p(d.getMonth() + 1)}${p(d.getDate())}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+
+  /* ---------- Order status lookup ("Check your order status with your Order ID") ---------- */
+  const TRACK_STEPS = ['Pending', 'Payment Verified', 'Confirmed', 'Shipped', 'Delivered'];
+  const STATUS_TEXT = {
+    'Pending': 'Order received — we are checking your payment.',
+    'Payment Verified': 'Payment received and verified.',
+    'Confirmed': 'Your order is confirmed and being packed discreetly.',
+    'Shipped': 'Your parcel is on the way.',
+    'Delivered': 'Delivered. Thank you for shopping with us!',
+    'Cancelled': 'This order was cancelled. Please contact us on WhatsApp for help.'
+  };
+  function trackSteps(status) {
+    if (status === 'Cancelled') return '';
+    const at = Math.max(0, TRACK_STEPS.indexOf(status));
+    return `<div class="flex items-start mt-5 mb-1">${TRACK_STEPS.map((s, n) => `
+      <div class="flex-1 flex flex-col items-center text-center relative">
+        ${n ? `<span class="absolute top-[7px] right-1/2 w-full h-px ${n <= at ? 'bg-noir' : 'bg-black/15'}"></span>` : ''}
+        <span class="relative z-10 w-[15px] h-[15px] rounded-full border ${n <= at ? 'bg-noir border-noir' : 'bg-white border-black/25'}"></span>
+        <span class="mt-2 px-0.5 text-[10px] sm:text-[11px] leading-tight ${n === at ? 'font-semibold text-noir' : n < at ? 'text-noir' : 'text-charcoal-soft'}">${s === 'Payment Verified' ? 'Verified' : s}</span>
+      </div>`).join('')}</div>`;
+  }
+  function normOrderNo(v) {
+    let s = String(v || '').trim().toUpperCase().replace(/\s+/g, '').replace(/^#/, '');
+    if (/^\d{6}-?[A-Z0-9]{4}$/.test(s)) s = 'SCB-' + s;
+    s = s.replace(/^SCB-?(\d{6})-?([A-Z0-9]{4})$/, 'SCB-$1-$2');
+    return /^SCB-\d{6}-[A-Z0-9]{4}$/.test(s) ? s : '';
+  }
+  async function lookupOrder(raw) {
+    const out = $('trkResult'); if (!out) return;
+    const no = normOrderNo(raw);
+    Account.lastTrack = no;
+    if (!no) { out.innerHTML = `<p class="text-sm text-red-600 mt-3">Please enter your Order ID, e.g. SCB-${new Date().toISOString().slice(2, 10).replace(/-/g, '')}-AB12</p>`; return; }
+    out.innerHTML = `<p class="text-sm text-charcoal-soft mt-3">Checking ${esc(no)}…</p>`;
+    let o = (Account.myOrders || []).find(x => x.orderNo === no) || null;
+    if (!o) {
+      try {
+        const snap = await Account.fb.get(R('orderStatus/' + no));
+        if (snap.exists()) { const v = snap.val(); o = { ...v, orderNo: no, date: v.createdAt ? new Date(v.createdAt) : null, items: null }; }
+      } catch (e) { console.warn(e); out.innerHTML = `<p class="text-sm text-red-600 mt-3">Could not check right now. Please try again in a moment.</p>`; return; }
+    }
+    if (!o) { out.innerHTML = `<p class="text-sm text-red-600 mt-3">No order found with ID <b class="font-mono">${esc(no)}</b>. Please check the ID and try again.</p>`; return; }
+    const upd = o.updatedAt ? new Date(o.updatedAt) : null;
+    out.innerHTML = `
+      <div class="border border-noir/80 bg-white p-5 mt-4 text-left">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div><p class="font-mono text-sm">${esc(no)}</p><p class="text-xs text-charcoal-soft">Placed ${fmtDate(o.date)} ${fmtTime(o.date)}</p></div>
+          ${statusPill(o.status)}
+        </div>
+        ${trackSteps(o.status)}
+        <p class="text-sm text-charcoal-light mt-4">${esc(STATUS_TEXT[o.status] || '')}</p>
+        ${o.items ? `<ul class="text-sm text-charcoal-light space-y-1 mt-3">${o.items.map(i => `<li>${esc(i.name)} <span class="text-charcoal-soft">· ${esc(i.size)} · ${esc(i.color)} · ×${i.qty}</span></li>`).join('')}</ul>`
+                  : (o.itemCount ? `<p class="text-xs text-charcoal-soft mt-2">${o.itemCount} item${o.itemCount > 1 ? 's' : ''}</p>` : '')}
+        <div class="flex justify-between text-sm pt-3 mt-3 border-t border-black/5"><span class="text-charcoal-soft">${upd ? 'Updated ' + fmtDate(upd) + ' ' + fmtTime(upd) : ''}</span><b>${o.total != null ? taka(o.total) : ''}</b></div>
+      </div>`;
+  }
+  const trackBox = (hint) => `
+    <form id="trkForm" class="border border-black/10 bg-blush-50/60 p-5 sm:p-6 mb-10">
+      <h2 class="font-serif text-xl sm:text-2xl mb-1">Check your order status with your Order ID</h2>
+      <p class="text-xs text-charcoal-soft mb-4">${hint}</p>
+      <div class="flex gap-2">
+        <input id="trkInput" type="text" autocomplete="off" spellcheck="false" placeholder="e.g. SCB-250929-AB12" class="flex-1 min-w-0 border border-black/15 bg-white px-4 py-3 text-sm font-mono uppercase focus:outline-none focus:border-noir" />
+        <button class="bg-noir text-white text-[11px] tracking-luxe uppercase px-5 sm:px-8 hover:bg-charcoal transition">Check</button>
+      </div>
+      <div id="trkResult"></div>
+    </form>`;
+  function wireTrackBox() {
+    const f = $('trkForm'); if (!f) return;
+    f.addEventListener('submit', (e) => { e.preventDefault(); lookupOrder($('trkInput').value); });
+    const pending = window.__trackNo; window.__trackNo = '';
+    const again = pending || Account.lastTrack;
+    if (again) { $('trkInput').value = again; lookupOrder(again); }
+    if (pending) setTimeout(() => f.scrollIntoView({ behavior: 'smooth', block: 'start' }), 350);
   }
 
   /* ---------- Login / sign-up modal ---------- */
@@ -1794,7 +1919,7 @@ Please confirm my order. Thank you.`;
   function renderAccount() {
     const box = $('accountBody');
     if (!Account.enabled) {
-      box.innerHTML = `<div class="text-center py-20"><p class="font-serif text-3xl mb-3">Accounts coming soon</p><p class="text-charcoal-soft">You can still order as a guest via WhatsApp.</p></div>`;
+      box.innerHTML = `<div class="text-center py-20"><p class="font-serif text-3xl mb-3">Accounts coming soon</p><p class="text-charcoal-soft">You can still order as a guest.</p></div>`;
       return;
     }
     const u = Account.user;
@@ -1807,7 +1932,10 @@ Please confirm my order. Thank you.`;
             <button type="button" data-authopen="login" class="bg-noir text-white text-[11px] tracking-luxe uppercase px-10 py-4">Sign In</button>
             <button type="button" data-authopen="signup" class="border border-noir text-[11px] tracking-luxe uppercase px-10 py-4">Create Account</button>
           </div>
-        </div>`;
+          <p class="text-xs text-charcoal-soft mt-5 max-w-md mx-auto">Ordered as a guest? Create an account with the <b>same phone number</b> you used for the order — all your orders will appear here automatically.</p>
+        </div>
+        <div class="max-w-2xl mx-auto">${trackBox('Works without signing in. You can find the Order ID on your order confirmation.')}</div>`;
+      wireTrackBox();
       return;
     }
     const p = Account.profile || {};
@@ -1823,6 +1951,8 @@ Please confirm my order. Thank you.`;
           <button type="button" data-signout class="border border-noir text-[11px] tracking-luxe uppercase px-5 py-3 hover:bg-noir hover:text-white transition">Sign Out</button>
         </div>
       </div>
+
+      ${trackBox('Your order status is updated here as soon as we update it.')}
 
       <div class="grid lg:grid-cols-3 gap-10">
         <form id="profileForm" class="space-y-3">
@@ -1843,6 +1973,7 @@ Please confirm my order. Thank you.`;
                 <div><p class="font-mono text-sm">${esc(o.orderNo)}</p><p class="text-xs text-charcoal-soft">${fmtDate(o.date)} ${fmtTime(o.date)}</p></div>
                 ${statusPill(o.status)}
               </div>
+              <p class="text-xs text-charcoal-soft -mt-1 mb-3">${esc(STATUS_TEXT[o.status] || '')}${o.updatedAt ? ` · Updated ${fmtDate(new Date(o.updatedAt))} ${fmtTime(new Date(o.updatedAt))}` : ''}</p>
               <ul class="text-sm text-charcoal-light space-y-1 mb-3">
                 ${(o.items || []).map(i => `<li>${esc(i.name)} <span class="text-charcoal-soft">· ${esc(i.size)} · ${esc(i.color)} · ×${i.qty}</span></li>`).join('')}
               </ul>
@@ -1850,6 +1981,7 @@ Please confirm my order. Thank you.`;
             </div>`).join('') : `<div class="border border-dashed border-black/15 p-10 text-center text-charcoal-soft">No orders yet. <a href="#shop" class="underline">Start shopping</a></div>`}
         </div>
       </div>`;
+    wireTrackBox();
     $('profileForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const email = $('pEmail').value.trim().toLowerCase();
@@ -2033,7 +2165,16 @@ Please confirm my order. Thank you.`;
     const now = Date.now(), upd = { [`orders/${id}/status`]: status, [`orders/${id}/updatedAt`]: now };
     if (o && o.uid) { upd[`userOrders/${o.uid}/${id}/status`] = status; upd[`userOrders/${o.uid}/${id}/updatedAt`] = now; }
     try { await Account.fb.update(R(''), upd); toast(`Status → ${status}`); }
-    catch (err) { console.error(err); toast('Could not update status'); }
+    catch (err) { console.error(err); toast('Could not update status'); return; }
+    // customer tracking copies (also fills them in for older orders)
+    if (!o || !o.orderNo) return;
+    try {
+      const full = { ...o, status, updatedAt: now };
+      const pk = o.phoneKey || await phoneKey(o.customer && o.customer.phone);
+      const extra = { [`orderStatus/${o.orderNo}`]: statusCard(full) };
+      if (pk) extra[`phoneOrders/${pk}/${id}`] = phoneCopy(full);
+      await Account.fb.update(R(''), extra);
+    } catch (err) { console.warn('Tracking copy not updated — publish the new Database rules', err); toast('Status saved, but customer tracking needs the new Database rules'); }
   }
 
   function downloadCsv(name, rows) {
@@ -2056,9 +2197,18 @@ Please confirm my order. Thank you.`;
 
   /* ---------- Events ---------- */
   document.addEventListener('click', (e) => {
-    const t = e.target.closest('[data-authopen],[data-authtab],[data-authclose],[data-signout],[data-admperiod],[data-admstatus],[data-export],[data-doneclose],#accountBtn,#aForgot,[data-admrow]');
+    const t = e.target.closest('[data-authopen],[data-authtab],[data-authclose],[data-signout],[data-admperiod],[data-admstatus],[data-export],[data-doneclose],[data-trackacct],#accountBtn,#aForgot,[data-admrow]');
     if (!t) return;
     const d = t.dataset;
+    if (d.trackacct) {   // "Track your order" from the order confirmation (guest)
+      e.preventDefault();
+      $('orderDone').classList.add('hidden'); $('orderDone').classList.remove('flex');
+      window.__trackNo = $('doneNo').textContent.trim();
+      if (d.tracklogin) { openAuth('login'); $('aId').value = d.trackacct; }
+      else { openAuth('signup'); $('aName').value = d.trackname || ''; $('aPhone').value = d.trackacct; $('aMail').value = d.trackmail || ''; setTimeout(() => $('aPass').focus(), 80); }
+      $('aInfo').textContent = 'Use the same phone number as your order to see it in My Account.'; $('aInfo').classList.remove('hidden');
+      return;
+    }
     if (t.id === 'accountBtn') {
       if (!Account.user) return openAuth('login');
       location.hash = Account.isAdmin ? '#admin' : '#account'; return;
