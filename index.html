@@ -190,16 +190,18 @@
       <div class="h-[3px] bg-noir"></div>
     </section>
 
-    <!-- ===== Hero (image fixed to image0.jpg) ===== -->
-    <section class="relative bg-noir text-white overflow-hidden">
+    <!-- ===== Hero: image0.jpg, or the slides from Admin → Add Banners (Home → Hero slider) ===== -->
+    <section id="heroSection" class="relative bg-noir text-white overflow-hidden">
       <!-- Full-width photo: visible across the whole banner, including the left side -->
-      <img id="heroImg" src="image0.jpg" alt="Secret Collection BD" fetchpriority="high"
-           class="absolute inset-0 w-full h-full object-cover object-[65%_center]" onerror="this.style.display='none'" />
+      <div id="heroSlides" class="absolute inset-0">
+        <img id="heroImg" src="image0.jpg" alt="Secret Collection BD" fetchpriority="high"
+             class="absolute inset-0 w-full h-full object-cover object-[65%_center]" onerror="this.style.display='none'" />
+      </div>
       <!-- See-through shade behind the text only (no solid fill) -->
-      <div class="absolute inset-0 bg-gradient-to-t from-noir/80 via-noir/35 to-noir/10 lg:bg-gradient-to-r lg:from-noir/70 lg:via-noir/30 lg:via-45% lg:to-transparent lg:to-70%"></div>
+      <div id="heroShade" class="pointer-events-none absolute inset-0 bg-gradient-to-t from-noir/80 via-noir/35 to-noir/10 lg:bg-gradient-to-r lg:from-noir/70 lg:via-noir/30 lg:via-45% lg:to-transparent lg:to-70% transition-opacity duration-700"></div>
 
-      <div class="relative z-10 max-w-7xl mx-auto min-h-[82vh] flex items-end lg:items-center px-6 sm:px-12 lg:px-16 py-16 lg:py-20">
-        <div class="max-w-xl reveal">
+      <div id="heroText" class="relative z-10 pointer-events-none max-w-7xl mx-auto min-h-[82vh] flex items-end lg:items-center px-6 sm:px-12 lg:px-16 py-16 lg:py-20 transition-opacity duration-700">
+        <div class="max-w-xl reveal pointer-events-auto">
           <h1 class="font-serif text-5xl sm:text-6xl xl:text-7xl leading-[1.05] mb-7 drop-shadow-[0_2px_16px_rgba(0,0,0,.35)]">
             Elegance in<br /><span class="text-blush-200">Every Detail</span>
           </h1>
@@ -221,6 +223,11 @@
         <h2 class="font-serif text-4xl sm:text-5xl">Exclusive Collections</h2>
       </div>
       <div id="gridExclusive" class="grid grid-cols-2 lg:grid-cols-4 gap-x-4 sm:gap-x-6 gap-y-12"></div>
+    </section>
+
+    <!-- ===== Campaign banner (Admin → Add Banners → Home → Campaign banner) ===== -->
+    <section id="homeMidBanner" class="hidden max-w-7xl mx-auto px-4 sm:px-6 pb-4">
+      <div data-bnbox class="relative overflow-hidden bg-blush-50 aspect-[4/5] sm:aspect-[16/6]"></div>
     </section>
 
     <!-- ===== Section 2: Most Popular ===== -->
@@ -261,6 +268,8 @@
     <nav class="text-xs tracking-[.14em] uppercase text-charcoal-soft mb-6">
       <a href="#" data-view="home" class="hover:text-noir">Home</a> <span class="mx-2">/</span> <span id="crumb" class="text-noir">All</span>
     </nav>
+    <!-- Category banner (Admin → Add Banners → category page) -->
+    <div id="catBanner" class="hidden mb-10"><div data-bnbox class="relative overflow-hidden bg-blush-50 aspect-[4/5] sm:aspect-[16/5]"></div></div>
     <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-10 pb-6 border-b border-black/10">
       <div>
         <h1 id="catalogTitle" class="font-serif text-4xl sm:text-5xl">All Products</h1>
@@ -327,6 +336,7 @@
         <div class="flex gap-1 border-b border-black/10 mb-8 overflow-x-auto">
           <button type="button" data-admtab="orders" class="adm-tab px-5 py-3 text-[11px] tracking-[.16em] uppercase whitespace-nowrap border-b-2 border-noir">Orders &amp; Reports</button>
           <button type="button" data-admtab="products" class="adm-tab px-5 py-3 text-[11px] tracking-[.16em] uppercase whitespace-nowrap border-b-2 border-transparent text-charcoal-soft">Products &amp; Photos</button>
+          <button type="button" data-admtab="banners" class="adm-tab px-5 py-3 text-[11px] tracking-[.16em] uppercase whitespace-nowrap border-b-2 border-transparent text-charcoal-soft">Add Banners</button>
           <button type="button" data-admtab="delivery" class="adm-tab px-5 py-3 text-[11px] tracking-[.16em] uppercase whitespace-nowrap border-b-2 border-transparent text-charcoal-soft">Delivery Partner</button>
           <button type="button" data-admtab="settings" class="adm-tab px-5 py-3 text-[11px] tracking-[.16em] uppercase whitespace-nowrap border-b-2 border-transparent text-charcoal-soft">Settings</button>
         </div>
@@ -409,6 +419,9 @@
 
         <!-- ===== DELIVERY PARTNER TAB (Steadfast) ===== -->
         <div id="admTabDelivery" class="hidden"></div>
+
+        <!-- ===== ADD BANNERS TAB ===== -->
+        <div id="admTabBanners" class="hidden"></div>
 
         <!-- ===== SETTINGS TAB ===== -->
         <div id="admTabSettings" class="hidden">
@@ -951,6 +964,7 @@
 
     const title = q ? `“${state.query.trim()}”` : (state.category === 'All' ? 'All Products' : state.category);
     $('catalogTitle').textContent = title;
+    renderBannerSpot('catBanner', 'cat-' + catSlug(state.category || 'All'));
     $('crumb').textContent = state.category;
     $('catalogCount').textContent = `${list.length} ${list.length === 1 ? 'piece' : 'pieces'}`;
     $('catChips').innerHTML = CATS.map(c => `
@@ -1514,6 +1528,83 @@
   $('sortSelect').addEventListener('change', e => { state.sort = e.target.value; renderCatalog(); });
   window.addEventListener('scroll', () => $('siteHeader').classList.toggle('shadow-md', scrollY > 10), { passive: true });
 
+  /* ---------- Banners & sliders (banners.json, managed in Admin → Add Banners) ---------- */
+  // Placements are built from the categories list, so a new category gets its own banner spot automatically.
+  const BANNER_PLACES = () => [
+    { key: 'home-hero', label: 'Home → Hero slider (top of homepage)', size: 'Desktop 1920 × 900 px · Phone 1080 × 1350 px', hero: true },
+    { key: 'home-mid', label: 'Home → Campaign banner (below Exclusive Collections)', size: 'Desktop 1920 × 720 px · Phone 1080 × 1350 px' },
+    ...CATS.map(c => ({ key: 'cat-' + catSlug(c), label: `Category page → ${c === 'All' ? 'All Products' : c} (top banner)`, size: 'Desktop 1920 × 600 px · Phone 1080 × 1350 px', cat: c }))
+  ];
+  let BANNERS = null;
+  const bnTime = (v) => v ? Date.parse(String(v).length === 16 ? v + ':00+06:00' : v) : NaN;   // campaign times are Bangladesh time
+  const bnSafeLink = (l) => { l = String(l || '').trim(); return /^(#|\/(?!\/)|https?:\/\/)/i.test(l) ? l : ''; };
+  function liveSlides(key) {
+    const pl = BANNERS && BANNERS.placements && BANNERS.placements[key];
+    if (!pl || !Array.isArray(pl.slides)) return { slides: [], interval: 5 };
+    const now = Date.now();
+    const slides = pl.slides.filter(s => s && s.image && s.active !== false
+      && !(bnTime(s.start) > now) && !(bnTime(s.end) <= now));
+    return { slides, interval: Math.min(20, Math.max(2, Number(pl.interval) || 5)) };
+  }
+  async function loadBanners() {
+    try {
+      const r = await fetch('banners.json?v=' + Date.now(), { cache: 'no-store' });
+      BANNERS = r.ok ? await r.json() : null;
+    } catch (e) { BANNERS = null; }
+  }
+  const reduceMotion = () => window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function mountSlider(box, slides, { interval = 5, hero = false, onChange } = {}) {
+    if (box._timer) clearInterval(box._timer);
+    const n = slides.length;
+    box.innerHTML = slides.map((s, i) => {
+      const link = bnSafeLink(s.link), clickable = link && (!hero || s.overlay === false);
+      const pic = `<picture>${s.imageMobile ? `<source media="(max-width: 639px)" srcset="${esc(s.imageMobile)}">` : ''}<img src="${esc(s.image)}" alt="${esc(s.title || 'Secret Collection BD')}" ${i ? 'loading="lazy"' : 'fetchpriority="high"'} draggable="false" class="absolute inset-0 w-full h-full object-cover ${hero && !s.imageMobile && s.fallback ? 'object-[65%_center]' : 'object-center'}" /></picture>`;
+      return `<div data-sl="${i}" class="absolute inset-0 transition-opacity duration-700 ${i ? 'opacity-0 pointer-events-none' : 'opacity-100'}" ${i ? 'aria-hidden="true"' : ''}>${clickable ? `<a href="${esc(link)}" ${/^https?:/i.test(link) ? 'rel="noopener"' : ''} class="absolute inset-0" aria-label="${esc(s.title || 'Open offer')}">${pic}</a>` : pic}</div>`;
+    }).join('') + (n > 1 ? `
+      <button type="button" data-slnav="-1" aria-label="Previous" class="hidden sm:flex absolute ${hero ? 'z-20' : 'z-10'} left-3 top-1/2 -translate-y-1/2 w-10 h-10 items-center justify-center bg-white/80 text-noir hover:bg-white">‹</button>
+      <button type="button" data-slnav="1" aria-label="Next" class="hidden sm:flex absolute ${hero ? 'z-20' : 'z-10'} right-3 top-1/2 -translate-y-1/2 w-10 h-10 items-center justify-center bg-white/80 text-noir hover:bg-white">›</button>
+      <div class="absolute ${hero ? 'z-20' : 'z-10'} bottom-4 inset-x-0 flex justify-center gap-2">${slides.map((_, i) => `<button type="button" data-sldot="${i}" aria-label="Slide ${i + 1}" class="h-1.5 transition-all ${i ? 'w-4 bg-white/50' : 'w-8 bg-white'}"></button>`).join('')}</div>` : '');
+    let cur = 0;
+    const go = (k) => {
+      cur = (k + n) % n;
+      box.querySelectorAll('[data-sl]').forEach(el => { const on = Number(el.dataset.sl) === cur; el.classList.toggle('opacity-0', !on); el.classList.toggle('opacity-100', on); el.classList.toggle('pointer-events-none', !on); el.toggleAttribute('aria-hidden', !on); });
+      box.querySelectorAll('[data-sldot]').forEach(d => { const on = Number(d.dataset.sldot) === cur; d.className = `h-1.5 transition-all ${on ? 'w-8 bg-white' : 'w-4 bg-white/50'}`; });
+      if (onChange) onChange(slides[cur]);
+    };
+    const start = () => { if (n > 1 && !reduceMotion()) { clearInterval(box._timer); box._timer = setInterval(() => { if (!document.hidden) go(cur + 1); }, interval * 1000); } };
+    const host = hero ? box.parentElement : box;
+    host.onmouseenter = () => clearInterval(box._timer); host.onmouseleave = start;
+    let tx = null;
+    host.ontouchstart = (e) => { tx = e.touches[0].clientX; };
+    host.ontouchend = (e) => { if (tx === null || n < 2) return; const dx = e.changedTouches[0].clientX - tx; tx = null; if (Math.abs(dx) > 45) { go(cur + (dx < 0 ? 1 : -1)); start(); } };
+    host.onclick = (e) => {
+      const b = e.target.closest('[data-slnav],[data-sldot]'); if (!b || !host.contains(b)) return;
+      e.preventDefault(); go(b.dataset.slnav ? cur + Number(b.dataset.slnav) : Number(b.dataset.sldot)); start();
+    };
+    go(0); start();
+  }
+  function renderHeroBanner() {
+    const { slides, interval } = liveSlides('home-hero');
+    const list = slides.length ? slides : [{ image: CONFIG.heroImage, title: 'Secret Collection BD', overlay: true, fallback: true }];
+    mountSlider($('heroSlides'), list, { interval, hero: true, onChange: (s) => {
+      const text = s.overlay !== false;
+      $('heroText').classList.toggle('opacity-0', !text); $('heroText').classList.toggle('invisible', !text);
+      $('heroShade').classList.toggle('opacity-0', !text);
+    } });
+  }
+  function renderBannerSpot(wrapId, key) {
+    const wrap = $(wrapId); if (!wrap) return;
+    const { slides, interval } = liveSlides(key);
+    wrap.classList.toggle('hidden', !slides.length);
+    const box = wrap.querySelector('[data-bnbox]');
+    if (slides.length) mountSlider(box, slides, { interval }); else { if (box._timer) clearInterval(box._timer); box.innerHTML = ''; }
+  }
+  function renderBanners() {
+    renderHeroBanner();
+    renderBannerSpot('homeMidBanner', 'home-mid');
+    if (state.view === 'catalog') renderBannerSpot('catBanner', 'cat-' + catSlug(state.category || 'All'));
+  }
+
   /* ---------- Init ---------- */
   (async function init() {
     const wa = `https://wa.me/${CONFIG.whatsapp}`;
@@ -1525,9 +1616,11 @@
     $('heroImg').src = CONFIG.heroImage;
     $('year').textContent = new Date().getFullYear();
 
+    loadBanners().then(renderBanners);
     try { await loadProducts(); renderAll(); }
     catch (err) { showLoadError(err); }
     observeReveal();
+    setInterval(() => loadBanners().then(renderBanners), 10 * 60 * 1000);   // campaigns start/end on time
 
     // Re-check products.json whenever a visitor comes back to the tab
     // and every 5 minutes, so price/stock edits show without a manual refresh.
@@ -2699,9 +2792,10 @@
     while (w.state === 'wait') {
       await new Promise(r => setTimeout(r, 8000));
       try {
-        const site = await (await fetch('products.json?live=' + Date.now(), { cache: 'no-store' })).json();
+        const site = w.check ? [] : await (await fetch('products.json?live=' + Date.now(), { cache: 'no-store' })).json();
         const byId = Object.fromEntries((Array.isArray(site) ? site : []).map(p => [String(p.id), JSON.stringify(p)]));
         let ok = Object.entries(w.expect).every(([id, j]) => j === null ? !(id in byId) : byId[id] === j);
+        if (w.check) ok = await w.check();
         if (ok && w.img) ok = (await fetch(w.img + '?live=' + Date.now(), { cache: 'no-store' })).ok;
         if (ok) { w.state = 'ok'; w.took = Math.round((Date.now() - w.started) / 1000); toast(`✓ ${w.label} is live on the website`); }
       } catch (e) { /* keep waiting */ }
@@ -2719,7 +2813,7 @@
           : `<div class="flex flex-wrap items-center gap-2 border border-black/10 bg-white px-4 py-2.5 text-xs"><span class="inline-block w-3 h-3 border-2 border-noir border-t-transparent rounded-full animate-spin"></span><b>Publishing:</b> ${esc(w.label)} · saved to GitHub, waiting for the website to update… <span class="font-mono text-charcoal-soft">${t}</span></div>`;
     };
     const html = PM.live.map(row).join('');
-    ['pmLive', 'pmLiveMini'].forEach(id => { const el = $(id); if (el) { el.innerHTML = html; el.classList.toggle('hidden', !html); } });
+    ['pmLive', 'pmLiveMini', 'bnLive'].forEach(id => { const el = $(id); if (el) { el.innerHTML = html; el.classList.toggle('hidden', !html); } });
   }
   document.addEventListener('click', (e) => { const x = e.target.closest('[data-livex]'); if (!x) return; const i = [...x.parentElement.parentElement.children].indexOf(x.parentElement); PM.live.splice(i, 1); renderLive(); });
 
@@ -3565,15 +3659,202 @@ Look at the product photo and return ONLY a JSON object (no markdown) with these
     XLSX.writeFile(wb, `SCBD_Products_export_${new Date().toISOString().slice(0, 10)}.xlsx`);
   }
 
+
+  /* ---------- Add Banners: banners.json + banners/ photos in GitHub ---------- */
+  const BN = { data: null, orig: null, place: 'home-hero', dirty: false, pending: {}, busy: false, loading: false };
+  async function ghLoadJson(path) {
+    const s = getSet();
+    try {
+      const meta = await gh(`/repos/${s.repo}/contents/${path}?ref=${encodeURIComponent(s.branch)}`);
+      const b64 = meta.content ? meta.content : (await gh(`/repos/${s.repo}/git/blobs/${meta.sha}`)).content;
+      return JSON.parse(b64ToText(b64));
+    } catch (e) { if (e.status === 404) return null; throw e; }
+  }
+  const bnPlace = () => { BN.data.placements = BN.data.placements || {}; return BN.data.placements[BN.place] || (BN.data.placements[BN.place] = { interval: 5, slides: [] }); };
+  const bnSrc = (path) => BN.pending[path] ? 'data:image/jpeg;base64,' + BN.pending[path] : path;
+  const bnId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+  function bnStatus(sl) {
+    const now = Date.now(), st = bnTime(sl.start), en = bnTime(sl.end);
+    const f = (t) => new Date(t).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Dhaka' });
+    if (sl.active === false) return ['Off', 'bg-black/5 text-charcoal-soft'];
+    if (st > now) return ['Scheduled · starts ' + f(st), 'bg-[#E3F0FF] text-[#1D4E89]'];
+    if (en <= now) return ['Ended ' + f(en), 'bg-[#FDE8E8] text-[#9B1C1C]'];
+    return [en ? 'Live · until ' + f(en) : 'Live', 'bg-[#E3F5E9] text-[#1F7A45]'];
+  }
+  async function renderBannersTab(force) {
+    const box = $('admTabBanners'); if (!box) return;
+    if (!ghReady()) { box.innerHTML = '<div class="border border-black/10 bg-[#FFF4D6] px-5 py-4 text-sm"><b>Connect GitHub first.</b> Go to the <button type="button" data-admtab="settings" class="underline">Settings</button> tab and add your repository and access token.</div>'; return; }
+    if (!BN.data || force) {
+      if (BN.loading) return;
+      BN.loading = true; box.innerHTML = '<p class="py-10 text-center text-sm text-charcoal-soft">Loading banners from GitHub…</p>';
+      try { BN.data = (await ghLoadJson('banners.json')) || { version: 1, placements: {} }; BN.orig = JSON.parse(JSON.stringify(BN.data)); BN.pending = {}; BN.dirty = false; }
+      catch (e) { BN.loading = false; box.innerHTML = `<div class="border border-black/10 bg-[#FFF4D6] px-5 py-4 text-sm"><b>Could not load banners.</b> ${esc(ghErr(e))}</div>`; return; }
+      BN.loading = false;
+    }
+    drawBanners();
+  }
+  function drawBanners() {
+    const box = $('admTabBanners'), places = BANNER_PLACES();
+    if (!places.some(p => p.key === BN.place)) BN.place = places[0].key;
+    const P = places.find(p => p.key === BN.place), pl = bnPlace();
+    const liveCount = (k) => { const x = BN.data.placements[k]; if (!x) return 0; const now = Date.now(); return (x.slides || []).filter(sl => sl.active !== false && !(bnTime(sl.start) > now) && !(bnTime(sl.end) <= now)).length; };
+    const inp = 'w-full border border-black/15 px-2.5 py-2 text-sm focus:outline-none focus:border-noir bg-white';
+    const ratio = P.hero ? 'aspect-[16/8]' : BN.place === 'home-mid' ? 'aspect-[16/6]' : 'aspect-[16/5]';
+    box.innerHTML = `
+      <div id="bnLive" class="hidden mb-4 space-y-2"></div>
+      <div class="bg-white border border-black/10 p-5 sm:p-6 mb-5 grid lg:grid-cols-[1.4fr_1fr] gap-5 items-end">
+        <div>
+          <label class="block text-xs mb-1">Placement: where the banner shows</label>
+          <select id="bnPlace" class="lux ${inp} py-2.5">${places.map(p => `<option value="${p.key}" ${p.key === BN.place ? 'selected' : ''}>${esc(p.label)} · ${liveCount(p.key)} live</option>`).join('')}</select>
+          <p class="text-[11px] text-charcoal-soft mt-2">Best size: <b>${esc(P.size)}</b> (JPG/PNG). Text in the image should stay near the centre so it isn't cut off on phones.${P.hero ? ' With no live slides, the homepage keeps its standard photo.' : ' With no live slides, this spot is hidden on the website.'}</p>
+        </div>
+        <div class="flex flex-wrap items-end gap-3">
+          <label class="text-xs">Change slide every<span class="flex items-center gap-1 mt-1"><input id="bnInterval" type="number" min="2" max="20" value="${esc(pl.interval || 5)}" class="${inp} w-20" /> sec</span></label>
+          <label class="flex-1 min-w-[160px] bg-noir text-white text-[11px] tracking-[.14em] uppercase px-5 py-3 text-center cursor-pointer hover:bg-charcoal">+ Add slides
+            <input id="bnFiles" type="file" accept="image/*" multiple class="hidden" /></label>
+        </div>
+      </div>
+      <p class="text-xs text-charcoal-soft mb-3">Slides play in this order (top first). Use ▲ ▼ to change the sequence. Campaign dates are Bangladesh time; leave empty to always show.</p>
+      <div id="bnList" class="space-y-3 mb-24">${(pl.slides || []).length ? pl.slides.map((sl, i) => {
+        const [stTxt, stCls] = bnStatus(sl);
+        return `<div class="bg-white border border-black/10 p-4 grid md:grid-cols-[minmax(0,1.3fr)_110px_minmax(0,1.6fr)] gap-4 ${sl.active === false ? 'opacity-60' : ''}">
+          <div>
+            <p class="text-[10px] tracking-[.12em] uppercase text-charcoal-soft mb-1">Desktop</p>
+            <div class="relative ${ratio} img-ph overflow-hidden border border-black/10"><img src="${esc(bnSrc(sl.image))}" alt="" class="absolute inset-0 w-full h-full object-cover" />
+              ${BN.pending[sl.image] ? '<span class="absolute top-1 right-1 bg-[#1F9D55] text-white text-[9px] uppercase px-1.5 py-0.5">New</span>' : ''}</div>
+            <label class="inline-block mt-2 text-[11px] underline cursor-pointer">Replace image<input type="file" accept="image/*" data-bnrep="${i}" class="hidden" /></label>
+          </div>
+          <div>
+            <p class="text-[10px] tracking-[.12em] uppercase text-charcoal-soft mb-1">Phone <span class="normal-case tracking-normal">(optional)</span></p>
+            ${sl.imageMobile ? `<div class="relative aspect-[4/5] img-ph overflow-hidden border border-black/10"><img src="${esc(bnSrc(sl.imageMobile))}" alt="" class="absolute inset-0 w-full h-full object-cover" /></div>
+              <div class="flex gap-2 mt-2 text-[11px]"><label class="underline cursor-pointer">Replace<input type="file" accept="image/*" data-bnmob="${i}" class="hidden" /></label><button type="button" data-bnmobdel="${i}" class="underline text-[#9B1C1C]">Remove</button></div>`
+              : `<label class="flex aspect-[4/5] items-center justify-center text-center border-2 border-dashed border-black/15 text-[11px] text-charcoal-soft cursor-pointer hover:border-noir px-2">+ Phone image<input type="file" accept="image/*" data-bnmob="${i}" class="hidden" /></label>`}
+          </div>
+          <div class="space-y-2">
+            <div class="flex flex-wrap items-center gap-2 text-xs">
+              <b class="font-serif text-base">Slide ${i + 1}</b>
+              <span data-bnchip="${i}" class="px-2 py-0.5 text-[10px] ${stCls}">${esc(stTxt)}</span>
+              <span class="ml-auto flex gap-1">
+                <button type="button" data-bnmove="${i}|-1" title="Move up" class="border border-black/15 px-2 py-1 hover:bg-noir hover:text-white">▲</button>
+                <button type="button" data-bnmove="${i}|1" title="Move down" class="border border-black/15 px-2 py-1 hover:bg-noir hover:text-white">▼</button>
+                <button type="button" data-bndel="${i}" class="border border-black/15 px-2 py-1 text-[#9B1C1C] hover:bg-[#9B1C1C] hover:text-white">Remove</button>
+              </span>
+            </div>
+            <label class="block text-[11px]">Title <span class="text-charcoal-soft">(for screen readers &amp; your reference)</span><input data-bnf="${i}|title" value="${esc(sl.title || '')}" placeholder="e.g. Eid Collection 2026" class="mt-0.5 ${inp}" /></label>
+            <label class="block text-[11px]">Link when clicked <span class="text-charcoal-soft">(optional)</span><input data-bnf="${i}|link" list="bnLinks" value="${esc(sl.link || '')}" placeholder="#lingerie, #product/L01 or https://…" class="mt-0.5 ${inp}" /></label>
+            <div class="grid grid-cols-2 gap-2">
+              <label class="text-[11px]">Start <span class="text-charcoal-soft">(optional)</span><input type="datetime-local" data-bnf="${i}|start" value="${esc(sl.start || '')}" class="mt-0.5 ${inp}" /></label>
+              <label class="text-[11px]">End <span class="text-charcoal-soft">(optional)</span><input type="datetime-local" data-bnf="${i}|end" value="${esc(sl.end || '')}" class="mt-0.5 ${inp}" /></label>
+            </div>
+            <div class="flex flex-wrap gap-4 text-xs pt-1">
+              <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" data-bnchk="${i}|active" ${sl.active !== false ? 'checked' : ''} class="w-4 h-4 accent-[#0F0F0F]" /> Show on website</label>
+              ${P.hero ? `<label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" data-bnchk="${i}|overlay" ${sl.overlay !== false ? 'checked' : ''} class="w-4 h-4 accent-[#0F0F0F]" /> Show headline &amp; buttons on top</label>` : ''}
+            </div>
+          </div>
+        </div>`;
+      }).join('') : `<div class="border border-dashed border-black/15 p-10 text-center text-sm text-charcoal-soft">No slides here yet. Click <b>+ Add slides</b> and choose one or more images, in the order they should play.</div>`}</div>
+      <datalist id="bnLinks">${['#shop', '#exclusive', ...CATS.filter(c => c !== 'All').map(c => '#' + catSlug(c)), ...PRODUCTS.slice(0, 200).map(p => '#product/' + p.id)].map(v => `<option value="${esc(v)}">`).join('')}</datalist>
+      <div class="fixed bottom-0 inset-x-0 z-[60] bg-white border-t border-black/10 shadow-[0_-4px_20px_rgba(0,0,0,.06)]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center gap-3">
+          <p id="bnMsg" class="text-sm flex-1 min-w-[200px] ${BN.dirty ? 'text-[#7A5A00]' : 'text-charcoal-soft'}">${BN.dirty ? '● Unpublished changes (all placements)' : 'All banner changes are published.'}</p>
+          ${BN.dirty ? '<button type="button" data-bn="discard" class="text-[11px] tracking-[.14em] uppercase px-3 py-3 underline text-charcoal-soft hover:text-noir">Discard</button>' : ''}
+          <button type="button" data-bn="publish" id="bnPub" ${BN.dirty && !BN.busy ? '' : 'disabled'} class="bg-noir text-white text-[11px] tracking-[.14em] uppercase px-8 py-3 hover:bg-charcoal disabled:opacity-40">${BN.busy ? 'Publishing…' : 'Publish Banners'}</button>
+        </div>
+      </div>`;
+    renderLive();
+    $('bnPlace').addEventListener('change', (e) => { BN.place = e.target.value; drawBanners(); });
+    $('bnInterval').addEventListener('change', (e) => { pl.interval = Math.min(20, Math.max(2, Number(e.target.value) || 5)); e.target.value = pl.interval; bnDirty(); });
+    $('bnFiles').addEventListener('change', async (e) => {
+      const files = [...e.target.files]; e.target.value = '';
+      $('bnMsg').textContent = 'Preparing images…';
+      for (const f of files) {
+        try { const j = await toJpeg(f, 2400, 0.86); const path = `banners/${BN.place}-${bnId()}.jpg`; BN.pending[path] = j.b64;
+          pl.slides.push({ id: bnId(), image: path, title: f.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' '), link: '', start: '', end: '', active: true, ...(P.hero ? { overlay: false } : {}) }); }
+        catch (err) { toast('Skipped ' + f.name + ': not a readable image'); }
+      }
+      bnDirty(); drawBanners();
+    });
+  }
+  function bnDirty() { BN.dirty = true; const m = $('bnMsg'); if (m) { m.textContent = '● Unpublished changes (all placements)'; m.className = 'text-sm flex-1 min-w-[200px] text-[#7A5A00]'; } const b = $('bnPub'); if (b && !BN.busy) b.disabled = false; }
+  async function bnImage(file, i, mobile) {
+    const pl = bnPlace(), sl = pl.slides[i];
+    try {
+      const j = await toJpeg(file, mobile ? 1600 : 2400, 0.86);
+      const path = `banners/${BN.place}-${bnId()}${mobile ? '-m' : ''}.jpg`;
+      BN.pending[path] = j.b64;
+      if (mobile) sl.imageMobile = path; else sl.image = path;
+      bnDirty(); drawBanners();
+    } catch (e) { toast('Not a readable image'); }
+  }
+  const bnPaths = (d) => { const set = new Set(); Object.values((d && d.placements) || {}).forEach(p => (p.slides || []).forEach(sl => { if (sl.image) set.add(sl.image); if (sl.imageMobile) set.add(sl.imageMobile); })); return set; };
+  async function publishBanners() {
+    if (BN.busy) return;
+    const clean = JSON.parse(JSON.stringify(BN.data));
+    clean.version = 1; clean.updated = new Date().toISOString();
+    Object.entries(clean.placements || {}).forEach(([k, p]) => { p.slides = (p.slides || []).filter(sl => sl.image); if (!p.slides.length) delete clean.placements[k]; });
+    for (const [k, p] of Object.entries(clean.placements || {})) for (const sl of p.slides) {
+      if (sl.link && !bnSafeLink(sl.link)) return toast(`Link "${sl.link}" should start with #, / or https://`);
+      if (sl.start && sl.end && bnTime(sl.end) <= bnTime(sl.start)) return toast(`"${sl.title || 'A slide'}": end time is before start time`);
+    }
+    const now = bnPaths(clean), before = bnPaths(BN.orig);
+    const files = [...now].filter(pth => BN.pending[pth]).map(pth => ({ path: pth, b64: BN.pending[pth] }));
+    [...before].filter(pth => !now.has(pth) && /^banners\//.test(pth)).forEach(pth => files.push({ path: pth, remove: true }));
+    const json = JSON.stringify(clean, null, 2) + '\n';
+    files.push({ path: 'banners.json', b64: textToB64(json) });
+    BN.busy = true; drawBanners();
+    ghCommit.onProgress = (d, t) => { const m = $('bnMsg'); if (m) m.textContent = `Uploading images ${d}/${t}…`; };
+    try {
+      await ghCommit(files, 'Update website banners (admin panel)');
+      BN.data = clean; BN.orig = JSON.parse(JSON.stringify(clean)); BN.pending = {}; BN.dirty = false;
+      BANNERS = clean; renderBanners();                       // admin sees it straight away
+      const expect = JSON.stringify(clean);
+      const firstNew = files.find(f => f.b64 && f.path !== 'banners.json');
+      PM.live.unshift({ label: 'Banners', expect: {}, img: firstNew ? firstNew.path : null, link: null, started: Date.now(), state: 'wait',
+        check: async () => JSON.stringify(await (await fetch('banners.json?live=' + Date.now(), { cache: 'no-store' })).json()) === expect });
+      PM.live = PM.live.slice(0, 4); pollLive(PM.live[0]);
+      if (!liveTick) liveTick = setInterval(() => { renderLive(); if (!PM.live.some(x => x.state === 'wait')) { clearInterval(liveTick); liveTick = null; } }, 1000);
+      toast('Banners saved. Checking the website…');
+    } catch (e) { console.error(e); toast(e.status ? ghErr(e) : 'Publishing failed: ' + e.message); }
+    finally { ghCommit.onProgress = null; BN.busy = false; drawBanners(); }
+  }
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-bn],[data-bnmove],[data-bndel],[data-bnmobdel]'); if (!b || !BN.data) return;
+    const d = b.dataset, pl = bnPlace();
+    if (d.bn === 'publish') return publishBanners();
+    if (d.bn === 'discard') { if (confirm('Discard all unpublished banner changes?')) { BN.data = JSON.parse(JSON.stringify(BN.orig)); BN.pending = {}; BN.dirty = false; drawBanners(); } return; }
+    if (d.bnmove) { const [i, dir] = d.bnmove.split('|').map(Number), j = i + dir; if (j < 0 || j >= pl.slides.length) return; [pl.slides[i], pl.slides[j]] = [pl.slides[j], pl.slides[i]]; bnDirty(); return drawBanners(); }
+    if (d.bndel) { if (!confirm('Remove this slide? Its images are deleted when you publish.')) return; pl.slides.splice(Number(d.bndel), 1); bnDirty(); return drawBanners(); }
+    if (d.bnmobdel) { delete pl.slides[Number(d.bnmobdel)].imageMobile; bnDirty(); return drawBanners(); }
+  });
+  document.addEventListener('input', (e) => {
+    const t = e.target; if (!BN.data || !t.dataset || !t.dataset.bnf) return;
+    const [i, f] = t.dataset.bnf.split('|'); bnPlace().slides[Number(i)][f] = t.value; bnDirty();
+  });
+  document.addEventListener('change', (e) => {
+    const t = e.target; if (!BN.data || !t.dataset) return;
+    if (t.dataset.bnf) {                                                         // refresh the status label after date changes
+      const i = Number(t.dataset.bnf.split('|')[0]), chip = document.querySelector(`[data-bnchip="${i}"]`), sl = bnPlace().slides[i];
+      if (chip && sl) { const [txt, cls] = bnStatus(sl); chip.textContent = txt; chip.className = 'px-2 py-0.5 text-[10px] ' + cls; }
+      return;
+    }
+    if (t.dataset.bnchk) { const [i, f] = t.dataset.bnchk.split('|'); bnPlace().slides[Number(i)][f] = t.checked; bnDirty(); drawBanners(); return; }
+    if (t.dataset.bnrep && t.files[0]) return bnImage(t.files[0], Number(t.dataset.bnrep), false);
+    if (t.dataset.bnmob && t.files[0]) return bnImage(t.files[0], Number(t.dataset.bnmob), true);
+  });
+  window.addEventListener('beforeunload', (e) => { if (BN.dirty) { e.preventDefault(); e.returnValue = ''; } });
+
   /* ---------- Tabs & events ---------- */
   let admTab = 'orders';
   function showAdmTab(t) {
+    if (admTab === 'banners' && t !== 'banners' && typeof BN !== 'undefined' && BN.dirty && !confirm('You have unpublished banner changes. Leave without publishing?')) return;
     admTab = t;
     document.querySelectorAll('.adm-tab').forEach(b => { const on = b.dataset.admtab === t; b.classList.toggle('border-noir', on); b.classList.toggle('border-transparent', !on); b.classList.toggle('text-charcoal-soft', !on); });
     $('admTabOrders').classList.toggle('hidden', t !== 'orders');
     $('admTabProducts').classList.toggle('hidden', t !== 'products');
     $('admTabSettings').classList.toggle('hidden', t !== 'settings');
     $('admTabDelivery').classList.toggle('hidden', t !== 'delivery');
+    $('admTabBanners').classList.toggle('hidden', t !== 'banners');
+    if (t === 'banners') renderBannersTab();
     if (t === 'delivery') renderDelivery();
     if (t === 'products') renderProductsTab();
     if (t === 'settings') renderSettings();
