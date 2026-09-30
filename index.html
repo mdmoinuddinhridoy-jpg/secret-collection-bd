@@ -387,7 +387,7 @@
           <div class="flex flex-wrap gap-2 mb-6">
             <button type="button" data-pm="add" class="bg-noir text-white text-[11px] tracking-[.14em] uppercase px-5 py-3 hover:bg-charcoal">+ Add Product with AI</button>
             <button type="button" data-pm="bulkai" class="bg-noir text-white text-[11px] tracking-[.14em] uppercase px-5 py-3 hover:bg-charcoal">✨ Bulk AI Listing</button>
-            <button type="button" data-pm="bulkphotos" class="border border-noir bg-white text-[11px] tracking-[.14em] uppercase px-5 py-3 hover:bg-noir hover:text-white">Bulk Upload Photos</button>
+            <button type="button" data-pm="bulkphotos" class="border border-noir bg-white text-[11px] tracking-[.14em] uppercase px-5 py-3 hover:bg-noir hover:text-white">Replace/Add Photos</button>
             <button type="button" data-pm="bulksheet" class="border border-noir bg-white text-[11px] tracking-[.14em] uppercase px-5 py-3 hover:bg-noir hover:text-white">Bulk Import CSV / Excel</button>
             <button type="button" data-pm="export" class="border border-noir bg-white text-[11px] tracking-[.14em] uppercase px-5 py-3 hover:bg-noir hover:text-white">Export Products (Excel)</button>
             <button type="button" data-pm="reload" class="text-[11px] tracking-[.14em] uppercase px-3 py-3 underline underline-offset-4 text-charcoal-soft hover:text-noir">Reload</button>
@@ -3120,8 +3120,8 @@ Look at the product photo and return ONLY a JSON object (no markdown) with these
   function openBulkPhotos() {
     if (!PM.products) return toast('Connect GitHub in Settings first');
     PM.bulk = [];
-    openPanel('Bulk Upload Photos', `
-      <p class="text-sm text-charcoal-light mb-4">Name your files by product photo number before uploading: <b>12.jpg</b> (main), <b>12-1.jpg</b>, <b>12-2.jpg</b> … They are resized, saved to GitHub and attached to the matching products in one step.</p>
+    openPanel('Replace/Add Photos', `
+      <p class="text-sm text-charcoal-light mb-4">Name your files by product photo number before uploading: <b>12.jpg</b> (main), <b>12-1.jpg</b>, <b>12-2.jpg</b> … They are resized, saved to GitHub and attached to the matching products in one step.<br><span class="text-xs text-charcoal-soft">A file with the same name as an existing photo <b>replaces</b> it (e.g. 12.jpg = new main photo of product 12). A new number like 12-3.jpg is <b>added</b> as an extra photo.</span></p>
       <label class="block border-2 border-dashed border-black/20 bg-blush-50 hover:border-noir text-center px-4 py-10 cursor-pointer mb-4">
         <input id="bpFiles" type="file" accept="image/*" multiple class="hidden" />
         <span class="font-serif text-xl block">Choose photos</span><span class="text-xs text-charcoal-soft">Select many at once</span>
