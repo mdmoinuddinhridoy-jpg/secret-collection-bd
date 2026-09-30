@@ -386,11 +386,17 @@
           <div id="pmNotice" class="hidden mb-6 border border-black/10 bg-[#FFF4D6] px-5 py-4 text-sm"></div>
           <div class="flex flex-wrap gap-2 mb-6">
             <button type="button" data-pm="add" class="bg-noir text-white text-[11px] tracking-[.14em] uppercase px-5 py-3 hover:bg-charcoal">+ Add Product with AI</button>
+            <button type="button" data-pm="bulkai" class="bg-noir text-white text-[11px] tracking-[.14em] uppercase px-5 py-3 hover:bg-charcoal">✨ Bulk AI Listing</button>
             <button type="button" data-pm="bulkphotos" class="border border-noir bg-white text-[11px] tracking-[.14em] uppercase px-5 py-3 hover:bg-noir hover:text-white">Bulk Upload Photos</button>
             <button type="button" data-pm="bulksheet" class="border border-noir bg-white text-[11px] tracking-[.14em] uppercase px-5 py-3 hover:bg-noir hover:text-white">Bulk Import CSV / Excel</button>
             <button type="button" data-pm="export" class="border border-noir bg-white text-[11px] tracking-[.14em] uppercase px-5 py-3 hover:bg-noir hover:text-white">Export Products (Excel)</button>
             <button type="button" data-pm="reload" class="text-[11px] tracking-[.14em] uppercase px-3 py-3 underline underline-offset-4 text-charcoal-soft hover:text-noir">Reload</button>
+            <label class="ml-auto flex items-center gap-2 text-[11px] tracking-[.1em] uppercase text-charcoal-soft">Photo quality
+              <select id="pmQuality" class="lux border border-black/15 bg-white px-3 py-2 text-xs normal-case tracking-normal text-noir focus:outline-none focus:border-noir">
+                <option value="standard">Standard · 1600px</option><option value="high">High · 2400px</option>
+              </select></label>
           </div>
+          <div id="pmLive" class="hidden mb-4 space-y-2"></div>
           <div class="flex flex-wrap items-center gap-2 mb-4">
             <input id="pmSearch" type="search" placeholder="Search SKU or name…" class="flex-1 min-w-[200px] border border-black/15 bg-white px-4 py-2 text-xs focus:outline-none focus:border-noir" />
             <select id="pmCat" class="lux border border-black/15 bg-white px-4 py-2 text-xs focus:outline-none focus:border-noir">
@@ -426,6 +432,15 @@
               <label class="block text-xs">API key<input id="setAiKey" type="password" autocomplete="off" placeholder="sk-ant-… or AIza…" class="mt-1 w-full border border-black/15 px-3 py-2.5 text-sm font-mono focus:outline-none focus:border-noir" /></label>
               <label class="block text-xs">Model<input id="setAiModel" placeholder="claude-sonnet-5" class="mt-1 w-full border border-black/15 px-3 py-2.5 text-sm font-mono focus:outline-none focus:border-noir" /></label>
               <p class="text-[11px] text-charcoal-soft">Claude key: console.anthropic.com → API Keys. Gemini key: aistudio.google.com → Get API key.</p>
+            </div>
+            <div class="bg-white border border-black/10 p-6 space-y-3 lg:col-span-2">
+              <h2 class="font-serif text-xl mb-1">3. Photo quality</h2>
+              <label class="block text-xs max-w-md">Photos saved to the website
+                <select id="setPhotoQ" class="lux mt-1 w-full border border-black/15 px-3 py-2.5 text-sm bg-white focus:outline-none focus:border-noir">
+                  <option value="standard">Standard: 1600px, 85% (fast pages, recommended)</option>
+                  <option value="high">High: 2400px, 90% (sharper zoom, about 2× file size)</option>
+                </select></label>
+              <p class="text-[11px] text-charcoal-soft">Photos are never enlarged beyond their original size. New photos are cropped to 3:4 (the website card shape) unless you untick it while uploading.</p>
             </div>
             <div class="lg:col-span-2 flex flex-wrap items-center gap-3">
               <button class="bg-noir text-white text-[11px] tracking-[.14em] uppercase px-6 py-3 hover:bg-charcoal">Save Settings</button>
@@ -2525,11 +2540,13 @@ Please confirm my order. Thank you.`;
     const s = getSet();
     $('setRepo').value = s.repo || ''; $('setBranch').value = s.branch || 'main'; $('setToken').value = s.token || '';
     $('setAi').value = s.ai || 'claude'; $('setAiKey').value = s.aiKey || ''; $('setAiModel').value = s.aiModel || AI_DEFAULT_MODEL[s.ai || 'claude'];
+    $('setPhotoQ').value = s.photoQ || 'standard';
   }
   function readSetForm() {
     const repo = $('setRepo').value.trim().replace(/^https?:\/\/github\.com\//, '').replace(/\.git$/, '').replace(/\/$/, '');
     return { repo, branch: $('setBranch').value.trim() || 'main', token: $('setToken').value.trim(),
-      ai: $('setAi').value, aiKey: $('setAiKey').value.trim(), aiModel: $('setAiModel').value.trim() || AI_DEFAULT_MODEL[$('setAi').value] };
+      ai: $('setAi').value, aiKey: $('setAiKey').value.trim(), aiModel: $('setAiModel').value.trim() || AI_DEFAULT_MODEL[$('setAi').value],
+      photoQ: $('setPhotoQ').value || 'standard' };
   }
   const setMsg = (m, ok) => { $('setMsg').innerHTML = m; $('setMsg').className = 'text-xs w-full ' + (ok ? 'text-[#1F7A45]' : 'text-[#9B1C1C]'); };
   const ghReady = () => { const s = getSet(); return !!(s.repo && s.token); };
@@ -2576,15 +2593,25 @@ Please confirm my order. Thank you.`;
       const t = await gh(`/repos/${repo}/git/trees/${commit.tree.sha}?recursive=1`);
       treeMap = Object.fromEntries(t.tree.filter(x => x.type === 'blob').map(x => [x.path, x.sha]));
     }
-    const entries = [];
-    for (const f of files) {
-      if (f.remove) { if (treeMap[f.path]) entries.push({ path: f.path, mode: '100644', type: 'blob', sha: null }); continue; }
-      let sha;
-      if (f.fromPath) { sha = treeMap[f.fromPath]; if (!sha) continue; }
-      else sha = (await gh(`/repos/${repo}/git/blobs`, { method: 'POST', body: JSON.stringify({ content: f.b64, encoding: 'base64' }) })).sha;
-      entries.push({ path: f.path, mode: '100644', type: 'blob', sha });
-    }
-    const tree = await gh(`/repos/${repo}/git/trees`, { method: 'POST', body: JSON.stringify({ base_tree: commit.tree.sha, tree: entries }) });
+    const entries = new Array(files.length).fill(null);
+    let next = 0, done = 0;
+    const uploads = files.filter(f => !f.remove && !f.fromPath).length;
+    const worker = async () => {
+      while (next < files.length) {
+        const i = next++, f = files[i];
+        if (f.remove) { if (treeMap[f.path]) entries[i] = { path: f.path, mode: '100644', type: 'blob', sha: null }; continue; }
+        let sha;
+        if (f.fromPath) { sha = treeMap[f.fromPath]; if (!sha) continue; }
+        else {
+          sha = (await gh(`/repos/${repo}/git/blobs`, { method: 'POST', body: JSON.stringify({ content: f.b64, encoding: 'base64' }) })).sha;
+          done++; if (typeof ghCommit.onProgress === 'function') ghCommit.onProgress(done, uploads);
+        }
+        entries[i] = { path: f.path, mode: '100644', type: 'blob', sha };
+      }
+    };
+    await Promise.all([worker(), worker(), worker(), worker()]);   // 4 uploads at a time
+    const list = entries.filter(Boolean);
+    const tree = await gh(`/repos/${repo}/git/trees`, { method: 'POST', body: JSON.stringify({ base_tree: commit.tree.sha, tree: list }) });
     const nc = await gh(`/repos/${repo}/git/commits`, { method: 'POST', body: JSON.stringify({ message, tree: tree.sha, parents: [head] }) });
     try {
       await gh(`/repos/${repo}/git/refs/heads/${br}`, { method: 'PATCH', body: JSON.stringify({ sha: nc.sha }) });
@@ -2597,7 +2624,9 @@ Please confirm my order. Thank you.`;
 
   /* ---------- Photos: resize in the browser before upload ---------- */
   function loadImg(src) { return new Promise((ok, bad) => { const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => ok(i); i.onerror = () => bad(new Error('Could not read image')); i.src = src; }); }
-  async function toJpeg(fileOrSrc, max = 1600, q = 0.85) {
+  const photoQ = () => getSet().photoQ === 'high' ? [2400, 0.9] : [1600, 0.85];
+  async function toJpeg(fileOrSrc, max, q) {
+    if (max === undefined) [max, q] = photoQ();
     const src = typeof fileOrSrc === 'string' ? fileOrSrc : URL.createObjectURL(fileOrSrc);
     const img = await loadImg(src);
     const r = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
@@ -2607,6 +2636,100 @@ Please confirm my order. Thank you.`;
     if (typeof fileOrSrc !== 'string') URL.revokeObjectURL(src);
     return { dataUrl, b64: dataUrl.split(',')[1] };
   }
+
+  // New photo: keep the original file (for full-quality output) + a small preview
+  async function newPhoto(file) {
+    const prev = await toJpeg(file, 900, 0.82);
+    return { file, src: prev.dataUrl, fx: 0.5, fy: 0.5 };
+  }
+  // Final photo for GitHub: optional 3:4 crop at the chosen position, then quality setting
+  async function photoOut(ph, crop) {
+    const [max, q] = photoQ();
+    const url = URL.createObjectURL(ph.file);
+    try {
+      const img = await loadImg(url);
+      const W = img.naturalWidth, H = img.naturalHeight;
+      let sx = 0, sy = 0, sw = W, sh = H;
+      if (crop) {
+        if (W / H > 3 / 4) { sw = H * 3 / 4; sx = (W - sw) * ph.fx; } else { sh = W * 4 / 3; sy = (H - sh) * ph.fy; }
+      }
+      const r = Math.min(1, max / Math.max(sw, sh));
+      const c = document.createElement('canvas'); c.width = Math.round(sw * r); c.height = Math.round(sh * r);
+      const ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height);
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, c.width, c.height);
+      const dataUrl = c.toDataURL('image/jpeg', q);
+      return { dataUrl, b64: dataUrl.split(',')[1] };
+    } finally { URL.revokeObjectURL(url); }
+  }
+  // Drag a 3:4 preview to choose which part of the photo is kept
+  const cropStyle = (ph, crop) => crop && ph.file ? `object-fit:cover;object-position:${(ph.fx * 100).toFixed(1)}% ${(ph.fy * 100).toFixed(1)}%` : (crop ? '' : 'object-fit:contain;background:#f6f6f6');
+  function cropPhotoByRef(ref) {
+    const [scope, a, b] = ref.split('|').map((x, i) => i ? Number(x) : x);
+    if (scope === 'ed') return PM.photos[a];
+    if (scope === 'ba') return PM.ba && PM.ba.groups[a] && PM.ba.groups[a].photos[b];
+    return null;
+  }
+  document.addEventListener('pointerdown', (e) => {
+    const el = e.target.closest('[data-cropdrag]'); if (!el) return;
+    const ph = cropPhotoByRef(el.dataset.cropdrag); if (!ph || !ph.file) return;
+    const cropOn = el.dataset.cropdrag.startsWith('ed') ? $('pmCrop')?.checked !== false : $('baCrop')?.checked !== false;
+    if (!cropOn) return;
+    e.preventDefault();
+    const img = el.tagName === 'IMG' ? el : el.querySelector('img'); if (!img || !img.naturalWidth) return;
+    const box = img.getBoundingClientRect();
+    const sc = Math.max(box.width / img.naturalWidth, box.height / img.naturalHeight);
+    const ox = img.naturalWidth * sc - box.width, oy = img.naturalHeight * sc - box.height;
+    const start = { x: e.clientX, y: e.clientY, fx: ph.fx, fy: ph.fy };
+    const move = (ev) => {
+      if (ox > 1) ph.fx = Math.min(1, Math.max(0, start.fx - (ev.clientX - start.x) / ox));
+      if (oy > 1) ph.fy = Math.min(1, Math.max(0, start.fy - (ev.clientY - start.y) / oy));
+      img.style.objectPosition = `${(ph.fx * 100).toFixed(1)}% ${(ph.fy * 100).toFixed(1)}%`;
+    };
+    const up = () => { document.removeEventListener('pointermove', move); document.removeEventListener('pointerup', up); };
+    document.addEventListener('pointermove', move); document.addEventListener('pointerup', up);
+  });
+
+  /* ---------- "Live ✓": confirm the change is visible on the website ---------- */
+  PM.live = [];
+  let liveTick = null;
+  function watchLive(label, data, skus, removed = []) {
+    const expect = {};
+    skus.forEach(id => { const p = data.find(x => String(x.id) === String(id)); expect[id] = p ? JSON.stringify(p) : null; });
+    removed.forEach(id => { expect[id] = null; });
+    const first = skus.length ? data.find(x => String(x.id) === String(skus[0])) : null;
+    const w = { label, expect, img: first ? first.image : null, link: skus.length === 1 && first ? first.id : null, started: Date.now(), state: 'wait' };
+    PM.live.unshift(w); PM.live = PM.live.slice(0, 4);
+    renderLive(); pollLive(w);
+    if (!liveTick) liveTick = setInterval(() => { renderLive(); if (!PM.live.some(x => x.state === 'wait')) { clearInterval(liveTick); liveTick = null; } }, 1000);
+  }
+  async function pollLive(w) {
+    while (w.state === 'wait') {
+      await new Promise(r => setTimeout(r, 8000));
+      try {
+        const site = await (await fetch('products.json?live=' + Date.now(), { cache: 'no-store' })).json();
+        const byId = Object.fromEntries((Array.isArray(site) ? site : []).map(p => [String(p.id), JSON.stringify(p)]));
+        let ok = Object.entries(w.expect).every(([id, j]) => j === null ? !(id in byId) : byId[id] === j);
+        if (ok && w.img) ok = (await fetch(w.img + '?live=' + Date.now(), { cache: 'no-store' })).ok;
+        if (ok) { w.state = 'ok'; w.took = Math.round((Date.now() - w.started) / 1000); toast(`✓ ${w.label} is live on the website`); }
+      } catch (e) { /* keep waiting */ }
+      if (w.state === 'wait' && Date.now() - w.started > 6 * 60e3) w.state = 'slow';
+      renderLive();
+    }
+  }
+  function renderLive() {
+    const row = (w) => {
+      const secs = Math.round((Date.now() - w.started) / 1000), t = `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`;
+      return w.state === 'ok'
+        ? `<div class="flex flex-wrap items-center gap-2 border border-[#1F7A45]/30 bg-[#E3F5E9] px-4 py-2.5 text-xs text-[#1F7A45]"><b>✓ Live:</b> ${esc(w.label)} is visible on the website (${w.took}s)${w.link ? ` · <a href="#product/${encodeURIComponent(w.link)}" target="_blank" class="underline">View ↗</a>` : ''}<button type="button" data-livex class="ml-auto opacity-60 hover:opacity-100">✕</button></div>`
+        : w.state === 'slow'
+          ? `<div class="flex flex-wrap items-center gap-2 border border-[#7A5A00]/30 bg-[#FFF4D6] px-4 py-2.5 text-xs text-[#7A5A00]"><b>⚠ Still waiting:</b> ${esc(w.label)} was saved to GitHub but is not on the website after 6 minutes. Check the latest deployment in Vercel.<button type="button" data-livex class="ml-auto opacity-60 hover:opacity-100">✕</button></div>`
+          : `<div class="flex flex-wrap items-center gap-2 border border-black/10 bg-white px-4 py-2.5 text-xs"><span class="inline-block w-3 h-3 border-2 border-noir border-t-transparent rounded-full animate-spin"></span><b>Publishing:</b> ${esc(w.label)} · saved to GitHub, waiting for the website to update… <span class="font-mono text-charcoal-soft">${t}</span></div>`;
+    };
+    const html = PM.live.map(row).join('');
+    ['pmLive', 'pmLiveMini'].forEach(id => { const el = $(id); if (el) { el.innerHTML = html; el.classList.toggle('hidden', !html); } });
+  }
+  document.addEventListener('click', (e) => { const x = e.target.closest('[data-livex]'); if (!x) return; const i = [...x.parentElement.parentElement.children].indexOf(x.parentElement); PM.live.splice(i, 1); renderLive(); });
 
   /* ---------- Helpers ---------- */
   const imgNoOf = (p) => { const m = String(p.image || (p.images || [])[0] || '').match(/^(\d+)(?:-\d+)?\.\w+$/); return m ? Number(m[1]) : 0; };
@@ -2618,18 +2741,24 @@ Please confirm my order. Thank you.`;
   }
   const pmNotice = (html) => { const n = $('pmNotice'); n.innerHTML = html; n.classList.toggle('hidden', !html); };
   function openPanel(title, html) { $('pmTitle').textContent = title; $('pmBody').innerHTML = html; $('pmPanel').classList.remove('hidden'); document.body.classList.add('no-scroll'); }
-  function closePanel() { $('pmPanel').classList.add('hidden'); document.body.classList.remove('no-scroll'); PM.edit = null; PM.photos = []; PM.sheet = null; }
-  function afterPublish(data, what) {
+  function closePanel() {
+    if (PM.ba && PM.ba.busy) return toast('Please wait: publishing or AI drafting is still running');
+    if (PM.ba && PM.ba.groups.length && $('baList') && !confirm('Close Bulk AI Listing? Unpublished products in this list will be lost.')) return;
+    $('pmPanel').classList.add('hidden'); document.body.classList.remove('no-scroll'); PM.edit = null; PM.photos = []; PM.sheet = null; PM.ba = null;
+  }
+  function afterPublish(data, what, skus = [], removed = []) {
     PM.products = data;
     PRODUCTS = normalizeProducts(data);          // admin sees the change immediately
     renderHome(); if (state.view === 'catalog') renderCatalog();
     renderProductList();
-    toast(`${what} published. Live for customers in about 1 minute.`);
+    toast(`${what} saved. Checking the website…`);
+    if (skus.length || removed.length) watchLive(what, data, skus, removed);
   }
   const productsFile = (data) => ({ path: 'products.json', b64: textToB64(JSON.stringify(data, null, 2) + '\n') });
 
   /* ---------- Products tab ---------- */
   async function renderProductsTab(force) {
+    if ($('pmQuality')) $('pmQuality').value = getSet().photoQ || 'standard';
     if (!ghReady()) {
       pmNotice('<b>Connect GitHub first.</b> Go to the <button type="button" data-admtab="settings" class="underline">Settings</button> tab and add your repository and access token. Until then you can view products but not publish changes.');
       if (!PM.products) PM.products = null;
@@ -2667,11 +2796,13 @@ Please confirm my order. Thank you.`;
 
   /* ---------- Product editor (single product, with AI) ---------- */
   const chipCls = (on) => `px-3 py-1.5 text-xs border transition ${on ? 'bg-noir text-white border-noir' : 'border-black/15 hover:border-noir'}`;
-  function openEditor(index) {
+  function openEditor(index, carry) {
     if (!PM.products) return toast('Connect GitHub in Settings first');
     const isNew = index === undefined;
-    const p = isNew ? { id: '', name: '', category: 'Lingerie', price: '', oldPrice: null, tags: [], sizes: ALL_SIZES.slice(), colors: ALL_COLORS.slice(), description: '', badge: '', details: {}, active: true }
-                    : JSON.parse(JSON.stringify(PM.products[index]));
+    const p = !isNew ? JSON.parse(JSON.stringify(PM.products[index]))
+      : carry ? { id: '', name: '', category: carry.category, price: carry.price, oldPrice: carry.oldPrice, tags: carry.tags.slice(), sizes: carry.sizes.slice(), colors: carry.colors.slice(),
+                  description: '', badge: carry.badge, details: { ...(carry.details.Fabric ? { Fabric: carry.details.Fabric } : {}), ...(carry.details.Care ? { Care: carry.details.Care } : {}) }, active: carry.active }
+      : { id: '', name: '', category: 'Lingerie', price: '', oldPrice: null, tags: [], sizes: ALL_SIZES.slice(), colors: ALL_COLORS.slice(), description: '', badge: '', details: {}, active: true };
     PM.edit = { index: isNew ? -1 : index, orig: isNew ? null : PM.products[index], p };
     const imgs = isNew ? [] : ((p.images && p.images.length ? p.images : [p.image]).filter(Boolean));
     PM.photos = imgs.map(path => ({ src: path, path }));
@@ -2679,13 +2810,16 @@ Please confirm my order. Thank you.`;
     const extras = Object.entries(d).filter(([k]) => !['Fabric', 'Care'].includes(k));
     const inp = 'w-full border border-black/15 px-3 py-2.5 text-sm focus:outline-none focus:border-noir';
     openPanel(isNew ? 'Add Product' : `Edit ${p.id}`, `
+      <div id="pmLiveMini" class="hidden mb-4 space-y-2"></div>
+      ${carry ? `<p class="mb-4 border border-[#1F7A45]/30 bg-[#E3F5E9] text-[#1F7A45] text-xs px-4 py-2.5">✓ ${esc(carry.id)} saved. Add the next one: category, price, sizes, colors, sections, fabric and care are kept.</p>` : ''}
       <form id="pmForm" class="grid lg:grid-cols-[1fr_1.25fr] gap-8">
         <div>
           <p class="text-[11px] tracking-luxe uppercase mb-3">Photos <span class="text-charcoal-soft normal-case tracking-normal">(first = main photo)</span></p>
+          <label class="flex items-start gap-2 text-xs mb-3 cursor-pointer"><input id="pmCrop" type="checkbox" ${getSet().noCrop ? '' : 'checked'} class="mt-0.5 w-4 h-4 accent-[#0F0F0F]" /><span>Crop new photos to <b>3:4</b> (the website card shape). <span class="text-charcoal-soft">Drag a new photo to choose what stays in view.</span></span></label>
           <label class="block border-2 border-dashed border-black/20 bg-blush-50 hover:border-noir text-center px-4 py-8 cursor-pointer mb-3">
             <input id="pmFiles" type="file" accept="image/*" multiple class="hidden" />
             <span class="font-serif text-lg block">Add product photos</span>
-            <span class="text-xs text-charcoal-soft">Choose one or many · JPG / PNG / WEBP · auto-resized</span>
+            <span class="text-xs text-charcoal-soft">Choose one or many · JPG / PNG / WEBP · quality: ${getSet().photoQ === 'high' ? 'High 2400px' : 'Standard 1600px'}</span>
           </label>
           <div id="pmPhotos" class="grid grid-cols-3 gap-2"></div>
           <div class="mt-5 border border-black/10 p-4 bg-[#FAFAFA]">
@@ -2730,17 +2864,19 @@ Please confirm my order. Thank you.`;
           <p id="pmErr" class="hidden text-sm text-[#9B1C1C]"></p>
           <div class="flex flex-wrap gap-2 pt-2">
             <button id="pmSave" class="flex-1 bg-noir text-white text-[11px] tracking-[.14em] uppercase py-4 hover:bg-charcoal">${isNew ? 'Publish Product' : 'Save & Publish'}</button>
+            ${isNew ? `<button type="button" id="pmSaveNext" data-pm="savenext" class="flex-1 border border-noir bg-white text-[11px] tracking-[.14em] uppercase py-4 hover:bg-noir hover:text-white">Publish &amp; Add Next</button>` : ''}
             <button type="button" data-pm="close" class="border border-noir text-[11px] tracking-[.14em] uppercase px-6 py-4">Cancel</button>
           </div>
         </div>
       </form>`);
-    renderEditorPhotos();
-    if (isNew) $('pmSku').value = nextSku('Lingerie');
+    renderEditorPhotos(); renderLive();
+    if (isNew) $('pmSku').value = nextSku(p.category);
+    $('pmCrop').addEventListener('change', (e) => { putSet({ ...getSet(), noCrop: !e.target.checked }); renderEditorPhotos(); });
     $('pmCatSel').addEventListener('change', () => { if (PM.edit.index === -1) $('pmSku').value = nextSku($('pmCatSel').value); });
     $('pmFiles').addEventListener('change', async (e) => {
       const files = [...e.target.files]; e.target.value = '';
       for (const f of files) {
-        try { const j = await toJpeg(f); PM.photos.push({ src: j.dataUrl, b64: j.b64 }); } catch (err) { toast('Skipped ' + f.name + ': not a readable image'); }
+        try { PM.photos.push(await newPhoto(f)); } catch (err) { toast('Skipped ' + f.name + ': not a readable image'); }
       }
       renderEditorPhotos();
     });
@@ -2750,9 +2886,9 @@ Please confirm my order. Thank you.`;
     const box = $('pmPhotos'); if (!box) return;
     box.innerHTML = PM.photos.length ? PM.photos.map((ph, k) => `
       <div class="relative aspect-[3/4] img-ph overflow-hidden border ${k ? 'border-black/10' : 'border-noir border-2'}">
-        <img src="${esc(ph.src)}" alt="" class="absolute inset-0 w-full h-full object-cover" onerror="this.style.opacity=.15" />
+        <img src="${esc(ph.src)}" alt="" draggable="false" ${ph.file ? `data-cropdrag="ed|${k}"` : ''} style="${cropStyle(ph, $('pmCrop') ? $('pmCrop').checked : true)}" class="absolute inset-0 w-full h-full object-cover select-none ${ph.file && ($('pmCrop') ? $('pmCrop').checked : true) ? 'cursor-move touch-none' : ''}" onerror="this.style.opacity=.15" />
         ${k === 0 ? '<span class="absolute top-1 left-1 bg-noir text-white text-[9px] tracking-[.12em] uppercase px-1.5 py-0.5">Main</span>' : ''}
-        ${ph.b64 ? '<span class="absolute top-1 right-1 bg-[#1F9D55] text-white text-[9px] uppercase px-1.5 py-0.5">New</span>' : ''}
+        ${ph.file || ph.b64 ? '<span class="absolute top-1 right-1 bg-[#1F9D55] text-white text-[9px] uppercase px-1.5 py-0.5">New</span>' : ''}
         <div class="absolute bottom-0 inset-x-0 flex justify-between bg-white/90 text-xs">
           <button type="button" data-phmove="${k}|-1" class="px-2 py-1 hover:bg-black/5" title="Move left">◀</button>
           ${k ? `<button type="button" data-phmain="${k}" class="px-1 py-1 hover:bg-black/5 text-[10px]" title="Make main">Main</button>` : ''}
@@ -2765,7 +2901,7 @@ Please confirm my order. Thank you.`;
   function setChip(el, on) { el.className = chipCls(on); }
   const selected = (sel, attr) => [...document.querySelectorAll(sel)].filter(chipOn).map(b => b.getAttribute(attr));
 
-  async function saveEditor(e) {
+  async function saveEditor(e, addNext) {
     e.preventDefault();
     const err = $('pmErr'); err.classList.add('hidden');
     const fail = (m) => { err.textContent = m; err.classList.remove('hidden'); };
@@ -2785,6 +2921,16 @@ Please confirm my order. Thank you.`;
     if ($('pmCare').value.trim()) details.Care = $('pmCare').value.trim();
     $('pmExtra').value.split('\n').forEach(line => { const i = line.indexOf(':'); if (i > 0 && line.slice(i + 1).trim()) details[line.slice(0, i).trim()] = line.slice(i + 1).trim(); });
 
+    const btn = $('pmSave'), btn2 = $('pmSaveNext');
+    const busy = (t) => { [btn, btn2].forEach(b => { if (b) { b.disabled = !!t; b.classList.toggle('opacity-60', !!t); } }); if (t) (addNext && btn2 ? btn2 : btn).textContent = t; };
+    // New photos: crop to 3:4 (optional) and apply the photo quality setting
+    const crop = $('pmCrop') ? $('pmCrop').checked : true;
+    const fresh = PM.photos.filter(ph => ph.file);
+    for (let k = 0; k < fresh.length; k++) {
+      busy(`Preparing photos ${k + 1}/${fresh.length}…`);
+      try { fresh[k].b64 = (await photoOut(fresh[k], crop)).b64; }
+      catch (ex) { busy(''); btn.textContent = E.index === -1 ? 'Publish Product' : 'Save & Publish'; if (btn2) btn2.textContent = 'Publish & Add Next'; return fail('Could not read one of the photos. Remove it and try again.'); }
+    }
     // Photo file names: 12.jpg, 12-1.jpg, 12-2.jpg … (matches the Excel / converter convention)
     const n = E.orig ? (imgNoOf(E.orig) || nextImgNo()) : nextImgNo();
     const targets = PM.photos.map((ph, k) => k ? `${n}-${k}.jpg` : `${n}.jpg`);
@@ -2807,14 +2953,16 @@ Please confirm my order. Thank you.`;
     if (E.index === -1) data.push(product); else data[E.index] = product;
     files.push(productsFile(data));
 
-    const btn = $('pmSave'); btn.disabled = true; btn.classList.add('opacity-60'); btn.textContent = 'Publishing…';
+    busy('Publishing…');
+    ghCommit.onProgress = (d, t) => busy(`Uploading ${d}/${t}…`);
     try {
       await ghCommit(files, `${E.index === -1 ? 'Add' : 'Update'} product ${sku} (admin panel)`);
-      closePanel(); afterPublish(data, `Product ${sku}`);
+      closePanel(); afterPublish(data, `Product ${sku}`, [sku], E.orig && String(E.orig.id) !== sku ? [String(E.orig.id)] : []);
+      if (addNext) openEditor(undefined, product);
     } catch (ex) {
       console.error(ex); fail(ex.status ? ghErr(ex) : 'Publishing failed: ' + ex.message);
-      btn.disabled = false; btn.classList.remove('opacity-60'); btn.textContent = E.index === -1 ? 'Publish Product' : 'Save & Publish';
-    }
+      busy(''); btn.textContent = E.index === -1 ? 'Publish Product' : 'Save & Publish'; if (btn2) btn2.textContent = 'Publish & Add Next';
+    } finally { ghCommit.onProgress = null; }
   }
 
   async function deleteProduct(index) {
@@ -2823,7 +2971,7 @@ Please confirm my order. Thank you.`;
     const data = PM.products.filter((_, i) => i !== index);
     const files = ((p.images && p.images.length ? p.images : [p.image]).filter(x => /^\d+(-\d+)?\.\w+$/.test(x || ''))).map(path => ({ path, remove: true }));
     files.push(productsFile(data));
-    try { await ghCommit(files, `Delete product ${p.id} (admin panel)`); afterPublish(data, `Deletion of ${p.id}`); }
+    try { await ghCommit(files, `Delete product ${p.id} (admin panel)`); afterPublish(data, `Deletion of ${p.id}`, [], [String(p.id)]); }
     catch (ex) { console.error(ex); toast(ex.status ? ghErr(ex) : 'Delete failed'); }
   }
 
@@ -2839,6 +2987,7 @@ Look at the product photo and return ONLY a JSON object (no markdown) with these
 "features": array of up to 3 short feature phrases (e.g. "Adjustable straps").`;
 
   async function imageForAi(ph) {
+    if (ph.file) return (await toJpeg(ph.file, 1024, 0.8)).b64;
     if (ph.b64) return (await toJpeg(ph.src, 1024, 0.8)).b64;
     return (await toJpeg(ph.src + (ph.src.includes('?') ? '&' : '?') + 'ai=' + Date.now(), 1024, 0.8)).b64;
   }
@@ -3018,9 +3167,294 @@ Look at the product photo and return ONLY a JSON object (no markdown) with these
       files.push(productsFile(data));
     }
     $('bpMsg').textContent = `Publishing ${good.length} photo${good.length > 1 ? 's' : ''}…`;
-    try { await ghCommit(files, `Upload ${good.length} product photos (admin panel)`); closePanel(); afterPublish(data, `${good.length} photos`); }
+    const touched = $('bpAttach').checked ? data.filter(p => good.some(r => r.no === imgNoOf(p))).map(p => String(p.id)) : [];
+    try { await ghCommit(files, `Upload ${good.length} product photos (admin panel)`); closePanel(); afterPublish(data, `${good.length} photos`, touched); }
     catch (ex) { console.error(ex); $('bpMsg').textContent = ex.status ? ghErr(ex) : 'Upload failed: ' + ex.message; }
   }
+
+
+  /* ---------- Bulk AI Listing: many photos → AI drafts → review → publish all in one step ---------- */
+  const BA_FIELDS = ['name', 'category', 'price', 'oldPrice', 'description', 'fabric', 'care', 'badge'];
+  function baNewGroup(photos) {
+    const d = PM.ba.defaults;
+    return { photos, name: '', category: d.category === 'auto' ? 'Lingerie' : d.category, price: d.price, oldPrice: d.oldPrice,
+      tags: d.tags.slice(), sizes: d.sizes.slice(), colors: [], description: '', fabric: '', care: '', badge: '', active: d.active,
+      include: true, ai: '', err: '' };
+  }
+  function openBulkAi() {
+    if (!PM.products) return toast('Connect GitHub in Settings first');
+    PM.ba = { groups: [], busy: false, defaults: { category: 'auto', price: '', oldPrice: '', tags: [], sizes: ALL_SIZES.slice(), active: true } };
+    const inp = 'border border-black/15 px-3 py-2 text-sm focus:outline-none focus:border-noir bg-white';
+    openPanel('✨ Bulk AI Listing', `
+      <div id="pmLiveMini" class="hidden mb-4 space-y-2"></div>
+      <ol class="grid sm:grid-cols-4 gap-2 text-[11px] mb-5">
+        ${['Add photos', 'Set defaults', 'Draft with AI', 'Review & publish'].map((t, i) => `<li class="border border-black/10 px-3 py-2"><b class="font-serif text-base mr-1">${i + 1}</b>${t}</li>`).join('')}
+      </ol>
+      <div class="grid lg:grid-cols-2 gap-5 mb-5">
+        <div>
+          <label class="block border-2 border-dashed border-black/20 bg-blush-50 hover:border-noir text-center px-4 py-8 cursor-pointer">
+            <input id="baFiles" type="file" accept="image/*" multiple class="hidden" />
+            <span class="font-serif text-xl block">Add product photos</span>
+            <span class="text-xs text-charcoal-soft">Select many at once, in order: each product's main photo first</span>
+          </label>
+          <div class="flex flex-wrap items-center gap-3 mt-3 text-xs">
+            <label class="flex items-center gap-2">Photos per product
+              <select id="baPer" class="lux ${inp} py-1.5">${[1, 2, 3, 4, 5, 6].map(n => `<option value="${n}">${n}</option>`).join('')}</select></label>
+            <label class="flex items-center gap-2 cursor-pointer"><input id="baCrop" type="checkbox" ${getSet().noCrop ? '' : 'checked'} class="w-4 h-4 accent-[#0F0F0F]" /> Crop to 3:4</label>
+            <span class="text-charcoal-soft">Quality: ${getSet().photoQ === 'high' ? 'High 2400px' : 'Standard 1600px'}</span>
+          </div>
+          <p class="text-[11px] text-charcoal-soft mt-2">Wrong grouping? Use ▲ ▼ on a photo to move it to the product above or below.</p>
+        </div>
+        <div class="border border-black/10 p-4 bg-[#FAFAFA]">
+          <p class="text-[11px] tracking-luxe uppercase mb-3">Defaults for all products</p>
+          <div class="grid grid-cols-3 gap-2 mb-3">
+            <label class="text-xs col-span-3 sm:col-span-1">Category<select id="badCat" class="lux mt-1 w-full ${inp}"><option value="auto">Auto (AI decides)</option>${CATS4.map(c => `<option>${c}</option>`).join('')}</select></label>
+            <label class="text-xs">Price (৳)<input id="badPrice" type="number" min="0" class="mt-1 w-full ${inp}" /></label>
+            <label class="text-xs">Old price<input id="badOld" type="number" min="0" class="mt-1 w-full ${inp}" /></label>
+          </div>
+          <p class="text-xs mb-1.5">Sections</p>
+          <div class="flex flex-wrap gap-1.5 mb-3">${['exclusive', 'popular', 'recommended'].map(t => `<button type="button" data-badtag="${t}" class="${chipCls(false)}">${t[0].toUpperCase() + t.slice(1)}</button>`).join('')}</div>
+          <p class="text-xs mb-1.5">Sizes</p>
+          <div class="flex flex-wrap gap-1.5 mb-3">${ALL_SIZES.map(z => `<button type="button" data-badsize="${z}" class="${chipCls(true)}">${z}</button>`).join('')}</div>
+          <div class="flex flex-wrap items-center gap-3">
+            <label class="text-xs flex items-center gap-2">Show on website<select id="badActive" class="lux ${inp} py-1.5"><option value="yes">Yes</option><option value="no">No (hidden)</option></select></label>
+            <button type="button" data-pm="baapply" class="ml-auto border border-noir bg-white text-[10px] tracking-[.14em] uppercase px-4 py-2 hover:bg-noir hover:text-white">Apply to all products</button>
+          </div>
+        </div>
+      </div>
+      <div class="flex flex-wrap items-center gap-3 mb-2">
+        <button type="button" data-pm="badraft" class="bg-noir text-white text-[11px] tracking-[.14em] uppercase px-6 py-3 hover:bg-charcoal">✨ Draft all with AI</button>
+        <p id="baCount" class="text-xs text-charcoal-soft"></p>
+      </div>
+      <p id="pmAiMsg" class="text-xs mb-4 text-charcoal-soft"></p>
+      <div id="baList" class="space-y-4"></div>
+      <div class="sticky bottom-0 bg-white border-t border-black/10 mt-6 -mx-5 sm:-mx-8 px-5 sm:px-8 py-4 flex flex-wrap items-center gap-3">
+        <p id="baMsg" class="text-sm flex-1 min-w-[200px]"></p>
+        <button type="button" data-pm="bapub" id="baPub" class="bg-noir text-white text-[11px] tracking-[.14em] uppercase px-8 py-4 hover:bg-charcoal disabled:opacity-50">Publish products</button>
+      </div>`);
+    renderLive(); baRenderAll();
+    $('baFiles').addEventListener('change', async (e) => {
+      const files = [...e.target.files]; e.target.value = '';
+      const per = Number($('baPer').value) || 1;
+      $('baMsg').textContent = 'Preparing photos…';
+      const photos = [];
+      for (const f of files) { try { photos.push(await newPhoto(f)); } catch (err) { toast('Skipped ' + f.name + ': not a readable image'); } }
+      for (let i = 0; i < photos.length; i += per) PM.ba.groups.push(baNewGroup(photos.slice(i, i + per)));
+      $('baMsg').textContent = '';
+      baRenderAll();
+    });
+    $('baCrop').addEventListener('change', (e) => { putSet({ ...getSet(), noCrop: !e.target.checked }); baRenderAll(); });
+    const syncDefaults = () => { const d = PM.ba.defaults; d.category = $('badCat').value; d.price = $('badPrice').value; d.oldPrice = $('badOld').value; d.active = $('badActive').value === 'yes'; };
+    ['badCat', 'badPrice', 'badOld', 'badActive'].forEach(id => $(id).addEventListener('change', syncDefaults));
+    ['badPrice', 'badOld'].forEach(id => $(id).addEventListener('input', syncDefaults));
+  }
+  function baCardHTML(g, i) {
+    const crop = $('baCrop') ? $('baCrop').checked : true;
+    const inp = 'w-full border border-black/15 px-2.5 py-2 text-sm focus:outline-none focus:border-noir bg-white';
+    const chip = (attr, val, on, label) => `<button type="button" ${attr}="${i}|${val}" class="px-2 py-1 text-[11px] border ${on ? 'bg-noir text-white border-noir' : 'border-black/15 hover:border-noir'}">${label || val}</button>`;
+    const aiTag = g.ai === 'drafting' ? '<span class="text-[#1D4E89]">✨ AI drafting…</span>' : g.ai === 'done' ? '<span class="text-[#1F7A45]">✓ AI draft</span>' : g.ai === 'error' ? `<span class="text-[#9B1C1C]">✗ ${esc(g.err)}</span>` : '<span class="text-charcoal-soft">Not drafted yet</span>';
+    return `<div data-bacard="${i}" class="border ${g.include ? 'border-black/15' : 'border-dashed border-black/15 opacity-50'} p-4 grid md:grid-cols-[210px_1fr] gap-4">
+      <div class="max-w-[200px] md:max-w-none">
+        <div class="relative aspect-[3/4] img-ph overflow-hidden border-2 border-noir">
+          ${g.photos[0] ? `<img src="${esc(g.photos[0].src)}" alt="" draggable="false" data-cropdrag="ba|${i}|0" style="${cropStyle(g.photos[0], crop)}" class="absolute inset-0 w-full h-full object-cover select-none ${crop ? 'cursor-move touch-none' : ''}" />` : ''}
+          <span class="absolute top-1 left-1 bg-noir text-white text-[9px] tracking-[.12em] uppercase px-1.5 py-0.5">Main</span>
+          ${crop ? '<span class="absolute bottom-1 inset-x-1 text-center bg-white/85 text-[9px] py-0.5">drag to adjust crop</span>' : ''}
+        </div>
+        <div class="grid grid-cols-4 gap-1 mt-2">${g.photos.map((ph, k) => `
+          <div class="relative aspect-[3/4] img-ph overflow-hidden border ${k ? 'border-black/10' : 'border-noir'}">
+            <img src="${esc(ph.src)}" alt="" draggable="false" ${k ? `data-cropdrag="ba|${i}|${k}"` : ''} style="${cropStyle(ph, crop)}" class="absolute inset-0 w-full h-full object-cover select-none ${k && crop ? 'cursor-move touch-none' : ''}" />
+            <div class="absolute bottom-0 inset-x-0 flex justify-between bg-white/90 text-[10px] leading-none">
+              <button type="button" data-baph="${i}|${k}|up" title="Move to product above" class="px-1 py-1">▲</button>
+              ${k ? `<button type="button" data-baph="${i}|${k}|main" title="Make main" class="px-0.5 py-1">★</button>` : ''}
+              <button type="button" data-baph="${i}|${k}|del" title="Remove" class="px-1 py-1 text-[#9B1C1C]">✕</button>
+              <button type="button" data-baph="${i}|${k}|down" title="Move to product below" class="px-1 py-1">▼</button>
+            </div>
+          </div>`).join('')}</div>
+        <p class="text-[10px] text-charcoal-soft mt-1">${g.photos.length} photo${g.photos.length === 1 ? '' : 's'}</p>
+      </div>
+      <div class="space-y-2.5">
+        <div class="flex flex-wrap items-center gap-3 text-xs">
+          <b class="font-serif text-base">Product ${i + 1}</b>
+          <label class="flex items-center gap-1.5 cursor-pointer"><input type="checkbox" data-bainc="${i}" ${g.include ? 'checked' : ''} class="w-4 h-4 accent-[#0F0F0F]" /> Publish</label>
+          ${aiTag}
+          <button type="button" data-baai="${i}" class="ml-auto underline">↻ AI draft</button>
+          <button type="button" data-badel="${i}" class="text-[#9B1C1C] underline">Remove product</button>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <label class="text-[11px] col-span-2">Name *<input data-baf="${i}|name" value="${esc(g.name)}" class="mt-0.5 ${inp}" /></label>
+          <label class="text-[11px]">Category<select data-baf="${i}|category" class="lux mt-0.5 ${inp}">${CATS4.map(c => `<option ${c === g.category ? 'selected' : ''}>${c}</option>`).join('')}</select></label>
+          <label class="text-[11px]">Badge<select data-baf="${i}|badge" class="lux mt-0.5 ${inp}">${['', 'Bestseller', 'New', 'Limited', 'Sale', 'Hot'].map(b => `<option value="${b}" ${b === g.badge ? 'selected' : ''}>${b || 'None'}</option>`).join('')}</select></label>
+          <label class="text-[11px]">Price (৳) *<input data-baf="${i}|price" type="number" min="1" value="${esc(g.price)}" class="mt-0.5 ${inp}" /></label>
+          <label class="text-[11px]">Old price<input data-baf="${i}|oldPrice" type="number" min="0" value="${esc(g.oldPrice)}" class="mt-0.5 ${inp}" /></label>
+          <label class="text-[11px]">Fabric<input data-baf="${i}|fabric" value="${esc(g.fabric)}" class="mt-0.5 ${inp}" /></label>
+          <label class="text-[11px]">Care<input data-baf="${i}|care" value="${esc(g.care)}" class="mt-0.5 ${inp}" /></label>
+        </div>
+        <label class="block text-[11px]">Description<textarea data-baf="${i}|description" rows="2" class="mt-0.5 ${inp}">${esc(g.description)}</textarea></label>
+        <div class="flex flex-wrap items-center gap-1"><span class="text-[11px] w-16">Colors *</span>${ALL_COLORS.map(c => chip('data-bacolor', c, g.colors.includes(c))).join('')}</div>
+        <div class="flex flex-wrap items-center gap-1"><span class="text-[11px] w-16">Sizes *</span>${ALL_SIZES.map(z => chip('data-basize', z, g.sizes.includes(z))).join('')}</div>
+        <div class="flex flex-wrap items-center gap-1"><span class="text-[11px] w-16">Sections</span>${['exclusive', 'popular', 'recommended'].map(t => chip('data-batag', t, g.tags.includes(t), t[0].toUpperCase() + t.slice(1))).join('')}
+          <label class="ml-auto text-[11px] flex items-center gap-1.5"><input type="checkbox" data-baact="${i}" ${g.active ? 'checked' : ''} class="w-3.5 h-3.5 accent-[#0F0F0F]" /> Show on website</label></div>
+      </div>
+    </div>`;
+  }
+  function baRenderAll() {
+    const list = $('baList'); if (!list) return;
+    const G = PM.ba.groups;
+    list.innerHTML = G.length ? G.map(baCardHTML).join('') : '<p class="border border-dashed border-black/15 p-10 text-center text-sm text-charcoal-soft">No photos yet. Add photos above: they become products here.</p>';
+    baFooter();
+  }
+  function baRenderCard(i) {
+    const el = document.querySelector(`[data-bacard="${i}"]`);
+    if (!el) return baRenderAll();
+    const t = document.createElement('div'); t.innerHTML = baCardHTML(PM.ba.groups[i], i); el.replaceWith(t.firstElementChild);
+    baFooter();
+  }
+  function baFooter() {
+    const G = PM.ba.groups, inc = G.filter(g => g.include && g.photos.length);
+    $('baCount').textContent = G.length ? `${G.length} product${G.length === 1 ? '' : 's'} · ${G.reduce((n, g) => n + g.photos.length, 0)} photos · ${G.filter(g => g.ai === 'done').length} drafted` : '';
+    const b = $('baPub'); if (b && !PM.ba.busy) { b.textContent = `Publish ${inc.length} product${inc.length === 1 ? '' : 's'}`; b.disabled = !inc.length; }
+  }
+  const baSleep = (ms) => new Promise(r => setTimeout(r, ms));
+  async function baDraft(indices) {
+    if (!aiReady()) return toast('Add your AI API key in the Settings tab first');
+    if (PM.ba.busy) return;
+    const G = PM.ba.groups;
+    const todo = (indices || G.map((_, i) => i).filter(i => G[i].include && G[i].photos.length && G[i].ai !== 'done'));
+    if (!todo.length) return toast(G.length ? 'All products are drafted already' : 'Add photos first');
+    PM.ba.busy = true;
+    let n = 0;
+    for (const i of todo) {
+      const g = G[i]; if (!g || !g.photos.length) continue;
+      n++; $('baMsg').textContent = `AI drafting ${n} of ${todo.length}…`;
+      g.ai = 'drafting'; baRenderCard(i);
+      try {
+        const r = await callAi((await toJpeg(g.photos[0].file, 1024, 0.8)).b64);
+        if (r.name) g.name = String(r.name).slice(0, 80);
+        if (PM.ba.defaults.category === 'auto' && CATS4.includes(r.category)) g.category = r.category;
+        if (PM.ba.defaults.category !== 'auto') g.category = PM.ba.defaults.category;
+        if (r.description) g.description = r.description + (Array.isArray(r.features) && r.features.length ? ' ' + r.features.join(' · ') + '.' : '');
+        if (r.fabric) g.fabric = r.fabric;
+        if (r.care) g.care = r.care;
+        if (Array.isArray(r.colors)) { const cs = r.colors.map(c => ALL_COLORS.find(x => x.toLowerCase() === String(c).toLowerCase())).filter(Boolean); if (cs.length) g.colors = cs; }
+        g.ai = 'done'; g.err = '';
+      } catch (ex) {
+        console.error(ex);
+        g.ai = 'error'; g.err = ex.quota ? 'Daily free AI limit used up' : ex.busy ? 'AI busy, try ↻ again' : (ex.message || 'AI error').slice(0, 80);
+        baRenderCard(i);
+        if (ex.quota) { $('baMsg').textContent = 'Today\'s free AI limit is used up. Fill the rest yourself, or try again after about 1–2 PM.'; break; }
+      }
+      baRenderCard(i);
+      await baSleep(1200);
+    }
+    PM.ba.busy = false;
+    if (!/limit/.test($('baMsg').textContent)) $('baMsg').textContent = `AI drafts ready. Check names, prices and colors, then publish.`;
+    baFooter();
+  }
+  async function baPublish() {
+    const B = PM.ba; if (B.busy) return;
+    const list = B.groups.map((g, i) => ({ g, i })).filter(({ g }) => g.include && g.photos.length);
+    if (!list.length) return toast('Add photos first');
+    const problems = [];
+    list.forEach(({ g, i }) => {
+      const miss = [];
+      if (!g.name.trim()) miss.push('name');
+      if (!(Number(g.price) > 0)) miss.push('price');
+      if (!g.colors.length) miss.push('colors');
+      if (!g.sizes.length) miss.push('sizes');
+      if (miss.length) problems.push(`Product ${i + 1}: add ${miss.join(', ')}`);
+    });
+    const msg = $('baMsg');
+    if (problems.length) { msg.innerHTML = `<span class="text-[#9B1C1C]">${problems.slice(0, 4).map(esc).join('<br>')}${problems.length > 4 ? `<br>…and ${problems.length - 4} more` : ''}</span>`; return; }
+    if (!confirm(`Publish ${list.length} product${list.length > 1 ? 's' : ''} to the website?`)) return;
+    B.busy = true; const btn = $('baPub'); btn.disabled = true;
+    const crop = $('baCrop') ? $('baCrop').checked : true;
+    try {
+      const data = PM.products.slice(), files = [], skus = [];
+      let imgNo = nextImgNo();
+      const counters = {};
+      const skuFor = (cat) => {
+        const pre = CAT_PREFIX[cat] || 'X';
+        if (counters[pre] === undefined) counters[pre] = Math.max(0, ...data.map(p => { const m = String(p.id).match(new RegExp('^' + pre + '(\\d+)$')); return m ? Number(m[1]) : 0; }));
+        return pre + String(++counters[pre]).padStart(2, '0');
+      };
+      const total = list.reduce((n, { g }) => n + g.photos.length, 0); let done = 0;
+      for (const { g } of list) {
+        const n = imgNo++, sku = skuFor(g.category);
+        const targets = g.photos.map((_, k) => k ? `${n}-${k}.jpg` : `${n}.jpg`);
+        for (let k = 0; k < g.photos.length; k++) {
+          msg.textContent = `Preparing photos ${++done}/${total}…`; btn.textContent = 'Preparing…';
+          files.push({ path: targets[k], b64: (await photoOut(g.photos[k], crop)).b64 });
+        }
+        const price = Math.round(Number(g.price)), oldP = Math.round(Number(g.oldPrice) || 0);
+        const details = {}; if (g.fabric.trim()) details.Fabric = g.fabric.trim(); if (g.care.trim()) details.Care = g.care.trim();
+        data.push({ id: sku, name: g.name.trim(), category: g.category, price, oldPrice: oldP > price ? oldP : null,
+          image: targets[0], images: targets, tags: g.tags.slice(), sizes: ALL_SIZES.filter(z => g.sizes.includes(z)), colors: ALL_COLORS.filter(c => g.colors.includes(c)),
+          description: g.description.trim(), badge: g.badge, details, active: g.active });
+        skus.push(sku);
+      }
+      files.push(productsFile(data));
+      btn.textContent = 'Uploading…';
+      ghCommit.onProgress = (d, t) => { msg.textContent = `Uploading to GitHub ${d}/${t}…`; };
+      await ghCommit(files, `Bulk AI listing: add ${skus.length} products ${skus[0]}–${skus[skus.length - 1]} (admin panel)`);
+      B.groups = B.groups.filter(g => !(g.include && g.photos.length));   // keep unpublished ones
+      afterPublish(data, skus.length === 1 ? `Product ${skus[0]}` : `${skus.length} products (${skus.length <= 4 ? skus.join(', ') : skus.slice(0, 3).join(', ') + '…'})`, skus);
+      msg.innerHTML = `<span class="text-[#1F7A45]">✓ Published ${skus.join(', ')}. Watching the website until they appear…</span>`;
+      baRenderAll();
+    } catch (ex) {
+      console.error(ex); msg.innerHTML = `<span class="text-[#9B1C1C]">${esc(ex.status ? ghErr(ex) : 'Publishing failed: ' + ex.message)}</span>`;
+    } finally { ghCommit.onProgress = null; B.busy = false; baFooter(); }
+  }
+  function baApplyDefaults() {
+    const d = PM.ba.defaults;
+    d.tags = [...document.querySelectorAll('[data-badtag]')].filter(chipOn).map(b => b.dataset.badtag);
+    d.sizes = [...document.querySelectorAll('[data-badsize]')].filter(chipOn).map(b => b.dataset.badsize);
+    PM.ba.groups.forEach(g => {
+      if (d.category !== 'auto') g.category = d.category;
+      if (d.price !== '') g.price = d.price;
+      if (d.oldPrice !== '') g.oldPrice = d.oldPrice;
+      g.tags = d.tags.slice(); g.sizes = d.sizes.slice(); g.active = d.active;
+    });
+    baRenderAll(); toast('Defaults applied to all products');
+  }
+  document.addEventListener('click', (e) => {
+    if (!PM.ba || !$('baList')) return;
+    const b = e.target.closest('[data-baph],[data-baai],[data-badel],[data-bacolor],[data-basize],[data-batag],[data-badtag],[data-badsize]');
+    if (!b) return;
+    const d = b.dataset, G = PM.ba.groups;
+    if (d.badtag || d.badsize) { setChip(b, !chipOn(b)); d.badtag ? (PM.ba.defaults.tags = [...document.querySelectorAll('[data-badtag]')].filter(chipOn).map(x => x.dataset.badtag)) : (PM.ba.defaults.sizes = [...document.querySelectorAll('[data-badsize]')].filter(chipOn).map(x => x.dataset.badsize)); return; }
+    if (d.bacolor || d.basize || d.batag) {
+      const [i, v] = (d.bacolor || d.basize || d.batag).split('|'); const g = G[Number(i)];
+      const key = d.bacolor ? 'colors' : d.basize ? 'sizes' : 'tags';
+      g[key] = g[key].includes(v) ? g[key].filter(x => x !== v) : [...g[key], v];
+      setChip(b, g[key].includes(v)); b.className = b.className.replace('px-3 py-1.5 text-xs', 'px-2 py-1 text-[11px]');
+      return;
+    }
+    if (d.baai) { if (PM.ba.busy) return toast('Please wait for the current AI drafting to finish'); G[Number(d.baai)].ai = ''; return baDraft([Number(d.baai)]); }
+    if (d.badel) { if (PM.ba.busy) return; G.splice(Number(d.badel), 1); return baRenderAll(); }
+    if (d.baph) {
+      if (PM.ba.busy) return;
+      const [si, sk, act] = d.baph.split('|'); const i = Number(si), k = Number(sk), g = G[i];
+      if (act === 'main') { g.photos.unshift(g.photos.splice(k, 1)[0]); }
+      else if (act === 'del') { g.photos.splice(k, 1); if (!g.photos.length) G.splice(i, 1); }
+      else if (act === 'up') { if (i === 0) return toast('This is the first product'); G[i - 1].photos.push(g.photos.splice(k, 1)[0]); if (!g.photos.length) G.splice(i, 1); }
+      else if (act === 'down') {
+        const ph = g.photos.splice(k, 1)[0];
+        if (i === G.length - 1 || (!g.photos.length && i === G.length - 1)) G.push(baNewGroup([ph])); else G[i + 1].photos.push(ph);
+        if (!g.photos.length) G.splice(i, 1);
+      }
+      return baRenderAll();
+    }
+  });
+  document.addEventListener('input', (e) => {
+    const t = e.target; if (!PM.ba) return;
+    if (t.dataset && t.dataset.baf) { const [i, f] = t.dataset.baf.split('|'); if (PM.ba.groups[Number(i)]) PM.ba.groups[Number(i)][f] = t.value; }
+  });
+  document.addEventListener('change', (e) => {
+    const t = e.target; if (!PM.ba) return;
+    if (t.dataset && t.dataset.baf) { const [i, f] = t.dataset.baf.split('|'); if (PM.ba.groups[Number(i)]) PM.ba.groups[Number(i)][f] = t.value; }
+    if (t.dataset && t.dataset.bainc) { const i = Number(t.dataset.bainc); PM.ba.groups[i].include = t.checked; baRenderCard(i); }
+    if (t.dataset && t.dataset.baact) PM.ba.groups[Number(t.dataset.baact)].active = t.checked;
+  });
 
   /* ---------- Bulk import CSV / Excel ---------- */
   function loadXlsxLib() {
@@ -3114,7 +3548,7 @@ Look at the product photo and return ONLY a JSON object (no markdown) with these
       data = PM.products.slice();
       PM.sheet.out.forEach(p => { const i = data.findIndex(x => String(x.id).toUpperCase() === p.id); if (i >= 0) data[i] = p; else data.push(p); });
     }
-    try { await ghCommit([productsFile(data)], `Bulk import ${PM.sheet.out.length} products (admin panel)`); closePanel(); afterPublish(data, `${PM.sheet.out.length} products`); }
+    try { await ghCommit([productsFile(data)], `Bulk import ${PM.sheet.out.length} products (admin panel)`); const ids = PM.sheet.out.map(p => String(p.id)); closePanel(); afterPublish(data, `${ids.length} products`, ids); }
     catch (ex) { console.error(ex); toast(ex.status ? ghErr(ex) : 'Publish failed'); }
   }
 
@@ -3158,6 +3592,11 @@ Look at the product photo and return ONLY a JSON object (no markdown) with these
     const d = b.dataset;
     if (d.admtab) return showAdmTab(d.admtab);
     if (d.pm === 'add') return openEditor();
+    if (d.pm === 'bulkai') return openBulkAi();
+    if (d.pm === 'badraft') return baDraft();
+    if (d.pm === 'bapub') return baPublish();
+    if (d.pm === 'baapply') return baApplyDefaults();
+    if (d.pm === 'savenext') return saveEditor({ preventDefault() {} }, true);
     if (d.pm === 'close') return closePanel();
     if (d.pm === 'ai') return runAi();
     if (d.pm === 'bulkphotos') return openBulkPhotos();
@@ -3177,13 +3616,14 @@ Look at the product photo and return ONLY a JSON object (no markdown) with these
     if (d.set === 'test') return testConnections();
   });
   document.addEventListener('input', (e) => { if (e.target.id === 'pmSearch') renderProductList(); });
+  document.addEventListener('change', (e) => { if (e.target.id === 'pmQuality') { putSet({ ...getSet(), photoQ: e.target.value }); toast(e.target.value === 'high' ? 'Photo quality: High (2400px)' : 'Photo quality: Standard (1600px)'); } });
   document.addEventListener('change', (e) => {
     if (e.target.id === 'pmCat') renderProductList();
     if (e.target.id === 'setAi') $('setAiModel').value = AI_DEFAULT_MODEL[e.target.value];
   });
-  $('setForm').addEventListener('submit', (e) => { e.preventDefault(); putSet(readSetForm()); PM.products = null; setMsg('✓ Saved on this device.', true); });
+  $('setForm').addEventListener('submit', (e) => { e.preventDefault(); putSet({ ...getSet(), ...readSetForm() }); PM.products = null; setMsg('✓ Saved on this device.', true); });
   async function testConnections() {
-    putSet(readSetForm());
+    putSet({ ...getSet(), ...readSetForm() });
     setMsg('Testing… (can take up to 20 seconds if the AI service is busy)', true);
     const s = getSet(), out = [];
     if (s.repo && s.token) {
