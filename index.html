@@ -657,6 +657,7 @@
           </select>
           <input id="fTrx" type="text" placeholder="bKash / Nagad TrxID *" class="w-full border border-black/15 px-4 py-3 text-sm font-mono uppercase focus:outline-none focus:border-noir" />
           </div>
+          <div aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden"><label>Company<input id="fCompany" type="text" tabindex="-1" autocomplete="off" /></label></div>
           <p id="fError" class="hidden text-sm text-red-600"></p>
           <button id="fSubmit" type="submit" class="w-full flex items-center justify-center gap-3 bg-noir hover:bg-charcoal text-white text-xs tracking-luxe uppercase py-4 transition">
             <span id="fSubmitLabel">Confirm Your Order</span>
@@ -1276,7 +1277,8 @@
     $(overlay).classList.add('opacity-0', 'pointer-events-none');
     document.body.classList.remove('no-scroll');
   }
-  const openCart = () => openDrawer('cartDrawer', 'cartOverlay', 'translate-x-full');
+  let coStart = 0;   // when checkout was opened (bots submit instantly)
+  const openCart = () => { if (!coStart) coStart = Date.now(); openDrawer('cartDrawer', 'cartOverlay', 'translate-x-full'); };
   const closeCart = () => closeDrawer('cartDrawer', 'cartOverlay', 'translate-x-full');
   const openMenu = () => openDrawer('mobileMenu', 'mobileOverlay', '-translate-x-full');
   const closeMenu = () => closeDrawer('mobileMenu', 'mobileOverlay', '-translate-x-full');
@@ -1366,16 +1368,6 @@
     return `SCB-${String(d.getFullYear()).slice(2)}${p(d.getMonth() + 1)}${p(d.getDate())}-${r}`;
   }
 
-  // Admin notification: sends the order message to the shop's WhatsApp in the background (the customer stays here)
-  async function notifyAdmin(text, orderNo, saved) {
-    try {
-      const r = await withTimeout(fetch('/api/notify', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text, orderNo, saved }) }), 10000);
-      const j = await r.json().catch(() => ({}));
-      if (!r.ok || !j.sent) console.warn('WhatsApp notification not sent:', j.error || r.status);
-      return !!(r.ok && j.sent);
-    } catch (e) { console.warn('WhatsApp notification failed:', e); return false; }
-  }
-
   async function checkout(e) {
     e.preventDefault();
     const name = $('fName').value.trim();
@@ -1401,65 +1393,41 @@
     if (msg) { err.textContent = msg; err.classList.remove('hidden'); return; }
     err.classList.add('hidden');
 
-    const orderNo = makeOrderNo();
     const { sub, total } = totals();
-    if (online) return checkoutOnline({ orderNo, name, phone, email, address, wantAccount, pass, sub, total });
-    const lines = cart.map(i => { const p = findP(i.id); return { id: p.id, name: p.name, category: p.category, size: i.size, color: i.color, qty: i.qty, price: p.price, lineTotal: p.price * i.qty, image: p.image }; });
-    const itemsText = lines.map((l, n) => `${n + 1}. ${l.name} (${l.id})\n   Size: ${l.size} | Color: ${l.color}\n   ${l.qty} × ${taka(l.price)} = ${taka(l.lineTotal)}`).join('\n\n');
-
-    const text =
-`*NEW ORDER — SECRET COLLECTION BD*
-Order No: *${orderNo}*
-━━━━━━━━━━━━━━━
-
-*ORDER ITEMS*
-${itemsText}
-
-━━━━━━━━━━━━━━━
-Subtotal: ${taka(sub)}
-Delivery: FREE
-*TOTAL: ${taka(total)} BDT*
-
-*CUSTOMER*
-Name: ${name}
-Phone: ${phone}${email ? `\nEmail: ${email}` : ''}
-Address: ${address}
-
-*PAYMENT*
-Method: ${method}
-TrxID / Ref: ${trx}
-
-Please confirm my order. Thank you.`;
-
+    if (online) return checkoutOnline({ orderNo: makeOrderNo(), name, phone, email, address, wantAccount, pass, sub, total });
     const btn = $('fSubmit');
     const btnHTML = btn.innerHTML;
     btn.disabled = true; btn.classList.add('opacity-60'); btn.innerHTML = 'Placing your order…';
+    const failOrder = (m) => {
+      btn.disabled = false; btn.classList.remove('opacity-60'); btn.innerHTML = btnHTML;
+      const lines = cart.map((i, n) => { const p = findP(i.id); return `${n + 1}. ${p.name} (${p.id}) · ${i.size} · ${i.color} · ×${i.qty}`; }).join('\n');
+      const wa = `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(`Hi, I want to order:\n${lines}\n\nName: ${name}\nPhone: ${phone}\nAddress: ${address}\nPayment: ${method} · TrxID ${trx}`)}`;
+      err.innerHTML = `${esc(m)} If it keeps happening, <a class="underline" target="_blank" rel="noopener" href="${wa}">send the order on WhatsApp</a>.`;
+      err.classList.remove('hidden');
+    };
 
-    let note = '', saved = false;
-    if (acctOn) {
-      const order = { orderNo, source: 'website', customer: { name, phone, email, address }, payment: { method, trx }, items: lines, subtotal: sub, delivery: 0, total };
-      const work = (async () => {
-        // save the order (admin dashboard + customer tracking)
-        await saveOrder(order, null);
-        saved = true;
-      })();
-      try { await withTimeout(work, 10000); }
-      catch (ex) { console.warn('Order not saved online:', ex); }
+    // The server checks prices against the product list, blocks bots, saves the order and emails the shop
+    let result;
+    try {
+      let idToken = null;
+      if (acctOn && Account.auth && Account.auth.currentUser && !Account.isAdmin) { try { idToken = await Account.auth.currentUser.getIdToken(); } catch (e) {} }
+      const res = await withTimeout(fetch('/api/order', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
+        items: cart.map(i => ({ id: i.id, size: i.size, color: i.color, qty: i.qty })),
+        customer: { name, phone, email, address }, payment: { method, trx },
+        idToken, hp: $('fCompany') ? $('fCompany').value : '', ms: coStart ? Date.now() - coStart : 0
+      }) }), 25000);
+      result = await res.json().catch(() => ({}));
+      if (!res.ok || !result.orderNo) return failOrder(result.error || 'We couldn\'t place your order. Please check your internet and try again.');
+    } catch (ex) {
+      console.error(ex);
+      return failOrder(ex.message === 'timeout' ? 'The connection is slow and the order may not have gone through. Please check your email/phone before trying again.' : 'We couldn\'t place your order. Please check your internet and try again.');
     }
-    // admin email notification in the background — the customer is NOT sent anywhere
-    const notified = notifyAdmin(text, orderNo, saved);
-    if (!saved) {
-      // not in the database: wait for the email notification, it is then the only record
-      if (!(await notified)) {
-        btn.disabled = false; btn.classList.remove('opacity-60'); btn.innerHTML = btnHTML;
-        err.innerHTML = `We couldn't place your order — please check your internet and tap <b>Confirm Your Order</b> again. Still not working? <a class="underline" target="_blank" rel="noopener" href="https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(text)}">Send the order on WhatsApp</a>.`;
-        err.classList.remove('hidden');
-        return;
-      }
-    }
+    const orderNo = result.orderNo;
+    let note = '';
+    if (Math.round(result.total) !== Math.round(total)) note = `Your order total is ${taka(result.total)} (prices were updated).`;
 
     btn.disabled = false; btn.classList.remove('opacity-60'); btn.innerHTML = btnHTML;
-    cart = []; saveCart(); renderCart(); closeCart();
+    cart = []; saveCart(); renderCart(); closeCart(); coStart = 0;
     $('fTrx').value = '';
     $('doneNo').textContent = orderNo;
     $('doneNote').textContent = note; $('doneNote').classList.toggle('hidden', !note);
@@ -1469,7 +1437,7 @@ Please confirm my order. Thank you.`;
          <p class="text-xs text-charcoal-soft mt-2">See live status updates in <b>My Account</b>.</p>`
       : acctOn
         ? `<a href="#" data-trackacct="${esc(phone)}" data-trackname="${esc(name)}" data-trackmail="${esc(email)}" class="font-medium underline underline-offset-4 hover:text-charcoal-soft">Track your order →</a>
-           <p class="text-xs text-charcoal-soft mt-2 leading-relaxed">Create an account with your email and the same phone number <b class="font-mono">${esc(phone)}</b> to track this order. Already have one? <a href="#" data-trackacct="${esc(phone)}" data-trackmail="${esc(email)}" data-tracklogin="1" class="underline">Sign in</a>.</p>`
+           <p class="text-xs text-charcoal-soft mt-2 leading-relaxed">Create a free account with your email and this order will be added to it automatically. Already have one? <a href="#" data-trackacct="${esc(phone)}" data-trackmail="${esc(email)}" data-tracklogin="1" class="underline">Sign in</a>.</p>`
         : `<p class="text-xs text-charcoal-soft">Keep your Order ID to check your order status with us.</p>`;
     $('orderDone').classList.remove('hidden'); $('orderDone').classList.add('flex');
   }
@@ -1660,28 +1628,22 @@ Please confirm my order. Thank you.`;
   }
   // New accounts: email + password login. The phone number is linked (one account per number)
   // so orders placed with that number — even as a guest — appear in the account.
+  // New accounts: email + password login. Orders are linked when placed while signed in,
+  // or added later with Order ID + phone (see "Add a past order").
   async function createCustomer({ name, phone, email, address, pass }) {
     const F = Account.fb;
     const p = normPhone(phone);
     if (!p) throw { code: 'x', message: 'Please enter a valid Bangladeshi phone number (01XXXXXXXXX).' };
-    const pk = await phoneKey(p);
-    let taken = false;
-    try { taken = (await F.get(R('phoneIndex/' + pk))).exists(); } catch (e) { /* checked again below */ }
-    if (taken) throw { code: 'auth/phone-in-use' };
     const cred = await F.createUserWithEmailAndPassword(Account.auth, email, pass);
-    try { await F.set(R('phoneIndex/' + pk), cred.user.uid); }
-    catch (e) {
-      console.warn('Phone link failed', e);
-      try { await cred.user.delete(); } catch (x) { await F.signOut(Account.auth).catch(() => {}); }
-      throw { code: 'auth/phone-in-use' };
-    }
     await F.updateProfile(cred.user, { displayName: name }).catch(() => {});
-    const profile = clean({ name, phone: p, email, address: address || '', phoneKey: pk, createdAt: Date.now() });
+    const profile = clean({ name, phone: p, email, address: address || '', createdAt: Date.now() });
     await F.set(R('users/' + cred.user.uid), profile);
     Account.profile = profile;
-    await onAuthChange(cred.user);           // reload with the linked phone orders
+    if (F.sendEmailVerification) F.sendEmailVerification(cred.user).catch(e => console.warn('Verification email not sent', e));
+    await onAuthChange(cred.user);
     return cred.user;
   }
+
 
   async function onAuthChange(user) {
     const F = Account.fb;
@@ -1701,8 +1663,7 @@ Please confirm my order. Thank you.`;
         else if (!Account.profile) Account.profile = { name: user.displayName || '', email: Account.isAdmin ? user.email : '' };
       } catch (e) { if (!Account.profile) Account.profile = { name: user.displayName || '' }; }
       if (gen !== Account.gen) return;           // a newer sign-in event took over
-      // live: this customer's own orders — placed while signed in (userOrders) + any order placed with
-      // the same phone number, even as a guest before the account existed (phoneOrders)
+      // live: this customer's own orders — placed while signed in, or added with Order ID + phone
       const mine = { uid: {}, phone: {} };
       const merge = () => {
         const byNo = new Map();
@@ -1715,10 +1676,6 @@ Please confirm my order. Thank you.`;
         if (state.view === 'account') renderAccount();
       };
       const subs = [F.onValue(R('userOrders/' + user.uid), snap => { mine.uid = snap.val() || {}; merge(); }, err => console.error(err))];
-      const em = String(user.email || '').toLowerCase();
-      const myPk = (Account.profile && Account.profile.phoneKey) || (em.endsWith(MEMBER_DOMAIN) ? em.slice(0, -MEMBER_DOMAIN.length) : '');
-      if (myPk)
-        subs.push(F.onValue(R('phoneOrders/' + myPk), snap => { mine.phone = snap.val() || {}; merge(); }, err => console.warn('Phone orders not readable — update Database rules', err)));
       Account.unsubMine = () => subs.forEach(fn => fn());
       // live: every order, admin only
       if (Account.isAdmin) {
@@ -1923,6 +1880,7 @@ Please confirm my order. Thank you.`;
       closeAuth();
       $('aPass').value = '';
       toast(adminLogin ? 'Welcome back, admin' : 'Signed in');
+      if (!adminLogin && window.__claim) { const c = window.__claim; window.__claim = null; claimOrder(c.orderNo, c.phone, true); }
       location.hash = adminLogin ? '#admin' : '#account';
     } catch (ex) {
       fail(ex.code === 'x' ? ex.message : authMsg(ex));
@@ -1956,6 +1914,31 @@ Please confirm my order. Thank you.`;
     showView('home');
   }
 
+  /* ---------- Add a guest order to the account (server checks Order ID + phone) ---------- */
+  async function claimOrder(rawNo, phone, auto) {
+    const msg = (t, ok) => { const m = $('clMsg'); if (m) { m.textContent = t; m.className = 'text-xs mt-2 ' + (ok ? 'text-[#1F7A45]' : 'text-[#9B1C1C]'); } else if (t) toast(t); };
+    const orderNo = normOrderNo(rawNo);
+    if (!orderNo) return msg('Please enter your Order ID, e.g. SCB-250929-AB12.');
+    if (!normPhone(phone)) return msg('Please enter the phone number used for the order (01XXXXXXXXX).');
+    const u = Account.auth && Account.auth.currentUser; if (!u) return msg('Please sign in first.');
+    if ((Account.myOrders || []).some(o => o.orderNo === orderNo)) return msg(`${orderNo} is already in your orders.`, true);
+    msg('Adding…', true);
+    try {
+      const res = await withTimeout(fetch('/api/claim', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken: await u.getIdToken(), orderNo, phone: normPhone(phone) }) }), 20000);
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) return msg(j.error || 'Could not add the order. Please try again.');
+      msg(`✓ ${orderNo} added to your orders.`, true);
+      if (auto) toast(`✓ Order ${orderNo} added to your account`);
+      if ($('clNo')) $('clNo').value = '';
+    } catch (e) { msg('Network problem. Please try again.'); }
+  }
+  document.addEventListener('click', async (e) => {
+    const b = e.target.closest('[data-verifymail]'); if (!b) return;
+    try { await Account.fb.sendEmailVerification(Account.auth.currentUser); b.textContent = 'Link sent ✓'; b.disabled = true; }
+    catch (err) { toast(err && err.code === 'auth/too-many-requests' ? 'Please wait a few minutes before asking again' : 'Could not send the link right now'); }
+  });
+
   /* ---------- Customer: My Account ---------- */
   function renderAccount() {
     const box = $('accountBody');
@@ -1973,7 +1956,7 @@ Please confirm my order. Thank you.`;
             <button type="button" data-authopen="login" class="bg-noir text-white text-[11px] tracking-luxe uppercase px-10 py-4">Sign In</button>
             <button type="button" data-authopen="signup" class="border border-noir text-[11px] tracking-luxe uppercase px-10 py-4">Create Account</button>
           </div>
-          <p class="text-xs text-charcoal-soft mt-5 max-w-md mx-auto">Ordered as a guest? Create an account with your email and the <b>same phone number</b> you used for the order — all your orders will appear here automatically.</p>
+          <p class="text-xs text-charcoal-soft mt-5 max-w-md mx-auto">Ordered as a guest? Create a free account, then use <b>Add a past order</b> with your Order ID and phone number.</p>
         </div>
         <div class="max-w-2xl mx-auto">${trackBox('Works without signing in. You can find the Order ID on your order confirmation.')}</div>`;
       wireTrackBox();
@@ -1994,7 +1977,20 @@ Please confirm my order. Thank you.`;
         </div>
       </div>
 
+      ${u.emailVerified === false && !Account.isAdmin && !String(u.email || '').endsWith(MEMBER_DOMAIN) ? `<div class="flex flex-wrap items-center gap-3 border border-[#7A5A00]/30 bg-[#FFF4D6] px-5 py-3 mb-6 text-xs text-[#7A5A00]">
+        <span>📧 Please verify your email <b>${esc(u.email)}</b>: open the link we sent you. It helps you reset your password if you forget it.</span>
+        <button type="button" data-verifymail class="ml-auto underline">Resend link</button></div>` : ''}
       ${trackBox('Your order status is updated here as soon as we update it.')}
+      <form id="claimForm" class="border border-black/10 p-5 sm:p-6 mb-10">
+        <h2 class="font-serif text-xl mb-1">Add a past order</h2>
+        <p class="text-xs text-charcoal-soft mb-4">Ordered as a guest? Enter the Order ID and the phone number used for that order to add it to your account.</p>
+        <div class="grid sm:grid-cols-[1fr_1fr_auto] gap-2">
+          <input id="clNo" type="text" autocomplete="off" placeholder="Order ID, e.g. SCB-250929-AB12" class="border border-black/15 bg-white px-4 py-3 text-sm font-mono uppercase focus:outline-none focus:border-noir" />
+          <input id="clPhone" type="tel" inputmode="numeric" value="${esc(p.phone || '')}" placeholder="Phone used for the order" class="border border-black/15 bg-white px-4 py-3 text-sm focus:outline-none focus:border-noir" />
+          <button class="bg-noir text-white text-[11px] tracking-luxe uppercase px-6 py-3 hover:bg-charcoal">Add Order</button>
+        </div>
+        <p id="clMsg" class="text-xs mt-2"></p>
+      </form>
 
       <div class="grid lg:grid-cols-3 gap-10">
         <form id="profileForm" class="space-y-3">
@@ -2025,6 +2021,7 @@ Please confirm my order. Thank you.`;
         </div>
       </div>`;
     wireTrackBox();
+    $('claimForm').addEventListener('submit', (e) => { e.preventDefault(); claimOrder($('clNo').value, $('clPhone').value); });
     $('profileForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const email = legacy ? $('pEmail').value.trim().toLowerCase() : String(u.email).toLowerCase();
@@ -2220,10 +2217,7 @@ Please confirm my order. Thank you.`;
     if (!o || !o.orderNo) return;
     try {
       const full = { ...o, status, updatedAt: now };
-      const pk = o.phoneKey || await phoneKey(o.customer && o.customer.phone);
-      const extra = { [`orderStatus/${o.orderNo}`]: statusCard(full) };
-      if (pk) extra[`phoneOrders/${pk}/${id}`] = phoneCopy(full);
-      await Account.fb.update(R(''), extra);
+      await Account.fb.update(R(''), { [`orderStatus/${o.orderNo}`]: statusCard(full) });
     } catch (err) { console.warn('Tracking copy not updated — publish the new Database rules', err); toast('Status saved, but customer tracking needs the new Database rules'); }
   }
 
@@ -2280,10 +2274,7 @@ Please confirm my order. Thank you.`;
     await Account.fb.update(R(''), upd);
     try {                                                    // customer tracking copies
       const full = { ...o, delivery, status, updatedAt: changed ? now : o.updatedAt };
-      const pk = o.phoneKey || await phoneKey(o.customer && o.customer.phone);
-      const extra = { [`orderStatus/${o.orderNo}`]: statusCard(full) };
-      if (pk) extra[`phoneOrders/${pk}/${id}`] = phoneCopy(full);
-      await Account.fb.update(R(''), extra);
+      await Account.fb.update(R(''), { [`orderStatus/${o.orderNo}`]: statusCard(full) });
     } catch (e) { console.warn('Tracking copy not updated', e); }
     return changed ? status : null;
   }
@@ -2469,9 +2460,10 @@ Please confirm my order. Thank you.`;
       e.preventDefault();
       $('orderDone').classList.add('hidden'); $('orderDone').classList.remove('flex');
       window.__trackNo = $('doneNo').textContent.trim();
+      window.__claim = { orderNo: window.__trackNo, phone: d.trackacct };   // add this order to the account after sign-up / sign-in
       if (d.tracklogin) { openAuth('login'); $('aId').value = d.trackmail || ''; }
       else { openAuth('signup'); $('aName').value = d.trackname || ''; $('aPhone').value = d.trackacct; $('aMail').value = d.trackmail || ''; setTimeout(() => $('aPass').focus(), 80); }
-      $('aInfo').textContent = d.tracklogin ? 'Sign in with your email to see this order.' : 'Use the same phone number as your order to see it in My Account.'; $('aInfo').classList.remove('hidden');
+      $('aInfo').textContent = d.tracklogin ? 'Sign in and this order will be added to your account.' : 'Create your account and this order will be added to it automatically.'; $('aInfo').classList.remove('hidden');
       return;
     }
     if (t.id === 'accountBtn') {
