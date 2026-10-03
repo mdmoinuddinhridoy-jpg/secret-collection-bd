@@ -5574,5 +5574,50 @@
       "Care": "Dry clean recommended"
     },
     "active": true
+  },
+  {
+    "id": "L61",
+    "name": "Floral Lace Garter Teddy Bodysuit",
+    "category": "Lingerie",
+    "price": 7999,
+    "oldPrice": 12999,
+    "image": "161.jpg",
+    "images": [
+      "161.jpg"
+    ],
+    "tags": [
+      "exclusive"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Crafted with delicate sheer floral lace and supportive cups, this piece creates a romantic and flattering silhouette. Designed with matching leg garters, it makes a stunning choice for special occasions. Underwired lace cups · Adjustable shoulder straps · Attached garter straps with bands.",
+    "badge": "Hot",
+    "details": {
+      "Fabric": "Delicate floral lace and mesh",
+      "Care": "Hand wash cold, dry flat in shade"
+    },
+    "active": true
   }
 ]
