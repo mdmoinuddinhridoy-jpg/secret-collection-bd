@@ -7,6 +7,7 @@
 //
 // Cloudflare → Workers & Pages → your project → Settings → Variables and Secrets (type: Secret):
 //   FIREBASE_SERVICE_ACCOUNT  whole JSON file from Firebase → Project settings → Service accounts → Generate new private key
+//     (or instead two secrets: FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY, copied from that file)
 //   RESEND_API_KEY            order email alerts
 //   STEADFAST_API_KEY / STEADFAST_SECRET_KEY   delivery partner
 // Optional: NOTIFY_EMAIL, NOTIFY_FROM, FIREBASE_DATABASE_URL, FIREBASE_WEB_API_KEY, STEADFAST_BASE_URL
@@ -54,10 +55,52 @@ class SetupError extends Error { constructor(m) { super(m); this.setup = true; }
 /* ---------- Firebase admin access (service account → OAuth token → Realtime Database REST) ---------- */
 let tokenCache = { token: null, exp: 0 };
 let keyCache = { pem: null, key: null };
+// Accepts the service-account key in any common copy/paste form:
+//   the whole JSON file (with or without line breaks), wrapped in quotes, double-encoded, base64,
+//   or two separate secrets FIREBASE_CLIENT_EMAIL + FIREBASE_PRIVATE_KEY.
+function escapeNewlinesInStrings(t) {
+  let out = '', inStr = false, esc = false;
+  for (const ch of t) {
+    if (inStr) {
+      if (esc) { esc = false; out += ch; continue; }
+      if (ch === '\\') { esc = true; out += ch; continue; }
+      if (ch === '"') { inStr = false; out += ch; continue; }
+      if (ch === '\n') { out += '\\n'; continue; }
+      if (ch === '\r') continue;
+      out += ch;
+    } else { if (ch === '"') inStr = true; out += ch; }
+  }
+  return out;
+}
+function parseServiceAccount(raw) {
+  let s = String(raw || '').replace(/^﻿/, '').trim();
+  const orig = s;
+  if (s.length > 1 && /^['"`]/.test(s) && s[0] === s[s.length - 1] && s[1] === '{') s = s.slice(1, -1).trim();   // 'wrapped in quotes'
+  const smart = s.replace(/[“”]/g, '"').replace(/[‘’]/g, "'");
+  const tries = [s, escapeNewlinesInStrings(s), smart, escapeNewlinesInStrings(smart), orig, escapeNewlinesInStrings(orig)];
+  if (!s.startsWith('{') && /"client_email"/.test(s)) tries.push('{' + escapeNewlinesInStrings(smart).replace(/,\s*$/, '') + '}');   // braces missing
+  if (/^[A-Za-z0-9+/=\s_-]+$/.test(s) && s.length > 100) { try { tries.push(atob(s.replace(/\s+/g, '').replace(/-/g, '+').replace(/_/g, '/'))); } catch (e) {} }   // base64
+  for (const t of tries) {
+    try {
+      let v = JSON.parse(t);
+      if (typeof v === 'string') v = JSON.parse(escapeNewlinesInStrings(v));   // double-encoded
+      if (v && v.client_email && v.private_key) return v;
+    } catch (e) {}
+  }
+  return null;
+}
 function serviceAccount(env) {
-  if (!env.FIREBASE_SERVICE_ACCOUNT) throw new SetupError('Server is not connected to the database yet (FIREBASE_SERVICE_ACCOUNT missing in Cloudflare).');
-  let sa; try { sa = JSON.parse(env.FIREBASE_SERVICE_ACCOUNT); } catch (e) { throw new SetupError('FIREBASE_SERVICE_ACCOUNT is not valid JSON. Paste the whole downloaded file.'); }
-  if (sa.private_key) sa.private_key = sa.private_key.replace(/\\n/g, '\n');
+  let sa = null;
+  if (env.FIREBASE_CLIENT_EMAIL && env.FIREBASE_PRIVATE_KEY) sa = { client_email: String(env.FIREBASE_CLIENT_EMAIL).trim().replace(/^["']|["']$/g, ''), private_key: String(env.FIREBASE_PRIVATE_KEY).trim().replace(/^["']|["']$/g, '') };
+  else if (env.FIREBASE_SERVICE_ACCOUNT) {
+    sa = parseServiceAccount(env.FIREBASE_SERVICE_ACCOUNT);
+    if (!sa) {
+      const s = String(env.FIREBASE_SERVICE_ACCOUNT).trim();
+      throw new SetupError(`FIREBASE_SERVICE_ACCOUNT could not be read (it has ${s.length} characters, starts with "${s.slice(0, 1)}" and ends with "${s.slice(-1)}"; a complete key file has about 2,300 characters and starts with { and ends with }). Copy it again from the downloaded .json file, or use FIREBASE_CLIENT_EMAIL + FIREBASE_PRIVATE_KEY instead.`);
+    }
+  } else throw new SetupError('Server is not connected to the database yet (FIREBASE_SERVICE_ACCOUNT missing in Cloudflare).');
+  sa.private_key = String(sa.private_key).replace(/\\n/g, '\n').replace(/\r/g, '');
+  if (!/-----BEGIN [A-Z ]*PRIVATE KEY-----/.test(sa.private_key)) throw new SetupError('The Firebase private key is incomplete: it must start with -----BEGIN PRIVATE KEY-----.');
   return sa;
 }
 async function signingKey(pem) {
