@@ -891,12 +891,56 @@
     const box = `<div class="col-span-full text-center py-16 text-charcoal-soft text-sm">Products are being updated. Please refresh in a moment.</div>`;
     ['gridExclusive', 'gridPopular', 'gridRecommended', 'gridCatalog'].forEach(id => $(id).innerHTML = box);
   }
+  /* ---------- Live product updates (no page refresh needed) ----------
+     1) Admin publishes → every open tab in the same browser updates instantly (BroadcastChannel).
+     2) Every visitor's page checks products.json every 45 s (and when they return to the tab);
+        when the website has a new version, the page they are on is re-drawn in place. */
+  function applyProducts(data, text) {
+    if (!Array.isArray(data) || !data.length) return;
+    const list = normalizeProducts(data); if (!list.length) return;
+    if (text) productsHash = text;
+    PRODUCTS = list;
+    const y = window.scrollY;
+    renderHome();
+    if (state.view === 'catalog') renderCatalog();
+    if (state.view === 'product') { const h = decodeURIComponent(location.hash.slice(1)); if (h.startsWith('product/')) showProduct(h.slice(8), true); }
+    renderCart();
+    if (state.view !== 'admin') window.scrollTo(0, y);
+  }
+  const liveCh = ('BroadcastChannel' in window) ? new BroadcastChannel('scbd-live') : null;
+  if (liveCh) liveCh.onmessage = (e) => { if (e.data && e.data.type === 'products') applyProducts(e.data.data); };
+  let liveBusy = false;
+  async function checkProductsLive() {
+    if (liveBusy || document.hidden) return;
+    liveBusy = true;
+    try {
+      const r = await fetch(`${CONFIG.productsUrl}?v=${Date.now()}`, { cache: 'no-store' });
+      if (r.ok) { const t = await r.text(); if (t !== productsHash) { const d = JSON.parse(t); if (Array.isArray(d)) applyProducts(d, t); } }
+    } catch (e) { /* offline — try again later */ }
+    liveBusy = false;
+  }
+  setInterval(checkProductsLive, 45000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) checkProductsLive(); });
+  // Admin's browser only: a photo that was just uploaded may take ~1 min to reach the website — show it from GitHub meanwhile
+  document.addEventListener('error', (e) => {
+    const img = e.target;
+    if (!(img instanceof HTMLImageElement) || img.dataset.ghTried) return;
+    let s = {}; try { s = JSON.parse(localStorage.getItem('scbd_admin_settings_v1') || '{}'); } catch (x) {}
+    const src = img.getAttribute('src') || '';
+    if (!s.repo || !src || /^(https?:|data:|blob:)/.test(src)) return;
+    img.dataset.ghTried = '1';
+    img.src = `https://raw.githubusercontent.com/${s.repo}/${s.branch || 'main'}/${src.replace(/^\/+/, '').replace(/\?.*$/, '')}`;
+    setTimeout(() => { img.style.display = ''; }, 0);
+  }, true);
+
   function renderAll() {
     renderHome();
     if (state.view === 'catalog') renderCatalog();
     renderCart();
   }
   const findP = (id) => PRODUCTS.find(p => p.id === id);
+  // product name → link to its page on the website (newTab: admin lists open it in a new tab)
+  const pLink = (id, text, newTab) => id ? `<a href="#product/${encodeURIComponent(id)}" ${newTab ? 'target="_blank" rel="noopener" title="Open product page in a new tab"' : ''} class="underline-offset-4 hover:underline">${text}${newTab ? ' <span class="text-charcoal-soft text-[10px]">↗</span>' : ''}</a>` : text;
 
   /* ---------- Product card ---------- */
   function cardHTML(p, dark = false, hideCat = false) {
@@ -1016,16 +1060,19 @@
     return `<button type="button" ${attr}="${esc(val)}" class="min-w-[3rem] px-3 py-2 text-xs border transition ${active ? 'bg-noir text-white border-noir' : 'border-black/15 hover:border-noir'}">${esc(val)}</button>`;
   }
 
-  function showProduct(id) {
+  function showProduct(id, keep) {
     const p = findP(id);
-    showView('product');
+    if (!keep) showView('product');
     if (!p) {
       $('pvCrumbCat').textContent = 'Products'; $('pvCrumbName').textContent = 'Not found';
       $('pvBody').innerHTML = `<div class="text-center py-24"><p class="font-serif text-3xl mb-3">This product is no longer available</p><button data-cat="All" class="mt-6 bg-noir text-white text-xs tracking-luxe uppercase px-8 py-3">View All Products</button></div>`;
       $('pvRecoWrap').classList.add('hidden');
       return;
     }
-    pv.size = p.sizes[0]; pv.color = p.colors[0]; pv.qty = 1; pvIndex = 0;
+    const prev = keep ? { ...pv, i: pvIndex } : null;      // live refresh: keep the shopper's choices
+    pv.size = prev && p.sizes.includes(prev.size) ? prev.size : p.sizes[0];
+    pv.color = prev && p.colors.includes(prev.color) ? prev.color : p.colors[0];
+    pv.qty = prev ? prev.qty : 1; pvIndex = 0;
     document.title = `${p.name} | Secret Collection BD`;
     $('pvCrumbCat').textContent = p.category;
     $('pvCrumbCat').dataset.cat = p.category;
@@ -1112,6 +1159,7 @@
     }).filter(Boolean);
     $('pvRecoWrap').classList.toggle('hidden', reco.length === 0);
     renderGrid($('pvReco'), reco, false, true);
+    if (prev) { if ($('pvQty')) $('pvQty').textContent = pv.qty; if (prev.i && prev.i < p.images.length) pvGo(prev.i); }
   }
 
   let pvIndex = 0;
@@ -1855,7 +1903,7 @@
       </div>`).join('')}</div>`;
   }
   const SF_TRACK = () => 'https://steadfast.com.bd/tracking';     // Steadfast tracking page: paste the code there
-  const SF_TEXT = { in_review: 'Booked with courier', pending: 'On the way', hold: 'On hold at courier', delivered: 'Delivered', partial_delivered: 'Delivered', cancelled: 'Cancelled by courier' };
+  const SF_TEXT = { in_review: 'Booked with courier', pending: 'On the way', hold: 'On hold at courier', delivered: 'Delivered', partial_delivered: 'Delivered', cancelled: 'Cancelled by courier', delivered_approval_pending: 'Delivered', partial_delivered_approval_pending: 'Delivered', cancelled_approval_pending: 'Cancelled by courier' };
   const parcelLink = (d) => d && d.trackingCode
     ? `<div class="text-xs mb-3 mt-2 border border-black/10 bg-black/[.02] px-3 py-2.5 leading-relaxed">
          Courier: <b>${esc(d.partner || 'Steadfast')}</b>${d.status && SF_TEXT[d.status] ? ` · <b>${esc(SF_TEXT[d.status])}</b>` : ''}<br>
@@ -1893,7 +1941,7 @@
         ${trackSteps(o.status)}
         <p class="text-sm text-charcoal-light mt-4">${esc(STATUS_TEXT[o.status] || '')}</p>
         ${parcelLink(o.delivery)}
-        ${o.items ? `<ul class="text-sm text-charcoal-light space-y-1 mt-3">${o.items.map(i => `<li>${esc(i.name)} <span class="text-charcoal-soft">· ${esc(i.size)} · ${esc(i.color)} · ×${i.qty}</span></li>`).join('')}</ul>`
+        ${o.items ? `<ul class="text-sm text-charcoal-light space-y-1 mt-3">${o.items.map(i => `<li>${pLink(i.id, esc(i.name))} <span class="text-charcoal-soft">· ${esc(i.size)} · ${esc(i.color)} · ×${i.qty}</span></li>`).join('')}</ul>`
                   : (o.itemCount ? `<p class="text-xs text-charcoal-soft mt-2">${o.itemCount} item${o.itemCount > 1 ? 's' : ''}</p>` : '')}
         <div class="flex justify-between text-sm pt-3 mt-3 border-t border-black/5"><span class="text-charcoal-soft">${upd ? 'Updated ' + fmtDate(upd) + ' ' + fmtTime(upd) : ''}</span><b>${o.total != null ? taka(o.total) : ''}</b></div>
       </div>`;
@@ -2107,7 +2155,7 @@
               <p class="text-xs text-charcoal-soft -mt-1 mb-3">${esc(STATUS_TEXT[o.status] || '')}${o.updatedAt ? ` · Updated ${fmtDate(new Date(o.updatedAt))} ${fmtTime(new Date(o.updatedAt))}` : ''}</p>
               ${parcelLink(o.delivery)}
               <ul class="text-sm text-charcoal-light space-y-1 mb-3">
-                ${(o.items || []).map(i => `<li>${esc(i.name)} <span class="text-charcoal-soft">· ${esc(i.size)} · ${esc(i.color)} · ×${i.qty}</span></li>`).join('')}
+                ${(o.items || []).map(i => `<li>${pLink(i.id, esc(i.name))} <span class="text-charcoal-soft">· ${esc(i.size)} · ${esc(i.color)} · ×${i.qty}</span></li>`).join('')}
               </ul>
               <div class="flex justify-between text-sm pt-3 border-t border-black/5"><span class="text-charcoal-soft">${esc(o.payment?.method || '')}${o.payment?.trx ? ' · ' + esc(o.payment.trx) : ''}${payBadge(o).replace('<br>', ' ')}</span><b>${taka(o.total)}</b></div>
             </div>`).join('') : `<div class="border border-dashed border-black/15 p-10 text-center text-charcoal-soft">No orders yet. <a href="#shop" class="underline">Start shopping</a></div>`}
@@ -2239,7 +2287,7 @@
         <th class="${th} text-right">Qty</th><th class="${th} text-right">Revenue</th><th class="${th} text-right">Orders</th>
         <th class="${th}">Top Sizes</th><th class="${th}">Top Colors</th></tr></thead>
       <tbody>${skuRows.length ? skuRows.map(r => `<tr class="hover:bg-black/[.02]">
-        <td class="${td} font-mono">${esc(r.sku)}</td><td class="${td}">${esc(r.name)}</td><td class="${td} text-charcoal-soft">${esc(r.category)}</td>
+        <td class="${td} font-mono">${esc(r.sku)}</td><td class="${td}">${pLink(r.sku, esc(r.name), true)}</td><td class="${td} text-charcoal-soft">${esc(r.category)}</td>
         <td class="${td} text-right font-medium">${r.qty}</td><td class="${td} text-right">${taka(r.revenue)}</td><td class="${td} text-right">${r.orders}</td>
         <td class="${td} text-charcoal-soft">${esc(r.topSizes)}</td><td class="${td} text-charcoal-soft">${esc(r.topColors)}</td></tr>`).join('')
         : `<tr><td colspan="8" class="px-4 py-10 text-center text-charcoal-soft">No sales in this period yet.</td></tr>`}</tbody>`;
@@ -2273,10 +2321,10 @@
           <td class="${td} text-right font-medium whitespace-nowrap">${taka(o.total)}</td>
           <td class="${td} whitespace-nowrap">${esc(o.payment?.method)}<br><span class="font-mono text-charcoal-soft">${esc(o.payment?.trx)}</span>${payBadge(o)}</td>
           <td class="${td}">
-            <select data-admset="${o._id}" ${o.delivery ? 'disabled title="Updated automatically from Steadfast"' : ''} class="lux border border-black/15 bg-white px-2 py-1.5 text-xs focus:outline-none focus:border-noir disabled:bg-black/[.04] disabled:text-noir">
+            <select data-admset="${o._id}" ${sfLocked(o) ? 'disabled title="Updated automatically from Steadfast"' : ''} class="lux border border-black/15 bg-white px-2 py-1.5 text-xs focus:outline-none focus:border-noir disabled:bg-black/[.04] disabled:text-noir">
               ${ORDER_STATUSES.map(s => `<option ${s === o.status ? 'selected' : ''}>${s}</option>`).join('')}
             </select>
-            ${o.delivery ? `<p class="mt-1 text-[10px] text-charcoal-soft whitespace-nowrap">🚚 Steadfast: ${esc(sfLabel(o.delivery.status))} <button type="button" data-sfrefresh="${o._id}" class="underline">${dlv.busy[o._id] ? '…' : 'Refresh'}</button></p>` : ''}
+            ${o.delivery ? `<p class="mt-1 text-[10px] text-charcoal-soft whitespace-nowrap">🚚 Steadfast: ${esc(sfLabel(o.delivery.status))} <button type="button" data-sfrefresh="${o._id}" class="underline">${dlv.busy[o._id] ? '…' : 'Refresh'}</button></p>${sfLocked(o) ? '' : '<p class="mt-0.5 text-[10px] text-[#9A6700] whitespace-nowrap">Courier status unclear: set the status yourself</p>'}` : ''}
           </td></tr>
           ${open ? `<tr><td colspan="7" class="px-4 py-5 bg-black/[.02] border-b border-black/10">
             <div class="grid md:grid-cols-3 gap-6 text-xs">
@@ -2285,14 +2333,14 @@
                 <a href="https://wa.me/88${esc(String(o.customer?.phone || '').replace(/^\+?88/, ''))}" target="_blank" rel="noopener" class="inline-block mt-3 bg-[#25D366] text-white px-3 py-1.5 text-[10px] tracking-[.12em] uppercase">WhatsApp Customer</a></div>
               <div class="md:col-span-2"><p class="text-[10px] tracking-[.14em] uppercase text-charcoal-soft mb-2">Items</p>
                 <table class="w-full">${(o.items || []).map(i => `<tr class="border-b border-black/5">
-                  <td class="py-1.5 font-mono pr-3">${esc(i.id)}</td><td class="py-1.5">${esc(i.name)}</td><td class="py-1.5 text-charcoal-soft">${esc(i.size)} · ${esc(i.color)}</td>
+                  <td class="py-1.5 font-mono pr-3">${esc(i.id)}</td><td class="py-1.5">${pLink(i.id, esc(i.name), true)}</td><td class="py-1.5 text-charcoal-soft">${esc(i.size)} · ${esc(i.color)}</td>
                   <td class="py-1.5 text-right">×${i.qty}</td><td class="py-1.5 text-right">${taka(i.lineTotal)}</td></tr>`).join('')}
                   <tr><td colspan="4" class="pt-2 text-right text-charcoal-soft">Delivery</td><td class="pt-2 text-right">FREE</td></tr>
                   <tr><td colspan="4" class="text-right font-medium">Total</td><td class="text-right font-medium">${taka(o.total)}</td></tr></table>
                 ${o.updatedAt ? `<p class="text-[10px] text-charcoal-soft mt-3">Last status change: ${fmtDate(new Date(o.updatedAt))} ${fmtTime(new Date(o.updatedAt))}</p>` : ''}
                 <div class="mt-4 pt-3 border-t border-black/10 flex flex-wrap items-center gap-3">
                   <span class="text-[10px] tracking-[.14em] uppercase text-charcoal-soft">Delivery</span>
-                  ${o.delivery ? `<span>Steadfast · CID <b class="font-mono">${esc(o.delivery.consignmentId)}</b> · <b class="font-mono select-all">${esc(o.delivery.trackingCode)}</b> <button type="button" data-copytext="${esc(o.delivery.trackingCode)}" class="text-[9px] uppercase border border-black/15 px-1">Copy</button> · ${sfPill(o.delivery.status)}</span>`
+                  ${o.delivery ? `<span>Steadfast · CID <b class="font-mono">${esc(o.delivery.consignmentId)}</b> · <b class="font-mono select-all">${esc(o.delivery.trackingCode)}</b> <button type="button" data-copytext="${esc(o.delivery.trackingCode)}" class="text-[9px] uppercase border border-black/15 px-1">Copy</button> · ${sfPill(o.delivery.status)}${o.delivery.message ? `<br><span class="text-charcoal-soft">Courier update: ${esc(o.delivery.message)}${o.delivery.checkedAt ? ` · ${fmtDate(new Date(o.delivery.checkedAt))} ${fmtTime(new Date(o.delivery.checkedAt))}` : ''}</span>` : ''}</span>`
                     : `<button type="button" data-sfsend="${o._id}" class="bg-noir text-white px-4 py-2 text-[10px] tracking-[.14em] uppercase hover:bg-charcoal">Send to Delivery</button><span class="text-charcoal-soft">Steadfast pickup · COD ৳0 (prepaid). Change COD in the Delivery Partner tab.</span>`}
                 </div>
               </div>
@@ -2353,7 +2401,10 @@
   }
 
   // Steadfast status → order status shown in Orders & Reports and to the customer
-  const SF_TO_ORDER = { in_review: 'Confirmed', pending: 'Shipped', hold: 'Shipped', delivered: 'Delivered', partial_delivered: 'Delivered', cancelled: 'Cancelled' };
+  // Statuses not in this list (e.g. "unknown") are NOT applied — the admin sets the order status by hand for those.
+  const SF_TO_ORDER = { in_review: 'Confirmed', pending: 'Shipped', hold: 'Shipped', delivered: 'Delivered', partial_delivered: 'Delivered', cancelled: 'Cancelled',
+    delivered_approval_pending: 'Delivered', partial_delivered_approval_pending: 'Delivered', cancelled_approval_pending: 'Cancelled' };
+  const sfLocked = (o) => !!(o.delivery && SF_TO_ORDER[o.delivery.status]);   // status comes from Steadfast → can't be changed by hand
   async function saveDelivery(o, delivery) {
     const id = o._id, now = Date.now();
     const status = SF_TO_ORDER[delivery.status] || o.status;          // unknown / approval-pending → keep current
@@ -2438,7 +2489,7 @@
   let sfSyncing = false;
   async function refreshAllDeliveries(auto) {
     if (sfSyncing) return;
-    const list = (Account.adminOrders || []).filter(o => o.delivery && !['delivered', 'cancelled', 'partial_delivered'].includes(o.delivery.status)).slice(0, 40);
+    const list = (Account.adminOrders || []).filter(o => o.delivery && !['delivered', 'cancelled', 'partial_delivered'].includes(o.delivery.status)).slice(0, 40);   // includes "unknown" → checked again
     if (!list.length) { if (!auto) toast('Nothing to update'); return; }
     sfSyncing = true;
     if (!auto) { dlv.balMsg = `Updating ${list.length}…`; renderDelivery(); }
@@ -2449,12 +2500,12 @@
     if (!auto) { dlv.balMsg = ''; renderDelivery(); }
     if (!auto || moved) toast(`Steadfast: ${ok} parcel${ok === 1 ? '' : 's'} checked${moved ? ` · ${moved} status update${moved === 1 ? '' : 's'}` : ''}${fail ? ` · ${fail} failed` : ''}`);
   }
-  // Auto-sync Steadfast statuses while the admin dashboard is open (on open, then every 10 minutes)
+  // Auto-sync Steadfast statuses while the admin dashboard is open (on open, then every 5 minutes) — a backup for the Steadfast webhook
   let sfTimer = null;
   function startSfAutoSync() {
     stopSfAutoSync();
     setTimeout(() => { if (Account.isAdmin) refreshAllDeliveries(true); }, 4000);
-    sfTimer = setInterval(() => { if (Account.isAdmin && !document.hidden) refreshAllDeliveries(true); }, 10 * 60 * 1000);
+    sfTimer = setInterval(() => { if (Account.isAdmin && !document.hidden) refreshAllDeliveries(true); }, 5 * 60 * 1000);
   }
   function stopSfAutoSync() { if (sfTimer) { clearInterval(sfTimer); sfTimer = null; } }
   async function checkSteadfast() {
@@ -2576,7 +2627,11 @@
   });
   document.addEventListener('change', (e) => {
     const s = e.target.closest('[data-admset]');
-    if (s) setOrderStatus(s.dataset.admset, s.value);
+    if (s) {
+      const o = (Account.adminOrders || []).find(x => x._id === s.dataset.admset);
+      if (o && sfLocked(o)) { s.value = o.status; toast('This order follows Steadfast\'s status'); }
+      else setOrderStatus(s.dataset.admset, s.value);
+    }
     if (e.target.id === 'admStatus') { adm.status = e.target.value; renderAdmin(); }
   });
   let admT;
@@ -2809,7 +2864,7 @@
       return w.state === 'ok'
         ? `<div class="flex flex-wrap items-center gap-2 border border-[#1F7A45]/30 bg-[#E3F5E9] px-4 py-2.5 text-xs text-[#1F7A45]"><b>✓ Live:</b> ${esc(w.label)} is visible on the website (${w.took}s)${w.link ? ` · <a href="#product/${encodeURIComponent(w.link)}" target="_blank" class="underline">View ↗</a>` : ''}<button type="button" data-livex class="ml-auto opacity-60 hover:opacity-100">✕</button></div>`
         : w.state === 'slow'
-          ? `<div class="flex flex-wrap items-center gap-2 border border-[#7A5A00]/30 bg-[#FFF4D6] px-4 py-2.5 text-xs text-[#7A5A00]"><b>⚠ Still waiting:</b> ${esc(w.label)} was saved to GitHub but is not on the website after 6 minutes. Check the latest deployment in Vercel.<button type="button" data-livex class="ml-auto opacity-60 hover:opacity-100">✕</button></div>`
+          ? `<div class="flex flex-wrap items-center gap-2 border border-[#7A5A00]/30 bg-[#FFF4D6] px-4 py-2.5 text-xs text-[#7A5A00]"><b>⚠ Still waiting:</b> ${esc(w.label)} was saved to GitHub but is not on the website after 6 minutes. Check the latest deployment in Cloudflare → Workers & Pages → secret-collection-bd → Deployments.<button type="button" data-livex class="ml-auto opacity-60 hover:opacity-100">✕</button></div>`
           : `<div class="flex flex-wrap items-center gap-2 border border-black/10 bg-white px-4 py-2.5 text-xs"><span class="inline-block w-3 h-3 border-2 border-noir border-t-transparent rounded-full animate-spin"></span><b>Publishing:</b> ${esc(w.label)} · saved to GitHub, waiting for the website to update… <span class="font-mono text-charcoal-soft">${t}</span></div>`;
     };
     const html = PM.live.map(row).join('');
@@ -2834,8 +2889,8 @@
   }
   function afterPublish(data, what, skus = [], removed = []) {
     PM.products = data;
-    PRODUCTS = normalizeProducts(data);          // admin sees the change immediately
-    renderHome(); if (state.view === 'catalog') renderCatalog();
+    applyProducts(data);                          // admin sees the change immediately
+    if (liveCh) try { liveCh.postMessage({ type: 'products', data }); } catch (e) {}   // …and so does every other open tab
     renderProductList();
     toast(`${what} saved. Checking the website…`);
     if (skus.length || removed.length) watchLive(what, data, skus, removed);
@@ -2872,8 +2927,8 @@
         const imgs = (p.images && p.images.length ? p.images : [p.image]).filter(Boolean);
         const tags = (p.tags || []).join(', ');
         return `<tr class="hover:bg-black/[.02]">
-          <td class="${td}"><div class="w-10 h-12 img-ph overflow-hidden"><img src="${esc(imgs[0] || '')}" alt="" loading="lazy" class="w-full h-full object-cover" onerror="this.style.display='none'" /></div></td>
-          <td class="${td} font-mono">${esc(p.id)}</td><td class="${td}">${esc(p.name)}</td><td class="${td} text-charcoal-soft">${esc(p.category)}</td>
+          <td class="${td}"><a href="#product/${encodeURIComponent(p.id)}" target="_blank" rel="noopener" title="Open product page" class="block w-10 h-12 img-ph overflow-hidden"><img src="${esc(imgs[0] || '')}" alt="" loading="lazy" class="w-full h-full object-cover" onerror="this.style.display='none'" /></a></td>
+          <td class="${td} font-mono">${esc(p.id)}</td><td class="${td}">${p.active === false ? esc(p.name) + ' <span class="text-[10px] text-charcoal-soft">(hidden, not on website)</span>' : pLink(p.id, esc(p.name), true)}</td><td class="${td} text-charcoal-soft">${esc(p.category)}</td>
           <td class="${td} text-right whitespace-nowrap">${taka(p.price)}</td><td class="${td} text-charcoal-soft">${esc(tags || '—')}</td>
           <td class="${td} text-right">${imgs.length}</td><td class="${td}">${p.active === false ? '<span class="text-[#9B1C1C]">Hidden</span>' : 'Yes'}</td>
           <td class="${td} whitespace-nowrap text-right">${canEdit ? `<button type="button" data-pmedit="${i}" class="border border-black/20 px-3 py-1.5 hover:bg-noir hover:text-white">Edit</button> <button type="button" data-pmdel="${i}" class="px-2 py-1.5 text-[#9B1C1C] hover:underline">Delete</button>` : ''}</td></tr>`;
