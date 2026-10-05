@@ -3,6 +3,7 @@
 //   POST /api/order      create an order (prices checked against products.json, spam limits, email alert)
 //   POST /api/claim      add a guest order to the signed-in customer's account (Order ID + phone)
 //   POST /api/steadfast  admin only: balance / create parcel / parcel status
+//   POST /api/sfhook     Steadfast webhook: courier status changes arrive here instantly
 //   *    /api/notify     retired (410)
 //
 // Cloudflare → Workers & Pages → your project → Settings → Variables and Secrets (type: Secret):
@@ -10,6 +11,7 @@
 //     (or instead two secrets: FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY, copied from that file)
 //   RESEND_API_KEY            order email alerts
 //   STEADFAST_API_KEY / STEADFAST_SECRET_KEY   delivery partner
+//   STEADFAST_WEBHOOK_TOKEN   any long random text; the same text goes into Steadfast → Webhook → Auth token
 // Optional: NOTIFY_EMAIL, NOTIFY_FROM, FIREBASE_DATABASE_URL, FIREBASE_WEB_API_KEY, STEADFAST_BASE_URL
 // No packages needed.
 
@@ -368,12 +370,61 @@ async function handleSteadfast(ctx, body) {
   }
 }
 
+/* ======================= POST /api/sfhook (Steadfast webhook) ======================= */
+// Steadfast calls this when a parcel's status changes. The order, the customer's copy and the
+// public tracking card are updated right away (the admin dashboard shows it live).
+// Statuses not listed here (e.g. "unknown") are saved but do NOT change the order status: the admin sets it by hand.
+const SF_TO_ORDER = { in_review: 'Confirmed', pending: 'Shipped', hold: 'Shipped', delivered: 'Delivered', partial_delivered: 'Delivered', cancelled: 'Cancelled',
+  delivered_approval_pending: 'Delivered', partial_delivered_approval_pending: 'Delivered', cancelled_approval_pending: 'Cancelled' };
+async function sameSecret(a, b) { return (await sha256hex('scbd:' + a)) === (await sha256hex('scbd:' + b)); }
+async function handleSfHook(ctx, b) {
+  const env = ctx.env, req = ctx.request;
+  if (!env.STEADFAST_WEBHOOK_TOKEN) return json(503, { status: 'error', message: 'Webhook token not set (STEADFAST_WEBHOOK_TOKEN)' });
+  const auth = req.headers.get('Authorization') || '';
+  const given = (auth.match(/^Bearer\s+(.+)$/i) || [])[1] || req.headers.get('X-Webhook-Token') || req.headers.get('Api-Key') || new URL(req.url).searchParams.get('token') || '';
+  if (!given || !(await sameSecret(given.trim(), String(env.STEADFAST_WEBHOOK_TOKEN).trim()))) return json(401, { status: 'error', message: 'Unauthorized' });
+
+  const type = clip(b.notification_type, 40).toLowerCase();
+  const invoice = clip(b.invoice, 60).replace(/[^A-Za-z0-9_-]/g, '');
+  const cid = String(b.consignment_id || '').replace(/\D/g, '');
+  const sfStatus = clip(b.status || b.delivery_status, 60).toLowerCase().replace(/\s+/g, '_');
+  const message = clip(b.tracking_message, 250);
+  const ack = (extra) => json(200, { status: 'success', message: 'Webhook received', ...extra });
+  if (!invoice) return ack({ matched: false });
+
+  const found = await dbGet(env, 'orders', `&orderBy=${encodeURIComponent('"orderNo"')}&equalTo=${encodeURIComponent(JSON.stringify(invoice))}`) || {};
+  const key = Object.keys(found)[0];
+  if (!key) return ack({ matched: false });
+  const o = found[key];
+  if (!o.delivery) return ack({ matched: true, linked: false });                 // not sent from the admin panel → link it there first
+  if (cid && o.delivery.consignmentId && String(o.delivery.consignmentId) !== cid) return ack({ matched: true, linked: false });
+
+  const now = Date.now();
+  const delivery = { ...o.delivery, checkedAt: now };
+  if (sfStatus && type !== 'tracking_update') delivery.status = sfStatus;
+  if (message) delivery.message = message;
+  const status = SF_TO_ORDER[delivery.status] || o.status;                    // unknown → keep what the admin set
+  const changed = status !== o.status;
+  const upd = { [`orders/${key}/delivery`]: delivery };
+  if (changed) { upd[`orders/${key}/status`] = status; upd[`orders/${key}/updatedAt`] = now; }
+  if (o.uid) {
+    upd[`userOrders/${o.uid}/${key}/delivery`] = delivery;
+    if (changed) { upd[`userOrders/${o.uid}/${key}/status`] = status; upd[`userOrders/${o.uid}/${key}/updatedAt`] = now; }
+  }
+  const pub = delivery.trackingCode ? { partner: delivery.partner || 'Steadfast', trackingCode: delivery.trackingCode, status: delivery.status || null, sentAt: delivery.sentAt || null } : null;
+  upd[`orderStatus/${o.orderNo}`] = JSON.parse(JSON.stringify({ status, createdAt: o.createdAt, updatedAt: changed ? now : (o.updatedAt || null), total: o.total,
+    itemCount: (o.items || []).reduce((n, i) => n + (Number(i.qty) || 1), 0), delivery: pub }));
+  await dbPatch(env, '', upd);
+  return ack({ matched: true, orderStatus: status, changed });
+}
+
 /* ======================= router ======================= */
 export async function onRequest(ctx) {
   const name = String([].concat(ctx.params.path || []).join('/')).toLowerCase();
   if (name === 'notify') return json(410, { error: 'Moved to /api/order' });
-  const handler = { order: handleOrder, claim: handleClaim, steadfast: handleSteadfast }[name];
+  const handler = { order: handleOrder, claim: handleClaim, steadfast: handleSteadfast, sfhook: handleSfHook }[name];
   if (!handler) return json(404, { error: 'Not found' });
+  if (name === 'sfhook' && ctx.request.method !== 'POST') return json(200, { status: 'success', message: 'Webhook endpoint is ready' });   // URL check
   if (ctx.request.method !== 'POST') return json(405, { error: 'POST only' });
   let body = {};
   try { body = await ctx.request.json(); } catch (e) { body = {}; }
@@ -383,6 +434,7 @@ export async function onRequest(ctx) {
   } catch (err) {
     console.error(`/api/${name} error:`, err);
     if (err.setup) return json(503, { error: err.message });
+    if (name === 'sfhook') return json(500, { status: 'error', message: 'Could not save the update' });   // Steadfast retries later
     return json(502, { error: name === 'claim' ? 'Could not add the order right now. Please try again.' : 'Could not place the order right now. Please try again.' });
   }
 }
