@@ -4,6 +4,10 @@
 //   POST /api/claim      add a guest order to the signed-in customer's account (Order ID + phone)
 //   POST /api/steadfast  admin only: balance / create parcel / parcel status
 //   POST /api/sfhook     Steadfast webhook: courier status changes arrive here instantly
+//   POST /api/adminorder admin only: add orders by hand / from Excel (past offline orders)
+//
+// Order IDs: one running serial for website AND manual orders (SCB-1001, SCB-1002 …), kept in the
+// database at counters/orderSeq and increased safely, so two orders can never get the same number.
 //   *    /api/notify     retired (410)
 //
 // Cloudflare → Workers & Pages → your project → Settings → Variables and Secrets (type: Secret):
@@ -219,12 +223,27 @@ async function loadProducts(ctx) {
   productCache = { at: Date.now(), list };
   return list;
 }
-function makeOrderNo() {
-  const d = new Date(Date.now() + 6 * 3600e3);   // Bangladesh date
-  const p = (n) => String(n).padStart(2, '0');
-  const r = [...randomBytes(4)].map(b => '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'[b % 36]).join('');
-  return `SCB-${String(d.getUTCFullYear()).slice(2)}${p(d.getUTCMonth() + 1)}${p(d.getUTCDate())}-${r}`;
+/* ---------- running order serial: SCB-1001, SCB-1002 … ---------- */
+const SERIAL_START = 1000;                    // the first order gets SCB-1001
+const serialNo = (n) => 'SCB-' + n;
+// Reserves `count` numbers in one safe step (compare-and-swap with the database's ETag; retried if two orders arrive together)
+async function nextSerials(env, count = 1) {
+  const url = `${cfg(env).db}/counters/orderSeq.json?access_token=`;
+  for (let attempt = 0; attempt < 12; attempt++) {
+    const t = await accessToken(env);
+    const g = await fetch(url + encodeURIComponent(t), { headers: { 'X-Firebase-ETag': 'true' } });
+    if (!g.ok) throw new Error('Order counter read failed (' + g.status + ')');
+    const etag = g.headers.get('ETag');
+    const cur = Number(await g.json()) || SERIAL_START;
+    const next = cur + count;
+    const w = await fetch(url + encodeURIComponent(t), { method: 'PUT', headers: { 'Content-Type': 'application/json', 'if-match': etag }, body: JSON.stringify(next) });
+    if (w.ok) return Array.from({ length: count }, (_, i) => cur + 1 + i);
+    if (w.status !== 412) throw new Error('Order counter update failed (' + w.status + ')');
+    await new Promise(r => setTimeout(r, 40 + Math.random() * 160));   // someone else just took a number → try again
+  }
+  throw new Error('Order counter is busy, please try again');
 }
+const ORDER_NO_RE = /^SCB-(\d{3,8}|\d{6}-[A-Z0-9]{4})$/;      // new serial, or the older date-based IDs
 async function handleOrder(ctx, b) {
   const env = ctx.env;
   const fail = (status, error) => json(status, { error });
@@ -269,10 +288,10 @@ async function handleOrder(ctx, b) {
   // 5. signed-in customer?
   const user = b.idToken ? await verifyUser(env, b.idToken) : null;
   // 6. save
-  let orderNo = makeOrderNo();
-  for (let i = 0; i < 3 && (await dbGet(env, 'orderStatus/' + orderNo)); i++) orderNo = makeOrderNo();
+  const [serial] = await nextSerials(env, 1);
+  const orderNo = serialNo(serial);
   const key = pushKey(), now = Date.now();
-  const order = { orderNo, source: 'website', customer, payment: { method, trx }, items, subtotal, delivery: 0, total,
+  const order = { orderNo, serial, source: 'website', channel: 'Website', customer, payment: { method, trx }, items, subtotal, delivery: 0, total,
     uid: user ? user.uid : null, status: 'Pending', createdAt: now };
   const status = { status: 'Pending', createdAt: now, total, itemCount: items.reduce((n, l) => n + l.qty, 0) };
   const upd = { [`orders/${key}`]: order, [`orderStatus/${orderNo}`]: status };
@@ -290,7 +309,7 @@ async function handleClaim(ctx, b) {
   if (!user) return fail(401, 'Please sign in again.');
   const orderNo = String(b.orderNo || '').trim().toUpperCase();
   const phone = normPhone(b.phone);
-  if (!/^SCB-\d{6}-[A-Z0-9]{4}$/.test(orderNo)) return fail(400, 'Please enter your Order ID, e.g. SCB-260929-AB12.');
+  if (!ORDER_NO_RE.test(orderNo)) return fail(400, 'Please enter your Order ID, e.g. SCB-1001.');
   if (!phone) return fail(400, 'Please enter the phone number used for the order (01XXXXXXXXX).');
   if (!(await rateLimit(env, 'claim', user.uid, 10, 3600e3))) return fail(429, 'Too many attempts. Please try again in an hour.');
   const found = await dbGet(env, 'orders', `&orderBy=${encodeURIComponent('"orderNo"')}&equalTo=${encodeURIComponent(JSON.stringify(orderNo))}`);
@@ -418,11 +437,73 @@ async function handleSfHook(ctx, b) {
   return ack({ matched: true, orderStatus: status, changed });
 }
 
+/* ======================= POST /api/adminorder (admin) ======================= */
+// Adds orders typed in the admin panel or imported from Excel. Each gets the next serial number.
+// Body: { idToken, orders: [{ date, channel, refNo, customer:{name,phone,email,address}, items:[{id,name,category,size,color,qty,price}],
+//         deliveryCharge, discount, payment:{method,trx}, paymentStatus, status, note }] }
+const ORDER_STATUSES = ['Pending', 'Payment Verified', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled'];
+async function handleAdminOrder(ctx, b) {
+  const env = ctx.env, fail = (status, error, extra) => json(status, { error, ...(extra || {}) });
+  const u = await verifyUser(env, b.idToken);
+  if (!u || !ADMIN_EMAILS.includes(u.email)) return fail(401, 'Admin login required. Please sign in again.');
+  const input = Array.isArray(b.orders) ? b.orders : [];
+  if (!input.length) return fail(400, 'No orders to add.');
+  if (input.length > 300) return fail(400, 'Please add at most 300 orders at a time.');
+  let products = []; try { products = await loadProducts(ctx); } catch (e) {}
+  const byId = Object.fromEntries(products.map(p => [String(p.id).toUpperCase(), p]));
+  const now = Date.now(), errors = [], clean = [];
+  const money = (v) => Math.max(0, Math.round(Number(v) || 0));
+  input.forEach((o, n) => {
+    const row = o.row || n + 1, bad = (m) => errors.push({ row, error: m });
+    const c = o.customer || {};
+    const rawPh = String(c.phone || '').replace(/\D/g, ''), ph = /^1[3-9]\d{8}$/.test(rawPh) ? '0' + rawPh : c.phone;   // Excel often drops the first 0
+    const customer = { name: clip(c.name, 80), phone: normPhone(ph), email: clip(c.email, 100).toLowerCase(), address: clip(c.address, 300) };
+    if (customer.name.length < 2) return bad('Customer name missing');
+    if (!customer.phone) return bad('Phone must be 11 digits (01XXXXXXXXX)');
+    const date = Number(o.date) || now;
+    if (date < Date.UTC(2015, 0, 1) || date > now + 864e5) return bad('Order date is not valid');
+    const items = [];
+    for (const it of (Array.isArray(o.items) ? o.items.slice(0, 50) : [])) {
+      const p = byId[String(it.id || '').trim().toUpperCase()];
+      const name = clip(it.name, 120) || (p ? String(p.name) : '');
+      const qty = Math.max(1, Math.min(999, parseInt(it.qty, 10) || 1));
+      const price = it.price === '' || it.price == null ? (p ? Math.round(Number(p.price)) : 0) : money(it.price);
+      if (!name) { bad('Product name or a valid SKU is needed'); return; }
+      items.push({ id: p ? String(p.id) : clip(it.id, 30).toUpperCase(), name, category: clip(it.category, 40) || (p ? String(p.category || '') : ''),
+        size: clip(it.size, 30), color: clip(it.color, 30), qty, price, lineTotal: price * qty, image: p ? String(p.image || (p.images || [])[0] || '') : '' });
+    }
+    if (!items.length) return bad('At least one product is needed');
+    const subtotal = items.reduce((s, l) => s + l.lineTotal, 0);
+    const deliveryCharge = money(o.deliveryCharge), discount = Math.min(money(o.discount), subtotal + deliveryCharge);
+    const pay = o.payment || {};
+    clean.push({ date, refNo: clip(o.refNo, 60), channel: clip(o.channel, 30) || 'Other', customer, items, subtotal, deliveryCharge, discount,
+      total: subtotal + deliveryCharge - discount,
+      payment: { method: clip(pay.method, 30) || 'Cash', trx: clip(pay.trx, 40) },
+      paymentStatus: ['Paid', 'Unpaid', 'Partial'].includes(o.paymentStatus) ? o.paymentStatus : 'Paid',
+      status: ORDER_STATUSES.includes(o.status) ? o.status : 'Delivered', note: clip(o.note, 300) });
+  });
+  if (errors.length) return fail(400, `${errors.length} row${errors.length > 1 ? 's have' : ' has'} a problem. Nothing was added.`, { errors });
+  // older orders get the lower numbers
+  const order = clean.map((o, i) => ({ o, i })).sort((a, b) => a.o.date - b.o.date || a.i - b.i);
+  const serials = await nextSerials(env, order.length);
+  const upd = {}, added = new Array(clean.length);
+  order.forEach(({ o, i }, k) => {
+    const serial = serials[k], orderNo = serialNo(serial), key = pushKey();
+    const rec = { orderNo, serial, source: 'manual', ...o, createdAt: o.date, enteredAt: now, enteredBy: u.email, uid: null };
+    delete rec.date;
+    upd[`orders/${key}`] = rec;
+    upd[`orderStatus/${orderNo}`] = { status: rec.status, createdAt: rec.createdAt, updatedAt: now, total: rec.total, itemCount: rec.items.reduce((s, l) => s + l.qty, 0) };
+    added[i] = { orderNo, key };
+  });
+  await dbPatch(env, '', upd);
+  return json(200, { ok: true, added });
+}
+
 /* ======================= router ======================= */
 export async function onRequest(ctx) {
   const name = String([].concat(ctx.params.path || []).join('/')).toLowerCase();
   if (name === 'notify') return json(410, { error: 'Moved to /api/order' });
-  const handler = { order: handleOrder, claim: handleClaim, steadfast: handleSteadfast, sfhook: handleSfHook }[name];
+  const handler = { order: handleOrder, claim: handleClaim, steadfast: handleSteadfast, sfhook: handleSfHook, adminorder: handleAdminOrder }[name];
   if (!handler) return json(404, { error: 'Not found' });
   if (name === 'sfhook' && ctx.request.method !== 'POST') return json(200, { status: 'success', message: 'Webhook endpoint is ready' });   // URL check
   if (ctx.request.method !== 'POST') return json(405, { error: 'POST only' });
@@ -435,6 +516,6 @@ export async function onRequest(ctx) {
     console.error(`/api/${name} error:`, err);
     if (err.setup) return json(503, { error: err.message });
     if (name === 'sfhook') return json(500, { status: 'error', message: 'Could not save the update' });   // Steadfast retries later
-    return json(502, { error: name === 'claim' ? 'Could not add the order right now. Please try again.' : 'Could not place the order right now. Please try again.' });
+    return json(502, { error: name === 'claim' ? 'Could not add the order right now. Please try again.' : name === 'adminorder' ? 'Could not save the orders: ' + err.message : 'Could not place the order right now. Please try again.' });
   }
 }
