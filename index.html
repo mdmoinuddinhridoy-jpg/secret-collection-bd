@@ -716,6 +716,17 @@
     </div>
   </aside>
 
+  <!-- ===== Email link handler: reset password / verify email (links from Firebase emails open here) ===== -->
+  <div id="resetModal" class="fixed inset-0 z-[66] hidden items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/50"></div>
+    <div class="relative bg-white w-full max-w-md max-h-[92vh] overflow-y-auto">
+      <button type="button" data-resetclose class="absolute top-3 right-3 p-2" aria-label="Close">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+      <div id="resetBody" class="px-8 pt-10 pb-8"></div>
+    </div>
+  </div>
+
   <!-- ===== Login / Create account modal ===== -->
   <div id="authModal" class="fixed inset-0 z-[65] hidden items-center justify-center p-4">
     <div data-authclose class="absolute inset-0 bg-black/50"></div>
@@ -1774,6 +1785,7 @@
       Account.enabled = true;
       document.querySelectorAll('[data-account-ui]').forEach(el => el.classList.remove('hidden'));
       authM.onAuthStateChanged(Account.auth, onAuthChange);
+      handleEmailAction();
     } catch (err) {
       console.error('Firebase failed to load — accounts disabled for this visit.', err);
     }
@@ -1821,8 +1833,32 @@
   }
 
 
+  /* ---------- Customer sign-in lasts 24 hours, then they sign in again ---------- */
+  const SESSION_MS = 24 * 3600e3, LOGIN_KEY = 'scbd_login_at_v1';
+  const loginTimes = () => { try { return JSON.parse(localStorage.getItem(LOGIN_KEY) || '{}'); } catch (e) { return {}; } };
+  function markLogin(uid) { try { const m = loginTimes(); m[uid] = Date.now(); localStorage.setItem(LOGIN_KEY, JSON.stringify(m)); } catch (e) {} }
+  function loginStart(user) {
+    const meta = Date.parse(user.metadata && user.metadata.lastSignInTime) || 0;   // Firebase: time of the last real sign-in
+    let t = Math.max(meta, loginTimes()[user.uid] || 0);
+    if (!t) { markLogin(user.uid); t = Date.now(); }
+    return t;
+  }
+  const sessionExpired = (user) => !!user && !ADMIN_EMAILS.includes(String(user.email).toLowerCase()) && Date.now() - loginStart(user) > SESSION_MS;
+  async function expireSession() {
+    const email = Account.user && Account.user.email && !String(Account.user.email).endsWith(MEMBER_DOMAIN) ? Account.user.email : '';
+    try { await Account.fb.signOut(Account.auth); } catch (e) {}
+    ['fName', 'fPhone', 'fAddress', 'fEmail'].forEach(id => { if ($(id)) $(id).value = ''; });
+    if (state.view === 'account') { location.hash = ''; showView('home'); }
+    openAuth('login'); $('aId').value = email;
+    $('aInfo').textContent = 'For your security, you are signed out after 24 hours. Please sign in again.'; $('aInfo').classList.remove('hidden');
+  }
+  function checkSession() { if (Account.user && sessionExpired(Account.user)) expireSession(); }
+  setInterval(checkSession, 60000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) checkSession(); });
+
   async function onAuthChange(user) {
     const F = Account.fb;
+    if (user && sessionExpired(user)) { Account.user = user; return expireSession(); }   // signs out → this runs again with no user
     const gen = Account.gen = (Account.gen || 0) + 1;
     Account.user = user;
     Account.isAdmin = !!(user && ADMIN_EMAILS.includes(String(user.email).toLowerCase()));
@@ -2045,7 +2081,8 @@
         const loginId = await resolveLogin($('aId').value);
         if (!loginId) throw { code: 'x', message: 'Please enter your email address.' };
         adminLogin = ADMIN_EMAILS.includes(loginId);
-        await F.signInWithEmailAndPassword(Account.auth, loginId, pass);
+        const cred = await F.signInWithEmailAndPassword(Account.auth, loginId, pass);
+        if (cred && cred.user) markLogin(cred.user.uid);
       } else {
         const name = $('aName').value.trim(), phone = normPhone($('aPhone').value), email = $('aMail').value.trim().toLowerCase();
         if (!name) throw { code: 'x', message: 'Please enter your name.' };
@@ -2053,6 +2090,7 @@
         if (email.endsWith(MEMBER_DOMAIN) || ADMIN_EMAILS.includes(email)) throw { code: 'x', message: 'Please use your own email address.' };
         if (!phone) throw { code: 'x', message: 'Please enter a valid Bangladeshi phone number (01XXXXXXXXX).' };
         await createCustomer({ name, phone, email, pass });
+        if (Account.auth.currentUser) markLogin(Account.auth.currentUser.uid);
       }
       closeAuth();
       $('aPass').value = '';
@@ -2063,15 +2101,24 @@
       fail(ex.code === 'x' ? ex.message : authMsg(ex));
     } finally { btn.disabled = false; btn.classList.remove('opacity-60'); }
   }
+  let forgotWait = 0;
+  function forgotTimer() {
+    const b = $('aForgot'), left = Math.ceil((forgotWait - Date.now()) / 1000);
+    if (left > 0) { b.textContent = `Resend reset email in ${left}s`; b.disabled = true; setTimeout(forgotTimer, 1000); }
+    else { b.textContent = 'Forgot password?'; b.disabled = false; }
+  }
   async function forgotPassword() {
     const id = $('aId').value.trim().toLowerCase();
     if (/^\S+@\S+\.\S+$/.test(id)) {
       try {
         const target = await resolveLogin(id);   // older phone-based accounts that added an email
         if (target && target.endsWith(MEMBER_DOMAIN)) throw { code: 'legacy' };
-        await Account.fb.sendPasswordResetEmail(Account.auth, id);
+        if (forgotWait > Date.now()) return;
+        await Account.fb.sendPasswordResetEmail(Account.auth, id, { url: location.origin + '/#account' });
         $('aError').classList.add('hidden');
-        $('aInfo').textContent = 'If an account exists for this email, a password reset link has been sent. Check your inbox and spam folder.'; $('aInfo').classList.remove('hidden');
+        $('aInfo').innerHTML = `We've emailed a password reset link to <b>${esc(id)}</b> (if an account exists for it). Open the email, tap the link and choose a new password. The link works for 1 hour.<br><span class="text-charcoal-soft">Not there? Check Spam / Promotions.</span>`;
+        $('aInfo').classList.remove('hidden');
+        forgotWait = Date.now() + 60000; forgotTimer();
         return;
       } catch (ex) {
         if (ex.code !== 'legacy') { $('aError').textContent = authMsg(ex); $('aError').classList.remove('hidden'); return; }
@@ -2083,6 +2130,75 @@
     }
     window.open(`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent('Hi, I forgot my Secret Collection BD account password. My phone number is: ' + id)}`, '_blank', 'noopener');
   }
+  /* ---------- Links from account emails: reset password, verify email ----------
+     Firebase emails link to this website (set in Firebase → Authentication → Templates → Customize action URL).
+     The link carries ?mode=resetPassword&oobCode=… ; customers choose a new password here and are signed in. */
+  function resetUI(html) { $('resetBody').innerHTML = html; const m = $('resetModal'); m.classList.remove('hidden'); m.classList.add('flex'); }
+  function resetClose() { const m = $('resetModal'); m.classList.add('hidden'); m.classList.remove('flex'); }
+  function clearActionUrl() { try { history.replaceState(null, '', location.pathname + location.hash); } catch (e) {} }
+  const rsInp = 'w-full border border-black/15 px-4 py-3 text-sm focus:outline-none focus:border-noir';
+  const rsBtn = 'w-full bg-noir text-white text-xs tracking-luxe uppercase py-4 hover:bg-charcoal transition';
+  const rsBad = (t) => `<p class="font-serif text-2xl text-center mb-3">Link not valid</p><p class="text-sm text-charcoal-light text-center mb-6">${t}</p>
+    <button type="button" data-resetagain class="${rsBtn}">Send a new reset link</button>`;
+  async function handleEmailAction() {
+    const q = new URLSearchParams(location.search), mode = q.get('mode'), code = q.get('oobCode');
+    if (!mode || !code || !Account.enabled) return;
+    clearActionUrl();
+    const F = Account.fb;
+    if (mode === 'resetPassword') {
+      let email;
+      resetUI('<p class="text-center text-sm text-charcoal-soft py-10">Checking your link…</p>');
+      try { email = await F.verifyPasswordResetCode(Account.auth, code); }
+      catch (e) { return resetUI(rsBad('This reset link has expired or was already used. Links work for 1 hour and only once.')); }
+      resetUI(`<p class="font-serif text-2xl text-center mb-2">Choose a new password</p>
+        <p class="text-sm text-charcoal-soft text-center mb-6">for <b class="text-noir">${esc(email)}</b></p>
+        <form id="rsForm" class="space-y-3" novalidate>
+          <input id="rsPass" type="password" autocomplete="new-password" placeholder="New password (at least 6 characters)" class="${rsInp}" />
+          <input id="rsPass2" type="password" autocomplete="new-password" placeholder="Type it again" class="${rsInp}" />
+          <label class="flex items-center gap-2 text-xs text-charcoal-soft"><input id="rsShow" type="checkbox" class="accent-[#0F0F0F]" /> Show password</label>
+          <p id="rsErr" class="hidden text-sm text-red-600"></p>
+          <button id="rsGo" type="submit" class="${rsBtn}">Save & Sign In</button>
+        </form>`);
+      $('rsShow').addEventListener('change', (e) => { ['rsPass', 'rsPass2'].forEach(id => $(id).type = e.target.checked ? 'text' : 'password'); });
+      $('rsForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const p1 = $('rsPass').value, p2 = $('rsPass2').value, err = $('rsErr');
+        const fail = (t) => { err.textContent = t; err.classList.remove('hidden'); };
+        if (p1.length < 6) return fail('Password must be at least 6 characters.');
+        if (p1 !== p2) return fail('The two passwords do not match.');
+        const btn = $('rsGo'); btn.disabled = true; btn.textContent = 'Saving…';
+        try {
+          await F.confirmPasswordReset(Account.auth, code, p1);
+          const cred = await F.signInWithEmailAndPassword(Account.auth, email, p1);
+          if (cred && cred.user) markLogin(cred.user.uid);
+          resetClose(); toast('Password changed ✓ You are signed in');
+          location.hash = ADMIN_EMAILS.includes(email.toLowerCase()) ? '#admin' : '#account';
+        } catch (ex) {
+          btn.disabled = false; btn.textContent = 'Save & Sign In';
+          if (/expired|invalid-action|invalid-oob/.test(ex.code || '')) return resetUI(rsBad('This reset link has expired or was already used.'));
+          fail(ex.code === 'auth/weak-password' ? 'Please choose a stronger password (at least 6 characters).' : authMsg(ex));
+        }
+      });
+      setTimeout(() => $('rsPass') && $('rsPass').focus(), 80);
+      return;
+    }
+    if (mode === 'verifyEmail' || mode === 'recoverEmail') {
+      resetUI('<p class="text-center text-sm text-charcoal-soft py-10">Confirming…</p>');
+      try {
+        await F.applyActionCode(Account.auth, code);
+        if (Account.auth.currentUser) { try { await Account.auth.currentUser.reload(); } catch (e) {} }
+        resetUI(`<p class="font-serif text-2xl text-center mb-3">${mode === 'verifyEmail' ? 'Email verified ✓' : 'Email restored ✓'}</p>
+          <p class="text-sm text-charcoal-light text-center mb-6">${mode === 'verifyEmail' ? 'Thank you! Your email address is confirmed.' : 'Your account email was changed back. If you did not ask for the change, reset your password now.'}</p>
+          <button type="button" data-resetclose class="${rsBtn}">Continue Shopping</button>`);
+        if (typeof renderAccount === 'function' && state.view === 'account') renderAccount();
+      } catch (e) { resetUI(`<p class="font-serif text-2xl text-center mb-3">Link not valid</p><p class="text-sm text-charcoal-light text-center mb-6">This link has expired or was already used.</p><button type="button" data-resetclose class="${rsBtn}">Close</button>`); }
+    }
+  }
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('[data-resetclose]')) return resetClose();
+    if (e.target.closest('[data-resetagain]')) { resetClose(); openAuth('login'); $('aInfo').textContent = 'Type your email address, then tap "Forgot password?".'; $('aInfo').classList.remove('hidden'); }
+  });
+
   async function signOutUser() {
     await Account.fb.signOut(Account.auth);
     ['fName', 'fPhone', 'fAddress', 'fEmail'].forEach(id => $(id).value = '');
