@@ -328,6 +328,8 @@
           <div class="flex flex-wrap gap-2">
             <button type="button" data-export="orders" class="border border-noir bg-white text-[11px] tracking-[.14em] uppercase px-4 py-2.5 hover:bg-noir hover:text-white transition">Export Orders CSV</button>
             <button type="button" data-export="sku" class="border border-noir bg-white text-[11px] tracking-[.14em] uppercase px-4 py-2.5 hover:bg-noir hover:text-white transition">Export SKU CSV</button>
+            <button type="button" data-export="customers" class="border border-noir bg-white text-[11px] tracking-[.14em] uppercase px-4 py-2.5 hover:bg-noir hover:text-white transition">Export Customers CSV</button>
+            <button type="button" data-export="monthly" class="border border-noir bg-white text-[11px] tracking-[.14em] uppercase px-4 py-2.5 hover:bg-noir hover:text-white transition">Export Accounts CSV</button>
             <button type="button" data-signout class="bg-noir text-white text-[11px] tracking-[.14em] uppercase px-4 py-2.5 hover:bg-charcoal transition">Sign Out</button>
           </div>
         </div>
@@ -343,9 +345,18 @@
 
         <!-- ===== ORDERS & REPORTS TAB ===== -->
         <div id="admTabOrders">
+        <!-- Add orders by hand / from Excel -->
+        <div class="flex flex-wrap gap-2 mb-5">
+          <button type="button" data-mo="add" class="bg-noir text-white text-[11px] tracking-[.14em] uppercase px-5 py-3 hover:bg-charcoal">+ Add Order Manually</button>
+          <button type="button" data-mo="import" class="border border-noir bg-white text-[11px] tracking-[.14em] uppercase px-5 py-3 hover:bg-noir hover:text-white">Import Orders (Excel / CSV)</button>
+          <button type="button" data-mo="template" class="border border-black/20 bg-white text-[11px] tracking-[.14em] uppercase px-5 py-3 hover:border-noir">Download Excel Template</button>
+        </div>
         <!-- Filters (one row above everything) -->
         <div class="flex flex-wrap items-center gap-2 mb-8">
           <div id="admPeriod" class="flex flex-wrap border border-black/15 bg-white"></div>
+          <label class="flex items-center gap-1 text-[11px] text-charcoal-soft">From <input id="admFrom" type="date" class="border border-black/15 bg-white px-2 py-1.5 text-xs" /></label>
+          <label class="flex items-center gap-1 text-[11px] text-charcoal-soft">To <input id="admTo" type="date" class="border border-black/15 bg-white px-2 py-1.5 text-xs" /></label>
+          <select id="admSource" class="lux border border-black/15 bg-white px-4 py-2 text-xs focus:outline-none focus:border-noir"></select>
           <select id="admStatus" class="lux border border-black/15 bg-white px-4 py-2 text-xs focus:outline-none focus:border-noir"></select>
           <input id="admSearch" type="search" placeholder="Search order no, name, phone, TrxID…" class="flex-1 min-w-[220px] border border-black/15 bg-white px-4 py-2 text-xs focus:outline-none focus:border-noir" />
         </div>
@@ -379,6 +390,30 @@
             <div class="px-5 sm:px-6 pt-5 pb-3"><h2 class="font-serif text-xl">By Category</h2></div>
             <div id="admCats" class="px-5 sm:px-6 pb-6 space-y-4"></div>
           </div>
+        </div>
+
+        <!-- Accounts: money in, by channel & payment, month by month -->
+        <div class="bg-white border border-black/10 mb-8">
+          <div class="flex flex-wrap items-baseline justify-between gap-2 px-5 sm:px-6 pt-5 pb-3">
+            <h2 class="font-serif text-xl">Accounts Summary</h2>
+            <p class="text-xs text-charcoal-soft">Selected period & filters · excludes cancelled orders</p>
+          </div>
+          <div id="admAcctKpis" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 px-5 sm:px-6 pb-5"></div>
+          <div class="grid lg:grid-cols-2 gap-6 px-5 sm:px-6 pb-6">
+            <div><p class="text-[10px] tracking-[.14em] uppercase text-charcoal-soft mb-2">By Channel</p><table class="w-full text-xs" id="admByChannel"></table></div>
+            <div><p class="text-[10px] tracking-[.14em] uppercase text-charcoal-soft mb-2">By Payment Method</p><table class="w-full text-xs" id="admByPay"></table></div>
+          </div>
+          <div class="px-5 sm:px-6 pb-6"><p class="text-[10px] tracking-[.14em] uppercase text-charcoal-soft mb-2">Month by Month</p><div class="overflow-x-auto"><table class="w-full text-xs" id="admMonthly"></table></div></div>
+        </div>
+
+        <!-- Customers -->
+        <div class="bg-white border border-black/10 mb-8">
+          <div class="flex flex-wrap items-baseline justify-between gap-2 px-5 sm:px-6 pt-5 pb-3">
+            <h2 class="font-serif text-xl">Customers</h2>
+            <p class="text-xs text-charcoal-soft">Grouped by phone number · "Lifetime" counts every order ever</p>
+          </div>
+          <div id="admCustKpis" class="grid grid-cols-2 md:grid-cols-4 gap-3 px-5 sm:px-6 pb-5"></div>
+          <div class="overflow-x-auto max-h-[520px] overflow-y-auto"><table class="w-full text-xs" id="admCustomers"></table></div>
         </div>
 
         <!-- Orders -->
@@ -1913,15 +1948,16 @@
        </div>` : '';
   function normOrderNo(v) {
     let s = String(v || '').trim().toUpperCase().replace(/\s+/g, '').replace(/^#/, '');
+    if (/^\d{3,8}$/.test(s)) s = 'SCB-' + s;                         // new running serial: 1001 → SCB-1001
     if (/^\d{6}-?[A-Z0-9]{4}$/.test(s)) s = 'SCB-' + s;
-    s = s.replace(/^SCB-?(\d{6})-?([A-Z0-9]{4})$/, 'SCB-$1-$2');
-    return /^SCB-\d{6}-[A-Z0-9]{4}$/.test(s) ? s : '';
+    s = s.replace(/^SCB-?(\d{3,8})$/, 'SCB-$1').replace(/^SCB-?(\d{6})-?([A-Z0-9]{4})$/, 'SCB-$1-$2');
+    return /^SCB-(\d{3,8}|\d{6}-[A-Z0-9]{4})$/.test(s) ? s : '';
   }
   async function lookupOrder(raw) {
     const out = $('trkResult'); if (!out) return;
     const no = normOrderNo(raw);
     Account.lastTrack = no;
-    if (!no) { out.innerHTML = `<p class="text-sm text-red-600 mt-3">Please enter your Order ID, e.g. SCB-${new Date().toISOString().slice(2, 10).replace(/-/g, '')}-AB12</p>`; return; }
+    if (!no) { out.innerHTML = `<p class="text-sm text-red-600 mt-3">Please enter your Order ID, e.g. SCB-1001</p>`; return; }
     out.innerHTML = `<p class="text-sm text-charcoal-soft mt-3">Checking ${esc(no)}…</p>`;
     let o = (Account.myOrders || []).find(x => x.orderNo === no) || null;
     if (!o) {
@@ -1951,7 +1987,7 @@
       <h2 class="font-serif text-xl sm:text-2xl mb-1">Check your order status with your Order ID</h2>
       <p class="text-xs text-charcoal-soft mb-4">${hint}</p>
       <div class="flex gap-2">
-        <input id="trkInput" type="text" autocomplete="off" spellcheck="false" placeholder="e.g. SCB-250929-AB12" class="flex-1 min-w-0 border border-black/15 bg-white px-4 py-3 text-sm font-mono uppercase focus:outline-none focus:border-noir" />
+        <input id="trkInput" type="text" autocomplete="off" spellcheck="false" placeholder="e.g. SCB-1001" class="flex-1 min-w-0 border border-black/15 bg-white px-4 py-3 text-sm font-mono uppercase focus:outline-none focus:border-noir" />
         <button class="bg-noir text-white text-[11px] tracking-luxe uppercase px-5 sm:px-8 hover:bg-charcoal transition">Check</button>
       </div>
       <div id="trkResult"></div>
@@ -2059,7 +2095,7 @@
   async function claimOrder(rawNo, phone, auto) {
     const msg = (t, ok) => { const m = $('clMsg'); if (m) { m.textContent = t; m.className = 'text-xs mt-2 ' + (ok ? 'text-[#1F7A45]' : 'text-[#9B1C1C]'); } else if (t) toast(t); };
     const orderNo = normOrderNo(rawNo);
-    if (!orderNo) return msg('Please enter your Order ID, e.g. SCB-250929-AB12.');
+    if (!orderNo) return msg('Please enter your Order ID, e.g. SCB-1001.');
     if (!normPhone(phone)) return msg('Please enter the phone number used for the order (01XXXXXXXXX).');
     const u = Account.auth && Account.auth.currentUser; if (!u) return msg('Please sign in first.');
     if ((Account.myOrders || []).some(o => o.orderNo === orderNo)) return msg(`${orderNo} is already in your orders.`, true);
@@ -2126,7 +2162,7 @@
         <h2 class="font-serif text-xl mb-1">Add a past order</h2>
         <p class="text-xs text-charcoal-soft mb-4">Ordered as a guest? Enter the Order ID and the phone number used for that order to add it to your account.</p>
         <div class="grid sm:grid-cols-[1fr_1fr_auto] gap-2">
-          <input id="clNo" type="text" autocomplete="off" placeholder="Order ID, e.g. SCB-250929-AB12" class="border border-black/15 bg-white px-4 py-3 text-sm font-mono uppercase focus:outline-none focus:border-noir" />
+          <input id="clNo" type="text" autocomplete="off" placeholder="Order ID, e.g. SCB-1001" class="border border-black/15 bg-white px-4 py-3 text-sm font-mono uppercase focus:outline-none focus:border-noir" />
           <input id="clPhone" type="tel" inputmode="numeric" value="${esc(p.phone || '')}" placeholder="Phone used for the order" class="border border-black/15 bg-white px-4 py-3 text-sm focus:outline-none focus:border-noir" />
           <button class="bg-noir text-white text-[11px] tracking-luxe uppercase px-6 py-3 hover:bg-charcoal">Add Order</button>
         </div>
@@ -2178,7 +2214,7 @@
   }
 
   /* ---------- Admin dashboard ---------- */
-  const adm = { period: '30', status: 'All', search: '', open: null };
+  const adm = { period: '30', status: 'All', search: '', open: null, source: 'All', from: '', to: '' };
   const PERIODS = [['today', 'Today'], ['7', '7 Days'], ['30', '30 Days'], ['month', 'This Month'], ['all', 'All Time']];
 
   function periodStart(p) {
@@ -2189,12 +2225,20 @@
     if (p === 'month') return new Date(now.getFullYear(), now.getMonth(), 1);
     return null;
   }
+  const dayOf = (v) => { const [y, m, d] = String(v).split('-').map(Number); return y ? new Date(y, m - 1, d) : null; };
+  const isManual = (o) => o.source === 'manual';
+  const chanOf = (o) => o.channel || (isManual(o) ? 'Other' : 'Website');
+  function adminRange() {                       // custom From/To wins over the quick period buttons
+    if (adm.from || adm.to) return [adm.from ? dayOf(adm.from) : null, adm.to ? new Date(dayOf(adm.to).getTime() + 864e5) : null];
+    return [periodStart(adm.period), null];
+  }
+  const srcMatch = (o) => adm.source === 'All' || (adm.source === 'website' ? !isManual(o) : adm.source === 'manual' ? isManual(o) : adm.source === 'ch:' + chanOf(o));
   function adminFiltered() {
-    const start = periodStart(adm.period), q = adm.search.trim().toLowerCase();
+    const [start, end] = adminRange(), q = adm.search.trim().toLowerCase();
     return Account.adminOrders.filter(o =>
-      (!start || (o.date && o.date >= start)) &&
-      (adm.status === 'All' || o.status === adm.status) &&
-      (!q || [o.orderNo, o.customer?.name, o.customer?.phone, o.customer?.email, o.payment?.trx].join(' ').toLowerCase().includes(q)));
+      (!start || (o.date && o.date >= start)) && (!end || (o.date && o.date < end)) &&
+      (adm.status === 'All' || o.status === adm.status) && srcMatch(o) &&
+      (!q || [o.orderNo, o.refNo, o.customer?.name, o.customer?.phone, o.customer?.email, o.payment?.trx, o.channel, o.note].join(' ').toLowerCase().includes(q)));
   }
 
   function renderAdmin() {
@@ -2211,7 +2255,12 @@
     gate.innerHTML = ''; appEl.classList.remove('hidden');
     $('adminEmail').textContent = Account.user.email;
 
-    $('admPeriod').innerHTML = PERIODS.map(([k, l]) => `<button type="button" data-admperiod="${k}" class="px-4 py-2 text-[11px] tracking-[.12em] uppercase ${adm.period === k ? 'bg-noir text-white' : 'hover:bg-black/5'}">${l}</button>`).join('');
+    const custom = !!(adm.from || adm.to);
+    $('admPeriod').innerHTML = PERIODS.map(([k, l]) => `<button type="button" data-admperiod="${k}" class="px-4 py-2 text-[11px] tracking-[.12em] uppercase ${!custom && adm.period === k ? 'bg-noir text-white' : 'hover:bg-black/5'}">${l}</button>`).join('');
+    $('admFrom').value = adm.from; $('admTo').value = adm.to;
+    const chans = [...new Set(Account.adminOrders.map(chanOf))].sort();
+    $('admSource').innerHTML = [['All', 'All Sources'], ['website', 'Website orders'], ['manual', 'Manual / offline orders'], ...chans.map(c => ['ch:' + c, 'Channel: ' + c])]
+      .map(([v, l]) => `<option value="${esc(v)}" ${adm.source === v ? 'selected' : ''}>${esc(l)}</option>`).join('');
     const sel = $('admStatus');
     if (!sel.options.length) sel.innerHTML = ['All', ...ORDER_STATUSES].map(s => `<option value="${s}">${s === 'All' ? 'All Statuses' : s}</option>`).join('');
     sel.value = adm.status;
@@ -2241,13 +2290,15 @@
 
     renderAdminChart(live);
     renderSku(live);
+    renderAccounts(live);
+    renderCustomers(list);
     renderAdminOrders(list);
     if (typeof admTab !== 'undefined' && admTab === 'delivery') renderDelivery();
   }
 
   function renderAdminChart(live) {
-    const start = periodStart(adm.period);
-    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const [start, end] = adminRange();
+    const today = end ? new Date(end.getTime() - 864e5) : new Date(); today.setHours(0, 0, 0, 0);
     let from = start ? new Date(start) : new Date(today - 29 * 864e5);
     if ((today - from) / 864e5 > 59) from = new Date(today - 59 * 864e5);
     const days = [];
@@ -2314,12 +2365,12 @@
         const n = (o.items || []).reduce((a, i) => a + (Number(i.qty) || 0), 0);
         const open = adm.open === o._id;
         return `<tr class="cursor-pointer hover:bg-black/[.02] ${open ? 'bg-black/[.03]' : ''}" data-admrow="${o._id}">
-          <td class="${td} font-mono whitespace-nowrap">${esc(o.orderNo)}</td>
+          <td class="${td} font-mono whitespace-nowrap">${esc(o.orderNo)}<br><span class="font-sans text-[9px] uppercase tracking-wider ${isManual(o) ? 'text-[#7A5A00]' : 'text-charcoal-soft'}">${isManual(o) ? 'Manual · ' : ''}${esc(chanOf(o))}</span>${o.refNo ? `<br><span class="font-sans text-[10px] text-charcoal-soft">Ref ${esc(o.refNo)}</span>` : ''}</td>
           <td class="${td} whitespace-nowrap">${fmtDate(o.date)}<br><span class="text-charcoal-soft">${fmtTime(o.date)}</span></td>
           <td class="${td}">${esc(o.customer?.name)}<br><span class="text-charcoal-soft">${esc(o.customer?.phone)}</span>${o.uid ? ' <span class="text-[9px] uppercase tracking-wider border border-black/15 px-1">Member</span>' : ''}</td>
           <td class="${td} text-right">${n}</td>
           <td class="${td} text-right font-medium whitespace-nowrap">${taka(o.total)}</td>
-          <td class="${td} whitespace-nowrap">${esc(o.payment?.method)}<br><span class="font-mono text-charcoal-soft">${esc(o.payment?.trx)}</span>${payBadge(o)}</td>
+          <td class="${td} whitespace-nowrap">${esc(o.payment?.method)}<br><span class="font-mono text-charcoal-soft">${esc(o.payment?.trx)}</span>${isManual(o) ? `<br><span class="inline-block mt-1 px-2 py-0.5 text-[9px] tracking-[.12em] uppercase ${o.paymentStatus === 'Paid' ? 'bg-[#E3F5E9] text-[#1F7A45]' : 'bg-[#FFF4D6] text-[#7A5A00]'}">${esc(o.paymentStatus || 'Paid')}</span>` : payBadge(o)}</td>
           <td class="${td}">
             <select data-admset="${o._id}" ${sfLocked(o) ? 'disabled title="Updated automatically from Steadfast"' : ''} class="lux border border-black/15 bg-white px-2 py-1.5 text-xs focus:outline-none focus:border-noir disabled:bg-black/[.04] disabled:text-noir">
               ${ORDER_STATUSES.map(s => `<option ${s === o.status ? 'selected' : ''}>${s}</option>`).join('')}
@@ -2335,8 +2386,15 @@
                 <table class="w-full">${(o.items || []).map(i => `<tr class="border-b border-black/5">
                   <td class="py-1.5 font-mono pr-3">${esc(i.id)}</td><td class="py-1.5">${pLink(i.id, esc(i.name), true)}</td><td class="py-1.5 text-charcoal-soft">${esc(i.size)} · ${esc(i.color)}</td>
                   <td class="py-1.5 text-right">×${i.qty}</td><td class="py-1.5 text-right">${taka(i.lineTotal)}</td></tr>`).join('')}
-                  <tr><td colspan="4" class="pt-2 text-right text-charcoal-soft">Delivery</td><td class="pt-2 text-right">FREE</td></tr>
+                  ${isManual(o) ? `<tr><td colspan="4" class="pt-2 text-right text-charcoal-soft">Subtotal</td><td class="pt-2 text-right">${taka(o.subtotal)}</td></tr>
+                  <tr><td colspan="4" class="text-right text-charcoal-soft">Delivery charge</td><td class="text-right">${taka(o.deliveryCharge || 0)}</td></tr>
+                  ${o.discount ? `<tr><td colspan="4" class="text-right text-charcoal-soft">Discount</td><td class="text-right">−${taka(o.discount)}</td></tr>` : ''}`
+                  : `<tr><td colspan="4" class="pt-2 text-right text-charcoal-soft">Delivery</td><td class="pt-2 text-right">FREE</td></tr>`}
                   <tr><td colspan="4" class="text-right font-medium">Total</td><td class="text-right font-medium">${taka(o.total)}</td></tr></table>
+                ${o.note ? `<p class="text-xs mt-3"><span class="text-charcoal-soft">Note:</span> ${esc(o.note)}</p>` : ''}
+                ${isManual(o) ? `<div class="mt-3 flex flex-wrap gap-2 items-center"><span class="text-[10px] text-charcoal-soft">Added by hand${o.enteredAt ? ' on ' + fmtDate(new Date(o.enteredAt)) : ''}</span>
+                  <button type="button" data-moedit="${o._id}" class="border border-black/20 px-3 py-1 text-[10px] uppercase tracking-wider hover:bg-noir hover:text-white">Edit order</button>
+                  <button type="button" data-model="${o._id}" class="px-2 py-1 text-[10px] uppercase tracking-wider text-[#9B1C1C] hover:underline">Delete</button></div>` : ''}
                 ${o.updatedAt ? `<p class="text-[10px] text-charcoal-soft mt-3">Last status change: ${fmtDate(new Date(o.updatedAt))} ${fmtTime(new Date(o.updatedAt))}</p>` : ''}
                 <div class="mt-4 pt-3 border-t border-black/10 flex flex-wrap items-center gap-3">
                   <span class="text-[10px] tracking-[.14em] uppercase text-charcoal-soft">Delivery</span>
@@ -2374,12 +2432,446 @@
       downloadCsv(`scbd-sku-summary-${stamp}.csv`, [['SKU', 'Product', 'Category', 'Qty Sold', 'Revenue (BDT)', 'Orders', 'Top Sizes', 'Top Colors'],
         ...skuRows.map(r => [r.sku, r.name, r.category, r.qty, r.revenue, r.orders, r.topSizes, r.topColors])]);
     } else {
-      const rows = [['Order No', 'Date', 'Time', 'Status', 'Customer', 'Phone', 'Email', 'Address', 'Payment', 'TrxID', 'SKU', 'Product', 'Category', 'Size', 'Color', 'Qty', 'Unit Price', 'Line Total', 'Order Total']];
-      adminFiltered().forEach(o => (o.items || []).forEach(i => rows.push([o.orderNo, fmtDate(o.date), fmtTime(o.date), o.status, o.customer?.name, o.customer?.phone, o.customer?.email, o.customer?.address, o.payment?.method, o.payment?.trx, i.id, i.name, i.category, i.size, i.color, i.qty, i.price, i.lineTotal, o.total])));
+      if (kind === 'customers') return downloadCsv(`scbd-customers-${stamp}.csv`, [['Name', 'Phone', 'Email', 'Address', 'Orders (period)', 'Spent (period)', 'Lifetime Orders', 'Lifetime Spent', 'Avg Order', 'First Order', 'Last Order', 'Favourite Category', 'Channels', 'Type'],
+        ...custRows.map(c => [c.name, c.phone, c.email, c.address, c.orders, c.spent, c.lifeOrders, c.lifeSpent, c.lifeOrders ? Math.round(c.lifeSpent / c.lifeOrders) : 0, fmtDate(c.first), fmtDate(c.last), c.favCat, c.channels, c.lifeOrders > 1 ? 'Repeat' : 'One-time'])]);
+      if (kind === 'monthly') return downloadCsv(`scbd-accounts-${stamp}.csv`, [['Month', 'Orders', 'Items', 'Product Sales', 'Delivery Charges', 'Discounts', 'Net Revenue', 'Paid', 'Unpaid / Due', 'Website Orders', 'Manual Orders', 'New Customers'],
+        ...acctMonths.map(m => [m.label, m.orders, m.items, m.gross, m.delivery, m.discount, m.net, m.paid, m.due, m.web, m.manual, m.newCust])]);
+      const rows = [['Order No', 'Date', 'Time', 'Status', 'Source', 'Channel', 'Old Ref', 'Customer', 'Phone', 'Email', 'Address', 'Payment', 'TrxID', 'Payment Status', 'SKU', 'Product', 'Category', 'Size', 'Color', 'Qty', 'Unit Price', 'Line Total', 'Delivery Charge', 'Discount', 'Order Total', 'Note']];
+      adminFiltered().forEach(o => (o.items || []).forEach((i, k) => rows.push([o.orderNo, fmtDate(o.date), fmtTime(o.date), o.status, isManual(o) ? 'Manual' : 'Website', chanOf(o), o.refNo || '', o.customer?.name, o.customer?.phone, o.customer?.email, o.customer?.address, o.payment?.method, o.payment?.trx, isPaid(o) ? 'Paid' : (o.paymentStatus || 'Unpaid'),
+        i.id, i.name, i.category, i.size, i.color, i.qty, i.price, i.lineTotal, k ? '' : (o.deliveryCharge || 0), k ? '' : (o.discount || 0), k ? '' : o.total, k ? '' : (o.note || '')])));
       downloadCsv(`scbd-orders-${stamp}.csv`, rows);
     }
   }
 
+
+  /* ---------- Accounts & customer reports ---------- */
+  // Paid: manual orders use their own "Payment status"; website orders count as paid once the payment is checked (no longer Pending)
+  const isPaid = (o) => isManual(o) ? (o.paymentStatus || 'Paid') === 'Paid' : (o.paymentStatus === 'Paid' || (o.status !== 'Pending' && o.status !== 'Cancelled'));
+  const subOf = (o) => Number(o.subtotal) || (o.items || []).reduce((s, i) => s + (Number(i.lineTotal) || (Number(i.price) || 0) * (Number(i.qty) || 0)), 0);
+  let acctMonths = [], custRows = [];
+  function firstOrderByPhone() {               // every customer's first ever order date (all time, all sources)
+    const f = {};
+    Account.adminOrders.forEach(o => { const ph = o.customer?.phone; if (!ph || !o.date || o.status === 'Cancelled') return; if (!f[ph] || o.date < f[ph]) f[ph] = o.date; });
+    return f;
+  }
+  function renderAccounts(live) {
+    const sum = (f) => live.reduce((s, o) => s + (Number(f(o)) || 0), 0);
+    const gross = sum(subOf), delivery = sum(o => o.deliveryCharge || 0), discount = sum(o => o.discount || 0), net = sum(o => o.total);
+    const paid = live.filter(isPaid).reduce((s, o) => s + (Number(o.total) || 0), 0);
+    const tile = (l, v, sub) => `<div class="border border-black/10 p-3"><p class="text-[10px] tracking-[.14em] uppercase text-charcoal-soft mb-1.5">${l}</p><p class="font-serif text-xl leading-none">${v}</p>${sub ? `<p class="text-[10px] text-charcoal-soft mt-1.5">${sub}</p>` : ''}</div>`;
+    $('admAcctKpis').innerHTML = tile('Product Sales', taka(gross)) + tile('Delivery Charges', taka(delivery)) + tile('Discounts', '−' + taka(discount)) +
+      tile('Net Revenue', taka(net), `${live.length} orders`) + tile('Paid', taka(paid)) + tile('Unpaid / Due', taka(net - paid), net - paid > 0 ? 'Follow up' : 'All collected');
+    const th = 'text-left font-medium text-[10px] tracking-[.12em] uppercase text-charcoal-soft px-2 py-2 border-b border-black/10 whitespace-nowrap';
+    const td = 'px-2 py-2 border-b border-black/5';
+    const group = (key) => { const g = {}; live.forEach(o => { const k = key(o) || 'Other'; const r = g[k] || (g[k] = { n: 0, v: 0 }); r.n++; r.v += Number(o.total) || 0; }); return Object.entries(g).sort((a, b) => b[1].v - a[1].v); };
+    const tbl = (rows) => `<thead><tr><th class="${th}"></th><th class="${th} text-right">Orders</th><th class="${th} text-right">Amount</th><th class="${th} text-right">Share</th></tr></thead><tbody>${rows.length ? rows.map(([k, r]) =>
+      `<tr><td class="${td}">${esc(k)}</td><td class="${td} text-right">${r.n}</td><td class="${td} text-right">${taka(r.v)}</td><td class="${td} text-right text-charcoal-soft">${net ? Math.round(r.v / net * 100) : 0}%</td></tr>`).join('')
+      : `<tr><td colspan="4" class="${td} text-charcoal-soft">No orders in this period.</td></tr>`}</tbody>`;
+    $('admByChannel').innerHTML = tbl(group(chanOf));
+    $('admByPay').innerHTML = tbl(group(o => o.payment?.method));
+    // month by month
+    const first = firstOrderByPhone(), m = {};
+    live.forEach(o => {
+      if (!o.date) return;
+      const k = `${o.date.getFullYear()}-${String(o.date.getMonth() + 1).padStart(2, '0')}`;
+      const r = m[k] || (m[k] = { key: k, label: o.date.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }), orders: 0, items: 0, gross: 0, delivery: 0, discount: 0, net: 0, paid: 0, due: 0, web: 0, manual: 0, cust: new Set() });
+      r.orders++; r.items += (o.items || []).reduce((s, i) => s + (Number(i.qty) || 0), 0);
+      r.gross += subOf(o); r.delivery += Number(o.deliveryCharge) || 0; r.discount += Number(o.discount) || 0; r.net += Number(o.total) || 0;
+      if (isPaid(o)) r.paid += Number(o.total) || 0; else r.due += Number(o.total) || 0;
+      if (isManual(o)) r.manual++; else r.web++;
+      const ph = o.customer?.phone; if (ph && first[ph] && first[ph].getFullYear() === o.date.getFullYear() && first[ph].getMonth() === o.date.getMonth()) r.cust.add(ph);
+    });
+    acctMonths = Object.values(m).sort((a, b) => b.key.localeCompare(a.key)).map(r => ({ ...r, newCust: r.cust.size }));
+    $('admMonthly').innerHTML = `<thead><tr>${['Month', 'Orders', 'Items', 'Product Sales', 'Delivery', 'Discounts', 'Net Revenue', 'Paid', 'Due', 'Web / Manual', 'New Customers'].map((h, i) => `<th class="${th} ${i ? 'text-right' : ''}">${h}</th>`).join('')}</tr></thead><tbody>${acctMonths.length ? acctMonths.map(r =>
+      `<tr><td class="${td} whitespace-nowrap">${r.label}</td><td class="${td} text-right">${r.orders}</td><td class="${td} text-right">${r.items}</td><td class="${td} text-right">${taka(r.gross)}</td><td class="${td} text-right">${taka(r.delivery)}</td><td class="${td} text-right">${r.discount ? '−' + taka(r.discount) : '—'}</td><td class="${td} text-right font-medium">${taka(r.net)}</td><td class="${td} text-right">${taka(r.paid)}</td><td class="${td} text-right ${r.due ? 'text-[#9A6700]' : ''}">${taka(r.due)}</td><td class="${td} text-right">${r.web} / ${r.manual}</td><td class="${td} text-right">${r.newCust}</td></tr>`).join('')
+      : `<tr><td colspan="11" class="${td} text-charcoal-soft">No orders in this period.</td></tr>`}</tbody>`;
+  }
+  function renderCustomers(list) {
+    const life = {};
+    Account.adminOrders.forEach(o => {
+      const ph = o.customer?.phone; if (!ph || o.status === 'Cancelled') return;
+      const c = life[ph] || (life[ph] = { orders: 0, spent: 0, first: null, last: null, cats: {}, chans: new Set() });
+      c.orders++; c.spent += Number(o.total) || 0; c.chans.add(chanOf(o));
+      if (o.date && (!c.first || o.date < c.first)) c.first = o.date;
+      if (o.date && (!c.last || o.date > c.last)) c.last = o.date;
+      (o.items || []).forEach(i => { const k = i.category || 'Other'; c.cats[k] = (c.cats[k] || 0) + (Number(i.qty) || 0); });
+    });
+    const per = {};
+    list.filter(o => o.status !== 'Cancelled').forEach(o => {
+      const ph = o.customer?.phone; if (!ph) return;
+      const c = per[ph] || (per[ph] = { phone: ph, name: '', email: '', address: '', orders: 0, spent: 0 });
+      c.orders++; c.spent += Number(o.total) || 0;
+      c.name = c.name || o.customer.name || ''; c.email = c.email || o.customer.email || ''; c.address = c.address || o.customer.address || '';
+    });
+    const [start] = adminRange();
+    custRows = Object.values(per).map(c => { const L = life[c.phone] || { orders: c.orders, spent: c.spent, cats: {}, chans: new Set() };
+      return { ...c, lifeOrders: L.orders, lifeSpent: L.spent, first: L.first, last: L.last, favCat: (Object.entries(L.cats).sort((a, b) => b[1] - a[1])[0] || [''])[0], channels: [...L.chans].join(', '),
+        isNew: !start || (L.first && L.first >= start) };
+    }).sort((a, b) => b.spent - a.spent || b.lifeSpent - a.lifeSpent);
+    const all = Object.values(life), repeat = all.filter(c => c.orders > 1).length;
+    const newN = custRows.filter(c => c.isNew).length;
+    const tile = (l, v, sub) => `<div class="border border-black/10 p-3"><p class="text-[10px] tracking-[.14em] uppercase text-charcoal-soft mb-1.5">${l}</p><p class="font-serif text-xl leading-none">${v}</p>${sub ? `<p class="text-[10px] text-charcoal-soft mt-1.5">${sub}</p>` : ''}</div>`;
+    $('admCustKpis').innerHTML = tile('Customers (period)', custRows.length, `${newN} new · ${custRows.length - newN} returning`) +
+      tile('Repeat Rate', (all.length ? Math.round(repeat / all.length * 100) : 0) + '%', `${repeat} of ${all.length} customers ordered 2+ times`) +
+      tile('Avg Lifetime Value', taka(all.length ? Math.round(all.reduce((s, c) => s + c.spent, 0) / all.length) : 0), 'Per customer, all time') +
+      tile('Avg Orders / Customer', all.length ? (all.reduce((s, c) => s + c.orders, 0) / all.length).toFixed(1) : '0', 'All time');
+    const th = 'text-left font-medium text-[10px] tracking-[.14em] uppercase text-charcoal-soft px-4 py-3 border-y border-black/10 whitespace-nowrap sticky top-0 bg-white';
+    const td = 'px-4 py-2.5 border-b border-black/5 align-top';
+    $('admCustomers').innerHTML = `<thead><tr><th class="${th}">Customer</th><th class="${th} text-right">Orders</th><th class="${th} text-right">Spent</th><th class="${th} text-right">Lifetime</th><th class="${th}">First / Last Order</th><th class="${th}">Likes</th><th class="${th}">Channels</th><th class="${th}"></th></tr></thead><tbody>${custRows.length ? custRows.slice(0, 300).map(c => `<tr class="hover:bg-black/[.02]">
+      <td class="${td}">${esc(c.name)}<br><span class="text-charcoal-soft">${esc(c.phone)}</span></td>
+      <td class="${td} text-right">${c.orders}</td><td class="${td} text-right font-medium">${taka(c.spent)}</td>
+      <td class="${td} text-right">${c.lifeOrders} · ${taka(c.lifeSpent)}</td>
+      <td class="${td} whitespace-nowrap">${fmtDate(c.first)}<br><span class="text-charcoal-soft">${fmtDate(c.last)}</span></td>
+      <td class="${td}">${esc(c.favCat)}</td><td class="${td} text-charcoal-soft">${esc(c.channels)}</td>
+      <td class="${td}">${c.lifeOrders > 1 ? '<span class="px-2 py-0.5 text-[9px] uppercase tracking-wider bg-[#E3F5E9] text-[#1F7A45]">Repeat</span>' : c.isNew ? '<span class="px-2 py-0.5 text-[9px] uppercase tracking-wider bg-[#E3F0FF] text-[#1D4E89]">New</span>' : ''}</td></tr>`).join('')
+      : `<tr><td colspan="8" class="px-4 py-10 text-center text-charcoal-soft">No customers in this period.</td></tr>`}</tbody>`;
+  }
+
+  /* ---------- Manual orders: add by hand, import from Excel, edit, delete ---------- */
+  const MO_CHANNELS = ['Facebook', 'Instagram', 'WhatsApp', 'Phone Call', 'Shop / In Person', 'Website', 'Other'];
+  const MO_PAY = ['Cash on Delivery', 'Cash', 'bKash', 'Nagad', 'Rocket', 'Bank Transfer', 'Card', 'Other'];
+  const MO = { items: [], editId: null };
+  async function adminApi(path, payload) {
+    const u = Account.auth && Account.auth.currentUser;
+    if (!u || !Account.isAdmin) throw new Error('Please sign in as admin.');
+    const idToken = await u.getIdToken();
+    let r;
+    try { r = await withTimeout(fetch('/api/' + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...payload, idToken }) }), 45000); }
+    catch (e) { throw new Error(e.message === 'timeout' ? 'The server is taking too long. Please check Orders before trying again.' : 'Network problem. Please try again.'); }
+    const j = await r.json().catch(() => ({}));
+    if (r.status === 404) throw new Error('The server file is not updated yet (functions/api/[[path]].js).');
+    if (!r.ok) { const e = new Error(j.error || ('Error ' + r.status)); e.rows = j.errors; throw e; }
+    return j;
+  }
+  const moProd = (v) => { const id = String(v || '').split(/\s+[·—-]\s+|\s+/)[0].trim().toUpperCase(); return PRODUCTS.find(p => p.id.toUpperCase() === id) || null; };
+  const localInput = (d) => { const z = new Date(d.getTime() - d.getTimezoneOffset() * 6e4); return z.toISOString().slice(0, 16); };
+  function moOpen(editId) {
+    const o = editId ? Account.adminOrders.find(x => x._id === editId) : null;
+    MO.editId = o ? o._id : null;
+    MO.items = o ? (o.items || []).map(i => ({ prod: i.id ? `${i.id} · ${i.name}` : i.name, id: i.id || '', name: i.name, category: i.category || '', size: i.size || '', color: i.color || '', qty: i.qty || 1, price: i.price ?? '' }))
+      : [{ prod: '', id: '', name: '', category: '', size: '', color: '', qty: 1, price: '' }];
+    const c = (o && o.customer) || {};
+    const inp = 'w-full border border-black/15 px-3 py-2 text-sm focus:outline-none focus:border-noir bg-white';
+    const lbl = 'block text-[10px] tracking-[.14em] uppercase text-charcoal-soft mb-1';
+    const opt = (list, cur) => list.map(v => `<option ${v === cur ? 'selected' : ''}>${esc(v)}</option>`).join('');
+    openPanel(o ? `Edit ${o.orderNo}` : 'Add Order Manually', `
+      <p class="text-xs text-charcoal-soft mb-5">${o ? 'Changes are saved to this order and its reports. The Order ID stays the same.' : 'For orders taken on Facebook, WhatsApp, phone or in person. The next Order ID in the running serial is given automatically when you save.'}</p>
+      <div class="grid sm:grid-cols-3 gap-3 mb-5">
+        <label><span class="${lbl}">Order date & time</span><input id="moDate" type="datetime-local" value="${localInput(o && o.date ? o.date : new Date())}" class="${inp}" /></label>
+        <label><span class="${lbl}">Channel</span><select id="moChannel" class="${inp}">${opt(MO_CHANNELS, o ? chanOf(o) : 'Facebook')}</select></label>
+        <label><span class="${lbl}">Old order no. / ref (optional)</span><input id="moRef" value="${esc(o?.refNo || '')}" placeholder="e.g. FB-112" class="${inp}" /></label>
+      </div>
+      <p class="font-serif text-lg mb-2">Customer</p>
+      <div class="grid sm:grid-cols-2 gap-3 mb-5">
+        <label><span class="${lbl}">Name *</span><input id="moName" value="${esc(c.name || '')}" class="${inp}" /></label>
+        <label><span class="${lbl}">Phone * (01XXXXXXXXX)</span><input id="moPhone" value="${esc(c.phone || '')}" inputmode="tel" list="moPhones" class="${inp}" /></label>
+        <label><span class="${lbl}">Email</span><input id="moEmail" value="${esc(c.email || '')}" class="${inp}" /></label>
+        <label><span class="${lbl}">Address</span><input id="moAddr" value="${esc(c.address || '')}" class="${inp}" /></label>
+      </div>
+      <datalist id="moPhones">${[...new Map(Account.adminOrders.filter(x => x.customer?.phone).map(x => [x.customer.phone, x.customer.name])).entries()].slice(0, 2000).map(([ph, n]) => `<option value="${esc(ph)}">${esc(n || '')}</option>`).join('')}</datalist>
+      <p id="moKnown" class="text-[11px] text-[#1D4E89] -mt-3 mb-4"></p>
+      <p class="font-serif text-lg mb-2">Products</p>
+      <div id="moItems" class="space-y-2 mb-2"></div>
+      <button type="button" data-moitem="add" class="text-[11px] uppercase tracking-wider border border-black/20 px-3 py-1.5 hover:border-noir mb-5">+ Add product</button>
+      <datalist id="moProds">${PRODUCTS.map(p => `<option value="${esc(p.id)} · ${esc(p.name)}">`).join('')}</datalist>
+      <div class="grid sm:grid-cols-4 gap-3 mb-5">
+        <label><span class="${lbl}">Delivery charge ৳</span><input id="moDel" type="number" min="0" value="${o?.deliveryCharge || 0}" class="${inp}" /></label>
+        <label><span class="${lbl}">Discount ৳</span><input id="moDisc" type="number" min="0" value="${o?.discount || 0}" class="${inp}" /></label>
+        <label><span class="${lbl}">Payment method</span><select id="moPay" class="${inp}">${opt(MO_PAY, o?.payment?.method || 'Cash on Delivery')}</select></label>
+        <label><span class="${lbl}">TrxID / ref</span><input id="moTrx" value="${esc(o?.payment?.trx || '')}" class="${inp}" /></label>
+        <label><span class="${lbl}">Payment status</span><select id="moPaySt" class="${inp}">${opt(['Paid', 'Unpaid', 'Partial'], o?.paymentStatus || 'Paid')}</select></label>
+        <label><span class="${lbl}">Order status</span><select id="moStatus" class="${inp}">${opt(ORDER_STATUSES, o ? o.status : 'Delivered')}</select></label>
+        <label class="sm:col-span-2"><span class="${lbl}">Note</span><input id="moNote" value="${esc(o?.note || '')}" class="${inp}" /></label>
+      </div>
+      <div id="moTotals" class="border-t border-black/10 pt-4 mb-4 text-sm"></div>
+      <p id="moMsg" class="text-sm mb-3"></p>
+      <div class="flex flex-wrap gap-2">
+        <button type="button" data-mo="save" class="flex-1 bg-noir text-white text-[11px] tracking-[.14em] uppercase py-4 hover:bg-charcoal">${o ? 'Save Changes' : 'Save Order'}</button>
+        ${o ? '' : '<button type="button" data-mo="savenext" class="flex-1 border border-noir text-[11px] tracking-[.14em] uppercase py-4 hover:bg-noir hover:text-white">Save & Add Another</button>'}
+      </div>`);
+    moDrawItems();
+  }
+  function moDrawItems() {
+    const inp = 'border border-black/15 px-2 py-2 text-sm focus:outline-none focus:border-noir bg-white min-w-0';
+    $('moItems').innerHTML = MO.items.map((it, k) => {
+      const p = moProd(it.prod);
+      return `<div class="grid grid-cols-12 gap-2 items-center">
+        <input data-moi="${k}|prod" value="${esc(it.prod)}" list="moProds" placeholder="SKU or product name" class="${inp} col-span-12 sm:col-span-4" />
+        <input data-moi="${k}|size" value="${esc(it.size)}" list="moSz${k}" placeholder="Size" class="${inp} col-span-3 sm:col-span-2" />
+        <input data-moi="${k}|color" value="${esc(it.color)}" list="moCl${k}" placeholder="Color" class="${inp} col-span-3 sm:col-span-2" />
+        <input data-moi="${k}|qty" value="${esc(it.qty)}" type="number" min="1" placeholder="Qty" class="${inp} col-span-2 sm:col-span-1" />
+        <input data-moi="${k}|price" value="${esc(it.price)}" type="number" min="0" placeholder="Price ৳" class="${inp} col-span-3 sm:col-span-2" />
+        <button type="button" data-moitem="${k}" aria-label="Remove" class="col-span-1 text-[#9B1C1C] text-lg leading-none">×</button>
+        <datalist id="moSz${k}">${(p ? p.sizes : ALL_SIZES).map(v => `<option value="${esc(v)}">`).join('')}</datalist>
+        <datalist id="moCl${k}">${(p ? p.colors : ALL_COLORS).map(v => `<option value="${esc(v)}">`).join('')}</datalist>
+      </div>`;
+    }).join('');
+    moTotals();
+  }
+  function moRead() {
+    const items = MO.items.map(it => { const p = moProd(it.prod);
+      return { id: p ? p.id : '', name: p ? p.name : String(it.prod).trim(), category: p ? p.category : it.category, size: String(it.size).trim(), color: String(it.color).trim(), qty: Math.max(1, parseInt(it.qty, 10) || 1), price: it.price === '' ? (p ? p.price : 0) : Math.max(0, Math.round(Number(it.price) || 0)) };
+    }).filter(i => i.name);
+    const sub = items.reduce((s, i) => s + i.price * i.qty, 0);
+    const del = Math.max(0, Math.round(Number($('moDel').value) || 0)), disc = Math.max(0, Math.round(Number($('moDisc').value) || 0));
+    return { date: new Date($('moDate').value).getTime() || Date.now(), channel: $('moChannel').value, refNo: $('moRef').value.trim(),
+      customer: { name: $('moName').value.trim(), phone: $('moPhone').value.trim(), email: $('moEmail').value.trim(), address: $('moAddr').value.trim() },
+      items, deliveryCharge: del, discount: disc, payment: { method: $('moPay').value, trx: $('moTrx').value.trim() }, paymentStatus: $('moPaySt').value,
+      status: $('moStatus').value, note: $('moNote').value.trim(), _sub: sub };
+  }
+  function moTotals() {
+    if (!$('moTotals')) return;
+    const o = moRead();
+    $('moTotals').innerHTML = `<div class="flex justify-between"><span class="text-charcoal-soft">Products (${o.items.reduce((s, i) => s + i.qty, 0)} pcs)</span><span>${taka(o._sub)}</span></div>
+      <div class="flex justify-between"><span class="text-charcoal-soft">Delivery charge</span><span>${taka(o.deliveryCharge)}</span></div>
+      ${o.discount ? `<div class="flex justify-between"><span class="text-charcoal-soft">Discount</span><span>−${taka(o.discount)}</span></div>` : ''}
+      <div class="flex justify-between font-medium text-base mt-1"><span>Total</span><span>${taka(Math.max(0, o._sub + o.deliveryCharge - o.discount))}</span></div>`;
+  }
+  function moCheck(o) {
+    if (o.customer.name.length < 2) return 'Please enter the customer name.';
+    if (!normPhone(o.customer.phone)) return 'Phone must be 11 digits (01XXXXXXXXX).';
+    if (!o.items.length) return 'Add at least one product.';
+    if (o.date > Date.now() + 864e5) return 'The order date is in the future.';
+    return '';
+  }
+  async function moSave(next) {
+    const o = moRead(), err = moCheck(o), msg = $('moMsg');
+    if (err) { msg.className = 'text-sm mb-3 text-[#9B1C1C]'; msg.textContent = err; return; }
+    if (MO.busy) return; MO.busy = true;
+    msg.className = 'text-sm mb-3 text-charcoal-soft'; msg.textContent = 'Saving…';
+    try {
+      if (MO.editId) { await moUpdate(MO.editId, o); closePanel(); toast('Order updated ✓'); }
+      else {
+        delete o._sub;
+        const j = await adminApi('adminorder', { orders: [o] });
+        toast(`Order ${j.added[0].orderNo} added ✓`);
+        if (next) { const keep = { date: $('moDate').value, ch: $('moChannel').value }; moOpen(); $('moDate').value = keep.date; $('moChannel').value = keep.ch; $('moMsg').className = 'text-sm mb-3 text-[#1F7A45]'; $('moMsg').textContent = `✓ ${j.added[0].orderNo} saved. Add the next one.`; }
+        else closePanel();
+      }
+    } catch (e) { msg.className = 'text-sm mb-3 text-[#9B1C1C]'; msg.textContent = e.message; }
+    finally { MO.busy = false; }
+  }
+  // editing a manual order: the admin may write orders directly (Database rules), so no server call is needed
+  async function moUpdate(id, n) {
+    const o = Account.adminOrders.find(x => x._id === id); if (!o) throw new Error('Order not found');
+    const items = n.items.map(i => { const p = findP(i.id); return clean({ ...i, lineTotal: i.price * i.qty, image: p ? (p.images[0] || '') : '' }); });
+    const subtotal = items.reduce((s, i) => s + i.lineTotal, 0), discount = Math.min(n.discount, subtotal + n.deliveryCharge), now = Date.now();
+    const customer = { ...n.customer, phone: normPhone(n.customer.phone), email: n.customer.email.toLowerCase() };
+    const f = { createdAt: n.date, channel: n.channel, refNo: n.refNo, customer, items, subtotal, deliveryCharge: n.deliveryCharge, discount, total: subtotal + n.deliveryCharge - discount,
+      payment: n.payment, paymentStatus: n.paymentStatus, status: n.status, note: n.note, updatedAt: now };
+    const upd = {}; Object.entries(f).forEach(([k, v]) => { upd[`orders/${id}/${k}`] = v; });
+    if (o.uid) Object.entries(f).forEach(([k, v]) => { upd[`userOrders/${o.uid}/${id}/${k}`] = v; });
+    upd[`orderStatus/${o.orderNo}`] = statusCard({ ...o, ...f });
+    await Account.fb.update(R(''), clean(upd));
+  }
+  async function moDelete(id) {
+    const o = Account.adminOrders.find(x => x._id === id); if (!o || !isManual(o)) return;
+    if (!confirm(`Delete ${o.orderNo} (${o.customer?.name}, ${taka(o.total)})?\n\nIt will be removed from all reports. Its Order ID will not be reused.`)) return;
+    const upd = { [`orders/${id}`]: null, [`orderStatus/${o.orderNo}`]: null }; if (o.uid) upd[`userOrders/${o.uid}/${id}`] = null;
+    try { await Account.fb.update(R(''), upd); adm.open = null; toast(`${o.orderNo} deleted`); } catch (e) { console.error(e); toast('Could not delete: ' + e.message); }
+  }
+
+  /* --- Excel / CSV import --- */
+  const MO_COLS = { ref: ['orderref', 'ref', 'refno', 'oldorderid', 'oldorderno', 'orderid', 'orderno', 'invoice', 'invoiceno'], date: ['date', 'orderdate'],
+    name: ['customername', 'name', 'customer'], phone: ['phone', 'mobile', 'phoneno', 'phonenumber', 'mobileno', 'contact', 'contactno', 'number', 'customerphone'],
+    email: ['email', 'emailaddress'], address: ['address', 'deliveryaddress', 'customeraddress'], channel: ['channel', 'source', 'platform'],
+    sku: ['sku', 'productcode', 'code', 'productid', 'skucode'], product: ['productname', 'product', 'item', 'itemname'], category: ['category'],
+    size: ['size'], color: ['color', 'colour'], qty: ['qty', 'quantity', 'pcs'], price: ['unitprice', 'price', 'rate', 'sellingprice', 'unitpricebdt'],
+    amount: ['amount', 'linetotal', 'itemtotal'], delivery: ['deliverycharge', 'deliveryfee', 'shipping', 'shippingcharge', 'delivery'], discount: ['discount'],
+    pay: ['paymentmethod', 'payment', 'paymode', 'paymentmode', 'method'], trx: ['trxid', 'transactionid', 'trx', 'txnid'], paySt: ['paymentstatus', 'paid'],
+    status: ['status', 'orderstatus'], note: ['note', 'notes', 'remarks', 'remark', 'comment'] };
+  const moCell = (row, keys) => { for (const [k, v] of Object.entries(row)) if (keys.includes(nrm(k)) && String(v).trim() !== '') return v; return ''; };
+  function moDateParse(v) {
+    if (v instanceof Date) return new Date(v.getFullYear(), v.getMonth(), v.getDate(), 12).getTime();
+    if (typeof v === 'number' && v > 20000 && v < 80000) { const u = new Date(Math.round((v - 25569) * 864e5)); return new Date(u.getUTCFullYear(), u.getUTCMonth(), u.getUTCDate(), 12).getTime(); }
+    const s = String(v || '').trim(); let m;
+    if ((m = s.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/))) return new Date(+m[1], m[2] - 1, +m[3], 12).getTime();
+    if ((m = s.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{2,4})/))) { const y = +m[3] < 100 ? 2000 + +m[3] : +m[3]; return new Date(y, m[2] - 1, +m[1], 12).getTime(); }   // DD/MM/YYYY
+    if ((m = s.match(/^(\d{1,2})[\s-]([A-Za-z]{3,9})[\s,-]+(\d{2,4})/))) { const t = Date.parse(`${m[1]} ${m[2]} ${+m[3] < 100 ? 2000 + +m[3] : m[3]}`); if (t) { const d = new Date(t); return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12).getTime(); } }
+    return 0;
+  }
+  const moStatus = (v) => ORDER_STATUSES.find(x => nrm(x) === nrm(v)) || '';
+  const moPaySt = (v) => { const t = nrm(v); return !t ? '' : /^(paid|yes|y|done|received|full)/.test(t) ? 'Paid' : /^part/.test(t) ? 'Partial' : /^(unpaid|no|n|due|pending)/.test(t) ? 'Unpaid' : ''; };
+  function moSheetToOrders(rows, def) {
+    const groups = new Map(), problems = [];
+    rows.forEach((r, n) => {
+      const line = n + 2;   // Excel row number (row 1 = headings)
+      const g = (k) => moCell(r, MO_COLS[k]);
+      if (!Object.values(r).some(v => String(v).trim() !== '')) return;
+      const ref = String(g('ref')).trim(), key = ref ? 'r:' + ref : 'n:' + line;
+      let o = groups.get(key);
+      if (!o) {
+        o = { rows: [line], refNo: ref, date: moDateParse(g('date')), channel: String(g('channel')).trim() || def.channel,
+          customer: { name: String(g('name')).trim(), phone: String(g('phone')).replace(/\.0$/, '').trim(), email: String(g('email')).trim(), address: String(g('address')).trim() },
+          items: [], deliveryCharge: num(g('delivery')), discount: num(g('discount')),
+          payment: { method: String(g('pay')).trim() || def.pay, trx: String(g('trx')).trim() }, paymentStatus: moPaySt(g('paySt')) || def.paySt,
+          status: moStatus(g('status')) || def.status, note: String(g('note')).trim(), errors: [] };
+        if (o.customer.phone && /^1[3-9]\d{8}$/.test(o.customer.phone.replace(/\D/g, ''))) o.customer.phone = '0' + o.customer.phone.replace(/\D/g, '');   // Excel dropped the leading 0
+        groups.set(key, o);
+      } else { o.rows.push(line); if (!o.deliveryCharge) o.deliveryCharge = num(g('delivery')); if (!o.discount) o.discount = num(g('discount')); }
+      const sku = String(g('sku')).trim().toUpperCase(), p = sku ? PRODUCTS.find(x => x.id.toUpperCase() === sku) : null;
+      const qty = Math.max(1, parseInt(num(g('qty')), 10) || 1);
+      let price = g('price') === '' ? (g('amount') !== '' ? Math.round(num(g('amount')) / qty) : (p ? p.price : '')) : Math.round(num(g('price')));
+      const name = String(g('product')).trim() || (p ? p.name : sku);
+      if (name || sku) o.items.push({ id: p ? p.id : sku, name, category: String(g('category')).trim() || (p ? p.category : ''), size: String(g('size')).trim(), color: String(g('color')).trim(), qty, price: price === '' ? 0 : price });
+    });
+    const known = new Set(Account.adminOrders.filter(x => x.refNo).map(x => x.refNo + '|' + x.customer?.phone));
+    const out = [...groups.values()].map(o => {
+      if (!o.date) o.errors.push('Date missing or not readable (use DD/MM/YYYY)');
+      if (o.customer.name.length < 2) o.errors.push('Customer name missing');
+      if (!normPhone(o.customer.phone)) o.errors.push('Phone must be 11 digits');
+      if (!o.items.length) o.errors.push('No product');
+      o.customer.phone = normPhone(o.customer.phone) || o.customer.phone;
+      o.total = Math.max(0, o.items.reduce((s, i) => s + i.price * i.qty, 0) + o.deliveryCharge - o.discount);
+      o.dup = !!(o.refNo && known.has(o.refNo + '|' + o.customer.phone));
+      return o;
+    });
+    return { orders: out, problems };
+  }
+  function moImportOpen() {
+    MO.imp = null;
+    const inp = 'w-full border border-black/15 px-3 py-2 text-sm focus:outline-none focus:border-noir bg-white';
+    const lbl = 'block text-[10px] tracking-[.14em] uppercase text-charcoal-soft mb-1';
+    const opt = (list, cur) => list.map(v => `<option ${v === cur ? 'selected' : ''}>${esc(v)}</option>`).join('');
+    openPanel('Import Orders from Excel / CSV', `
+      <p class="text-sm text-charcoal-light mb-2">Add your past orders in one go. Each order gets the next Order ID in the running serial (older dates get the lower numbers).</p>
+      <p class="text-xs text-charcoal-soft mb-4">One row per product. Several rows with the same <b>Order Ref</b> become one order. Required: Date, Customer Name, Phone, and SKU or Product Name. <button type="button" data-mo="template" class="underline">Download the template</button></p>
+      <div class="grid sm:grid-cols-4 gap-3 mb-4">
+        <label><span class="${lbl}">If Status is empty</span><select id="miStatus" class="${inp}">${opt(ORDER_STATUSES, 'Delivered')}</select></label>
+        <label><span class="${lbl}">If Payment Status is empty</span><select id="miPaySt" class="${inp}">${opt(['Paid', 'Unpaid', 'Partial'], 'Paid')}</select></label>
+        <label><span class="${lbl}">If Channel is empty</span><select id="miChannel" class="${inp}">${opt(MO_CHANNELS, 'Facebook')}</select></label>
+        <label><span class="${lbl}">If Payment Method is empty</span><select id="miPay" class="${inp}">${opt(MO_PAY, 'Cash on Delivery')}</select></label>
+      </div>
+      <label class="block border-2 border-dashed border-black/20 bg-blush-50 hover:border-noir text-center px-4 py-8 cursor-pointer mb-4">
+        <input id="miFile" type="file" accept=".xlsx,.xls,.csv" class="hidden" />
+        <span class="font-serif text-xl block">Choose Excel or CSV file</span><span class="text-xs text-charcoal-soft">.xlsx, .xls or .csv</span>
+      </label>
+      <div id="miPreview"></div>
+      <p id="miMsg" class="text-sm mt-3"></p>`);
+  }
+  async function moImportFile(f) {
+    const msg = $('miMsg'); msg.className = 'text-sm mt-3 text-charcoal-soft'; msg.textContent = 'Reading file…';
+    try {
+      await loadXlsxLib();
+      const wb = XLSX.read(new Uint8Array(await f.arrayBuffer()), { type: 'array', cellDates: true });
+      const sh = wb.SheetNames.find(n => /order/i.test(n)) || wb.SheetNames[0];
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[sh], { defval: '', raw: true });
+      const def = { status: $('miStatus').value, paySt: $('miPaySt').value, channel: $('miChannel').value, pay: $('miPay').value };
+      MO.imp = moSheetToOrders(rows, def).orders;
+      msg.textContent = ''; moImportPreview();
+    } catch (e) { console.error(e); msg.className = 'text-sm mt-3 text-[#9B1C1C]'; msg.textContent = 'Could not read the file: ' + e.message; }
+  }
+  function moImportPreview() {
+    const list = MO.imp || [], ok = list.filter(o => !o.errors.length && !o.dup), bad = list.filter(o => o.errors.length), dup = list.filter(o => o.dup && !o.errors.length);
+    const th = 'text-left font-medium text-[10px] tracking-[.12em] uppercase text-charcoal-soft px-2 py-2 border-b border-black/10 whitespace-nowrap sticky top-0 bg-white';
+    const td = 'px-2 py-1.5 border-b border-black/5 align-top';
+    $('miPreview').innerHTML = `
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3 text-xs">
+        <div class="border border-black/10 p-3"><b class="font-serif text-xl block">${ok.length}</b>orders ready</div>
+        <div class="border border-black/10 p-3"><b class="font-serif text-xl block">${taka(ok.reduce((s, o) => s + o.total, 0))}</b>total value</div>
+        <div class="border border-black/10 p-3 ${dup.length ? 'bg-[#FFF4D6]' : ''}"><b class="font-serif text-xl block">${dup.length}</b>already imported (skipped)</div>
+        <div class="border border-black/10 p-3 ${bad.length ? 'bg-[#FDE8E8]' : ''}"><b class="font-serif text-xl block">${bad.length}</b>with problems (skipped)</div>
+      </div>
+      <div class="border border-black/10 max-h-[40vh] overflow-auto"><table class="w-full text-xs"><thead><tr><th class="${th}">Rows</th><th class="${th}">Date</th><th class="${th}">Customer</th><th class="${th}">Products</th><th class="${th} text-right">Total</th><th class="${th}">Status</th><th class="${th}"></th></tr></thead><tbody>
+      ${list.map(o => `<tr class="${o.errors.length ? 'bg-[#FDE8E8]/60' : o.dup ? 'bg-[#FFF4D6]/60' : ''}">
+        <td class="${td} whitespace-nowrap">${o.rows.join(', ')}${o.refNo ? `<br><span class="text-charcoal-soft">${esc(o.refNo)}</span>` : ''}</td>
+        <td class="${td} whitespace-nowrap">${o.date ? fmtDate(new Date(o.date)) : '—'}</td>
+        <td class="${td}">${esc(o.customer.name)}<br><span class="text-charcoal-soft">${esc(o.customer.phone)}</span></td>
+        <td class="${td}">${o.items.map(i => `${esc(i.id ? i.id + ' ' : '')}${esc(i.name)} ×${i.qty} @ ${taka(i.price)}`).join('<br>')}</td>
+        <td class="${td} text-right whitespace-nowrap">${taka(o.total)}</td>
+        <td class="${td}">${esc(o.status)}<br><span class="text-charcoal-soft">${esc(o.channel)} · ${esc(o.paymentStatus)}</span></td>
+        <td class="${td} ${o.errors.length ? 'text-[#9B1C1C]' : 'text-[#7A5A00]'}">${o.errors.length ? esc(o.errors.join('; ')) : o.dup ? 'Already in system' : ''}</td></tr>`).join('')}
+      </tbody></table></div>
+      ${ok.length ? `<button type="button" data-mo="importgo" class="mt-4 w-full bg-noir text-white text-[11px] tracking-[.14em] uppercase py-4 hover:bg-charcoal">Import ${ok.length} order${ok.length > 1 ? 's' : ''}</button>` : ''}
+      ${bad.length ? '<p class="text-xs text-charcoal-soft mt-2">Fix the red rows in your file and import it again. Orders already added are skipped automatically when they have an Order Ref.</p>' : ''}`;
+  }
+  async function moImportGo() {
+    const ok = (MO.imp || []).filter(o => !o.errors.length && !o.dup);
+    if (!ok.length || MO.busy) return;
+    MO.busy = true; const msg = $('miMsg'); let done = [], i = 0;
+    try {
+      for (; i < ok.length; i += 200) {
+        msg.className = 'text-sm mt-3 text-charcoal-soft'; msg.textContent = `Importing ${Math.min(i + 200, ok.length)} of ${ok.length}…`;
+        const batch = ok.slice(i, i + 200).map(o => ({ row: o.rows[0], date: o.date, channel: o.channel, refNo: o.refNo, customer: o.customer, items: o.items,
+          deliveryCharge: o.deliveryCharge, discount: o.discount, payment: o.payment, paymentStatus: o.paymentStatus, status: o.status, note: o.note }));
+        const j = await adminApi('adminorder', { orders: batch });
+        done = done.concat(j.added.map(a => a.orderNo));
+      }
+      const nums = done.map(x => Number(x.replace(/\D/g, ''))).sort((a, b) => a - b);
+      msg.className = 'text-sm mt-3 text-[#1F7A45]'; msg.textContent = `✓ ${done.length} orders imported (SCB-${nums[0]} to SCB-${nums.at(-1)}). They now appear in Orders and all reports.`;
+      $('miPreview').innerHTML = ''; MO.imp = null; adm.period = 'all'; adm.from = adm.to = ''; renderAdmin();
+    } catch (e) {
+      console.error(e); msg.className = 'text-sm mt-3 text-[#9B1C1C]';
+      msg.textContent = (done.length ? `${done.length} orders were imported, then: ` : '') + e.message + (e.rows ? ' · ' + e.rows.slice(0, 5).map(r => `row ${r.row}: ${r.error}`).join(' · ') : '');
+    } finally { MO.busy = false; }
+  }
+  async function moTemplate() {
+    try {
+      await loadXlsxLib();
+      const head = ['Order Ref', 'Date', 'Customer Name', 'Phone', 'Email', 'Address', 'Channel', 'SKU', 'Product Name', 'Size', 'Color', 'Qty', 'Unit Price', 'Delivery Charge', 'Discount', 'Payment Method', 'TrxID', 'Payment Status', 'Status', 'Note'];
+      const p1 = PRODUCTS[0] || { id: 'L01', name: 'Lace Bra Set', price: 2500 }, p2 = PRODUCTS[1] || { id: 'N01', name: 'Satin Nighty', price: 1800 };
+      const rows = [head,
+        ['FB-101', '15/03/2026', 'Ayesha Rahman', '01712345678', '', 'House 5, Road 3, Dhanmondi, Dhaka', 'Facebook', p1.id, p1.name, 'M', 'Black', 1, p1.price, 80, 0, 'Cash on Delivery', '', 'Paid', 'Delivered', ''],
+        ['FB-101', '15/03/2026', 'Ayesha Rahman', '01712345678', '', 'House 5, Road 3, Dhanmondi, Dhaka', 'Facebook', p2.id, p2.name, 'L', 'Red', 2, p2.price, '', '', 'Cash on Delivery', '', 'Paid', 'Delivered', 'Same order: 2nd product'],
+        ['WA-55', '02/04/2026', 'Nusrat Jahan', '01812345678', 'nusrat@example.com', 'Agrabad, Chattogram', 'WhatsApp', '', 'Old design red set (no SKU)', 'Free Size', 'Red', 1, 1500, 120, 100, 'bKash', '8N7A2K9X', 'Paid', 'Delivered', 'Product not on website']];
+      const help = [['How to fill the Orders sheet'], [''], ['• One row per product. Rows with the same Order Ref become ONE order (e.g. FB-101 above has 2 products).'],
+        ['• Required: Date, Customer Name, Phone, and SKU or Product Name.'], ['• Date: DD/MM/YYYY (e.g. 15/03/2026).'], ['• Phone: 11 digits, 01XXXXXXXXX. Format the column as Text so Excel keeps the first 0.'],
+        ['• SKU: if it matches a product on the website, name/category/price are filled in automatically. Leave Unit Price empty to use the website price.'],
+        ['• Delivery Charge and Discount are for the whole order: write them on the first row of the order only.'],
+        ['• Status: Pending, Payment Verified, Confirmed, Shipped, Delivered or Cancelled. Payment Status: Paid, Unpaid or Partial.'],
+        ['• Channel: Facebook, Instagram, WhatsApp, Phone Call, Shop / In Person, Website or Other.'],
+        ['• Order IDs (SCB-…) are given by the system. Your own old number goes in Order Ref, so the same file is never imported twice.'],
+        ['• Delete the 3 example rows before importing.']];
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet(rows); ws['!cols'] = head.map(h => ({ wch: Math.max(10, h.length + 2) }));
+      for (let r = 1; r <= 3; r++) { const c = ws[XLSX.utils.encode_cell({ r, c: 3 })]; if (c) { c.t = 's'; c.v = String(c.v); c.z = '@'; } }
+      XLSX.utils.book_append_sheet(wb, ws, 'Orders');
+      const hs = XLSX.utils.aoa_to_sheet(help); hs['!cols'] = [{ wch: 110 }]; XLSX.utils.book_append_sheet(wb, hs, 'How to fill');
+      XLSX.writeFile(wb, 'scbd-orders-import-template.xlsx');
+    } catch (e) { toast(e.message); }
+  }
+  // events
+  document.addEventListener('click', (e) => {
+    const t = e.target.closest('[data-mo],[data-moitem],[data-moedit],[data-model]'); if (!t) return;
+    const d = t.dataset;
+    if (d.mo === 'add') return moOpen();
+    if (d.mo === 'save') return moSave(false);
+    if (d.mo === 'savenext') return moSave(true);
+    if (d.mo === 'import') return moImportOpen();
+    if (d.mo === 'importgo') return moImportGo();
+    if (d.mo === 'template') return moTemplate();
+    if (d.moedit) return moOpen(d.moedit);
+    if (d.model) return moDelete(d.model);
+    if (d.moitem === 'add') { MO.items.push({ prod: '', id: '', name: '', category: '', size: '', color: '', qty: 1, price: '' }); moDrawItems(); return; }
+    if (d.moitem !== undefined) { MO.items.splice(Number(d.moitem), 1); if (!MO.items.length) MO.items.push({ prod: '', size: '', color: '', qty: 1, price: '' }); moDrawItems(); }
+  });
+  document.addEventListener('input', (e) => {
+    const t = e.target;
+    if (t.dataset && t.dataset.moi) {
+      const [k, f] = t.dataset.moi.split('|'); const it = MO.items[Number(k)]; if (!it) return;
+      it[f] = t.value;
+      if (f === 'prod') { const p = moProd(t.value); if (p && (it.price === '' || it._auto)) { it.price = p.price; it._auto = true; const pr = document.querySelector(`[data-moi="${k}|price"]`); if (pr) pr.value = p.price; } }
+      if (f === 'price') it._auto = false;
+      moTotals();
+    }
+    if (['moDel', 'moDisc'].includes(t.id)) moTotals();
+    if (t.id === 'moPhone') {
+      const ph = normPhone(t.value), prev = ph && Account.adminOrders.filter(o => o.customer?.phone === ph);
+      if (prev && prev.length) {
+        const c = prev[0].customer; if (!$('moName').value) $('moName').value = c.name || ''; if (!$('moEmail').value) $('moEmail').value = c.email || ''; if (!$('moAddr').value) $('moAddr').value = c.address || '';
+        $('moKnown').textContent = `Returning customer: ${prev.length} earlier order${prev.length > 1 ? 's' : ''}, ${taka(prev.filter(o => o.status !== 'Cancelled').reduce((s, o) => s + (Number(o.total) || 0), 0))} in total.`;
+      } else if ($('moKnown')) $('moKnown').textContent = '';
+    }
+  });
+  document.addEventListener('change', (e) => {
+    if (e.target.dataset && e.target.dataset.moi && e.target.dataset.moi.endsWith('|prod')) {   // refresh this row's size/colour suggestions only (keeps typing focus)
+      const k = e.target.dataset.moi.split('|')[0], p = moProd(e.target.value);
+      if ($('moSz' + k)) $('moSz' + k).innerHTML = (p ? p.sizes : ALL_SIZES).map(v => `<option value="${esc(v)}">`).join('');
+      if ($('moCl' + k)) $('moCl' + k).innerHTML = (p ? p.colors : ALL_COLORS).map(v => `<option value="${esc(v)}">`).join('');
+    }
+    if (e.target.id === 'miFile' && e.target.files[0]) { moImportFile(e.target.files[0]); e.target.value = ''; }
+    if (['miStatus', 'miPaySt', 'miChannel', 'miPay'].includes(e.target.id) && MO.imp) toast('Choose the file again to apply the new defaults');
+  });
 
   /* ---------- Delivery Partner: Steadfast ---------- */
   const dlv = { filter: 'ready', search: '', balance: null, balMsg: '', busy: {}, cod: {}, note: {}, addr: {} };
@@ -2620,7 +3112,7 @@
     if (t.id === 'aForgot') return forgotPassword();
     if (d.signout !== undefined) return signOutUser();
     if (d.doneclose !== undefined) { $('orderDone').classList.add('hidden'); $('orderDone').classList.remove('flex'); return; }
-    if (d.admperiod) { adm.period = d.admperiod; return renderAdmin(); }
+    if (d.admperiod) { adm.period = d.admperiod; adm.from = adm.to = ''; return renderAdmin(); }
     if (d.admstatus) { adm.status = adm.status === d.admstatus ? 'All' : d.admstatus; return renderAdmin(); }
     if (d.export) return exportCsv(d.export);
     if (d.admrow && !e.target.closest('select,button,a')) { adm.open = adm.open === d.admrow ? null : d.admrow; renderAdminOrders(adminFiltered()); }
@@ -2633,6 +3125,8 @@
       else setOrderStatus(s.dataset.admset, s.value);
     }
     if (e.target.id === 'admStatus') { adm.status = e.target.value; renderAdmin(); }
+    if (e.target.id === 'admSource') { adm.source = e.target.value; renderAdmin(); }
+    if (e.target.id === 'admFrom' || e.target.id === 'admTo') { adm[e.target.id === 'admFrom' ? 'from' : 'to'] = e.target.value; renderAdmin(); }
   });
   let admT;
   document.addEventListener('input', (e) => {
