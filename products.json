@@ -3,7 +3,7 @@
     "id": "L01",
     "name": "Strappy Lace Harness Set with Garters",
     "category": "Lingerie",
-    "price": 3660,
+    "price": 3599,
     "oldPrice": null,
     "image": "1.jpg",
     "images": [
@@ -54,7 +54,7 @@
     "id": "L02",
     "name": "Heart Print Mesh Skirt Set with Garters",
     "category": "Lingerie",
-    "price": 3790,
+    "price": 2999,
     "oldPrice": null,
     "image": "2.jpg",
     "images": [
@@ -105,7 +105,7 @@
     "id": "L03",
     "name": "Love Rhinestone Satin Push-Up Set",
     "category": "Lingerie",
-    "price": 3530,
+    "price": 3499,
     "oldPrice": null,
     "image": "3.jpg",
     "images": [
@@ -155,7 +155,7 @@
     "id": "L04",
     "name": "Sheer Mesh Bodysuit with Choker & Gloves",
     "category": "Lingerie",
-    "price": 4180,
+    "price": 3999,
     "oldPrice": null,
     "image": "4.jpg",
     "images": [
@@ -205,7 +205,7 @@
     "id": "L05",
     "name": "Red Cage Strap Bra & Panty Set",
     "category": "Lingerie",
-    "price": 3400,
+    "price": 3499,
     "oldPrice": null,
     "image": "5.jpg",
     "images": [
@@ -256,7 +256,7 @@
     "id": "L06",
     "name": "Rhinestone Chain Mesh Garter Set",
     "category": "Lingerie",
-    "price": 4570,
+    "price": 4499,
     "oldPrice": null,
     "image": "6.jpg",
     "images": [
@@ -307,7 +307,7 @@
     "id": "L07",
     "name": "Peony Embroidered Lace Bra Set",
     "category": "Lingerie",
-    "price": 3660,
+    "price": 3499,
     "oldPrice": null,
     "image": "7.jpg",
     "images": [
@@ -358,16 +358,16 @@
     "id": "L08",
     "name": "Navy Embroidered Lace-Up Garter Set",
     "category": "Lingerie",
-    "price": 4050,
+    "price": 3999,
     "oldPrice": null,
-    "image": "8.png",
+    "image": "8.jpg",
     "images": [
-      "8.png",
-      "8-1.png",
-      "8-2.png",
-      "8-3.png",
-      "8-4.png",
-      "8-5.png"
+      "8.jpg",
+      "8-1.jpg",
+      "8-2.jpg",
+      "8-3.jpg",
+      "8-4.jpg",
+      "8-5.jpg"
     ],
     "tags": [
       "exclusive"
@@ -409,7 +409,7 @@
     "id": "L09",
     "name": "White Lace Bustier Bra & Thong Set",
     "category": "Lingerie",
-    "price": 3790,
+    "price": 3499,
     "oldPrice": null,
     "image": "9.jpg",
     "images": [
@@ -460,7 +460,7 @@
     "id": "L10",
     "name": "Emerald Eyelash Lace Bra & Fishnet Panty",
     "category": "Lingerie",
-    "price": 3530,
+    "price": 3499,
     "oldPrice": null,
     "image": "10.jpg",
     "images": [
@@ -511,7 +511,7 @@
     "id": "L11",
     "name": "Black Fishnet Strappy Garter Set",
     "category": "Lingerie",
-    "price": 3790,
+    "price": 3599,
     "oldPrice": null,
     "image": "11.jpg",
     "images": [
@@ -559,7 +559,7 @@
     "id": "L12",
     "name": "Strapless Cut-Out Bandeau Set",
     "category": "Lingerie",
-    "price": 3140,
+    "price": 2999,
     "oldPrice": null,
     "image": "12.jpg",
     "images": [
@@ -610,13 +610,13 @@
     "id": "L13",
     "name": "Black Sheer Lace Bra & Thong Set",
     "category": "Lingerie",
-    "price": 3400,
+    "price": 3499,
     "oldPrice": null,
     "image": "13.jpg",
     "images": [
       "13.jpg",
       "13-1.jpg",
-      "13-2.png",
+      "13-2.jpg",
       "13-3.jpg"
     ],
     "tags": [
@@ -659,7 +659,7 @@
     "id": "L14",
     "name": "Lilac Lace Halter Garter Set",
     "category": "Lingerie",
-    "price": 3660,
+    "price": 3599,
     "oldPrice": null,
     "image": "14.jpg",
     "images": [
@@ -709,7 +709,7 @@
     "id": "L15",
     "name": "Criss-Cross Halter Lace Bralette Set",
     "category": "Lingerie",
-    "price": 3270,
+    "price": 2999,
     "oldPrice": null,
     "image": "15.jpg",
     "images": [
@@ -760,7 +760,7 @@
     "id": "L16",
     "name": "Leopard Mesh Triangle Bra Set",
     "category": "Lingerie",
-    "price": 3270,
+    "price": 2999,
     "oldPrice": null,
     "image": "16.jpg",
     "images": [
@@ -811,7 +811,7 @@
     "id": "L17",
     "name": "Navy Floral Lace-Up Corset Garter Set",
     "category": "Lingerie",
-    "price": 4050,
+    "price": 3999,
     "oldPrice": null,
     "image": "17.jpg",
     "images": [
@@ -862,15 +862,15 @@
     "id": "L18",
     "name": "Pink Ruffle Lace Garter Set",
     "category": "Lingerie",
-    "price": 3790,
+    "price": 3599,
     "oldPrice": null,
     "image": "18.jpg",
     "images": [
       "18.jpg",
       "18-1.jpg",
       "18-2.jpg",
-      "18-4.jpg",
-      "18-5.jpg"
+      "18-3.jpg",
+      "18-4.jpg"
     ],
     "tags": [
       "popular"
@@ -912,7 +912,7 @@
     "id": "L19",
     "name": "Lace Cut-Out Teddy Set",
     "category": "Lingerie",
-    "price": 3530,
+    "price": 3599,
     "oldPrice": null,
     "image": "19.jpg",
     "images": [
@@ -963,7 +963,7 @@
     "id": "L20",
     "name": "Lace Babydoll Nightdress with Thong",
     "category": "Lingerie",
-    "price": 3140,
+    "price": 2999,
     "oldPrice": null,
     "image": "20.jpg",
     "images": [
@@ -1014,7 +1014,7 @@
     "id": "L21",
     "name": "Pastel Embroidered Garter Set",
     "category": "Lingerie",
-    "price": 4050,
+    "price": 3999,
     "oldPrice": null,
     "image": "21.jpg",
     "images": [
@@ -1065,7 +1065,7 @@
     "id": "L22",
     "name": "Black Embroidered Garter & Stocking Set",
     "category": "Lingerie",
-    "price": 3790,
+    "price": 3599,
     "oldPrice": null,
     "image": "22.jpg",
     "images": [
@@ -1165,14 +1165,14 @@
     "id": "L24",
     "name": "Strappy Lace Cage Bra Set",
     "category": "Lingerie",
-    "price": 3270,
+    "price": 3299,
     "oldPrice": null,
     "image": "24.jpg",
     "images": [
       "24.jpg",
       "24-1.jpg",
       "24-2.jpg",
-      "24-3.png"
+      "24-3.jpg"
     ],
     "tags": [
       "recommended"
@@ -1214,7 +1214,7 @@
     "id": "L25",
     "name": "Hot Pink Heart Garter Set",
     "category": "Lingerie",
-    "price": 4050,
+    "price": 3999,
     "oldPrice": null,
     "image": "25.jpg",
     "images": [
@@ -1265,7 +1265,7 @@
     "id": "L26",
     "name": "Black Strappy Harness Lingerie Set",
     "category": "Lingerie",
-    "price": 4050,
+    "price": 3999,
     "oldPrice": null,
     "image": "26.jpg",
     "images": [
@@ -1316,7 +1316,7 @@
     "id": "L27",
     "name": "Floral Embroidered Sheer Bra & Thong",
     "category": "Lingerie",
-    "price": 3660,
+    "price": 3599,
     "oldPrice": null,
     "image": "27.jpg",
     "images": [
@@ -1367,7 +1367,7 @@
     "id": "L28",
     "name": "Seamless V-Neck Bralette Set",
     "category": "Lingerie",
-    "price": 3400,
+    "price": 3499,
     "oldPrice": null,
     "image": "28.jpg",
     "images": [
@@ -1412,7 +1412,7 @@
     "id": "L29",
     "name": "Red Lips Print Lace Bra Set",
     "category": "Lingerie",
-    "price": 3660,
+    "price": 3599,
     "oldPrice": null,
     "image": "29.jpg",
     "images": [
@@ -1461,16 +1461,16 @@
     "id": "L30",
     "name": "Rose Embroidered Sheer Bra Set",
     "category": "Lingerie",
-    "price": 3400,
+    "price": 3499,
     "oldPrice": null,
     "image": "30.jpg",
     "images": [
       "30.jpg",
-      "30-1.png",
-      "30-2.png",
-      "30-3.png",
-      "30-4.png",
-      "30-5.png"
+      "30-1.jpg",
+      "30-2.jpg",
+      "30-3.jpg",
+      "30-4.jpg",
+      "30-5.jpg"
     ],
     "tags": [],
     "sizes": [
@@ -1510,15 +1510,15 @@
     "id": "L31",
     "name": "Black Embroidered Garter Set with Blue Trim",
     "category": "Lingerie",
-    "price": 4310,
+    "price": 3999,
     "oldPrice": null,
     "image": "31.jpg",
     "images": [
       "31.jpg",
       "31-1.jpg",
       "31-2.jpg",
-      "31-4.jpg",
-      "31-5.jpg"
+      "31-3.jpg",
+      "31-4.jpg"
     ],
     "tags": [],
     "sizes": [
@@ -1558,7 +1558,7 @@
     "id": "L32",
     "name": "Satin Rhinestone Chain Garter Set",
     "category": "Lingerie",
-    "price": 3660,
+    "price": 3599,
     "oldPrice": null,
     "image": "32.jpg",
     "images": [
@@ -1606,11 +1606,11 @@
     "id": "L33",
     "name": "Fishnet Bra & Thong Set",
     "category": "Lingerie",
-    "price": 3400,
+    "price": 3399,
     "oldPrice": null,
-    "image": "33.png",
+    "image": "33.jpg",
     "images": [
-      "33.png",
+      "33.jpg",
       "33-1.jpg",
       "33-2.jpg",
       "33-3.jpg"
@@ -1653,7 +1653,7 @@
     "id": "L34",
     "name": "Black Lace Strappy Teddy with Garters",
     "category": "Lingerie",
-    "price": 3790,
+    "price": 3599,
     "oldPrice": null,
     "image": "34.jpg",
     "images": [
@@ -1702,7 +1702,7 @@
     "id": "L35",
     "name": "Lace Bra Set with Feather Robe",
     "category": "Lingerie",
-    "price": 4050,
+    "price": 3999,
     "oldPrice": null,
     "image": "35.jpg",
     "images": [
@@ -1751,7 +1751,7 @@
     "id": "L36",
     "name": "Black Harness Lace Garter Set with Choker",
     "category": "Lingerie",
-    "price": 4570,
+    "price": 4499,
     "oldPrice": null,
     "image": "36.jpg",
     "images": [
@@ -1800,7 +1800,7 @@
     "id": "L37",
     "name": "Black Fishnet Garter & Stocking Set",
     "category": "Lingerie",
-    "price": 4050,
+    "price": 3999,
     "oldPrice": null,
     "image": "37.jpg",
     "images": [
@@ -1846,7 +1846,7 @@
     "id": "L38",
     "name": "Fishnet Halter Keyhole Set",
     "category": "Lingerie",
-    "price": 3140,
+    "price": 2999,
     "oldPrice": null,
     "image": "38.jpg",
     "images": [
@@ -1895,7 +1895,7 @@
     "id": "L39",
     "name": "Sheer Mesh Triangle Bra & Brief Set",
     "category": "Lingerie",
-    "price": 4050,
+    "price": 3999,
     "oldPrice": null,
     "image": "39.jpg",
     "images": [
@@ -1944,7 +1944,7 @@
     "id": "L40",
     "name": "Embroidered Corset Garter Set with Stockings",
     "category": "Lingerie",
-    "price": 4050,
+    "price": 3999,
     "oldPrice": null,
     "image": "40.jpg",
     "images": [
@@ -1993,7 +1993,7 @@
     "id": "L41",
     "name": "Lace Garter Set with Thigh Straps",
     "category": "Lingerie",
-    "price": 4050,
+    "price": 3999,
     "oldPrice": null,
     "image": "41.jpg",
     "images": [
@@ -2186,7 +2186,7 @@
     "id": "L45",
     "name": "Red Lace 4-Piece Garter Set",
     "category": "Lingerie",
-    "price": 3790,
+    "price": 3599,
     "oldPrice": null,
     "image": "45.jpg",
     "images": [
@@ -2235,7 +2235,7 @@
     "id": "L46",
     "name": "Scalloped Lace Bra & Thong Set",
     "category": "Lingerie",
-    "price": 3660,
+    "price": 3599,
     "oldPrice": null,
     "image": "46.jpg",
     "images": [
@@ -2333,7 +2333,7 @@
     "id": "L48",
     "name": "Pink 3D Flower Bustier Garter Set",
     "category": "Lingerie",
-    "price": 4050,
+    "price": 3999,
     "oldPrice": null,
     "image": "48.jpg",
     "images": [
@@ -2382,7 +2382,7 @@
     "id": "L49",
     "name": "Pink & Yellow Colour Block Garter Set",
     "category": "Lingerie",
-    "price": 3790,
+    "price": 3699,
     "oldPrice": null,
     "image": "49.jpg",
     "images": [
@@ -2429,7 +2429,7 @@
     "id": "L50",
     "name": "Lace Longline Bralette Set",
     "category": "Lingerie",
-    "price": 3140,
+    "price": 2999,
     "oldPrice": null,
     "image": "50.jpg",
     "images": [
@@ -2477,7 +2477,7 @@
     "id": "L51",
     "name": "Red Floral Embroidered White Bra Set",
     "category": "Lingerie",
-    "price": 3660,
+    "price": 3599,
     "oldPrice": null,
     "image": "51.jpg",
     "images": [
@@ -2526,7 +2526,7 @@
     "id": "L52",
     "name": "Fishnet Strappy Lingerie Set",
     "category": "Lingerie",
-    "price": 3660,
+    "price": 3599,
     "oldPrice": null,
     "image": "52.jpg",
     "images": [
@@ -2572,7 +2572,7 @@
     "id": "L53",
     "name": "Heart Ring Lace Teddy with Garters",
     "category": "Lingerie",
-    "price": 3400,
+    "price": 3499,
     "oldPrice": null,
     "image": "53.jpg",
     "images": [
@@ -2620,7 +2620,7 @@
     "id": "L54",
     "name": "Black Lace Bustier Strappy Garter Set",
     "category": "Lingerie",
-    "price": 3660,
+    "price": 3599,
     "oldPrice": null,
     "image": "54.jpg",
     "images": [
@@ -2667,7 +2667,7 @@
     "id": "L55",
     "name": "Blue Floral Embroidered Garter Set",
     "category": "Lingerie",
-    "price": 4050,
+    "price": 3999,
     "oldPrice": null,
     "image": "55.jpg",
     "images": [
@@ -2716,7 +2716,7 @@
     "id": "L56",
     "name": "Strappy Cage Lace Bra & Brief Set",
     "category": "Lingerie",
-    "price": 3660,
+    "price": 3599,
     "oldPrice": null,
     "image": "56.jpg",
     "images": [
@@ -2765,7 +2765,7 @@
     "id": "L57",
     "name": "Heart Mesh Bandeau & Ruffle Shorts Set",
     "category": "Lingerie",
-    "price": 3140,
+    "price": 2999,
     "oldPrice": null,
     "image": "57.jpg",
     "images": [
@@ -2814,11 +2814,11 @@
     "id": "L58",
     "name": "Rose Garden Embroidered Bra & Thong",
     "category": "Lingerie",
-    "price": 3400,
+    "price": 3399,
     "oldPrice": null,
-    "image": "58.png",
+    "image": "58.jpg",
     "images": [
-      "58.png",
+      "58.jpg",
       "58-1.jpg",
       "58-2.jpg",
       "58-3.jpg",
@@ -2863,7 +2863,7 @@
     "id": "L59",
     "name": "Floral Garter Set with Stockings",
     "category": "Lingerie",
-    "price": 3660,
+    "price": 3599,
     "oldPrice": null,
     "image": "59.jpg",
     "images": [
@@ -2912,7 +2912,7 @@
     "id": "L60",
     "name": "Black Strappy Harness Lace Bra Set",
     "category": "Lingerie",
-    "price": 3660,
+    "price": 3599,
     "oldPrice": null,
     "image": "60.jpg",
     "images": [
