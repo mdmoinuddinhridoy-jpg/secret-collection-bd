@@ -287,9 +287,9 @@
     </div>
     <div id="gridCatalog" class="grid grid-cols-2 lg:grid-cols-4 gap-x-4 sm:gap-x-6 gap-y-12"></div>
     <div id="catalogEmpty" class="hidden text-center py-24">
-      <p class="font-serif text-3xl mb-3">Nothing found</p>
-      <p class="text-charcoal-soft mb-8">Try another search term or category.</p>
-      <button data-cat="All" class="bg-noir text-white text-xs tracking-luxe uppercase px-8 py-3">View All Products</button>
+      <p id="catEmptyTitle" class="font-serif text-3xl mb-3">Nothing found</p>
+      <p id="catEmptyText" class="text-charcoal-soft mb-8">Try another search term or category.</p>
+      <button id="catEmptyBtn" data-cat="All" class="bg-noir text-white text-xs tracking-luxe uppercase px-8 py-3">View All Products</button>
     </div>
   </section>
 
@@ -433,6 +433,7 @@
             <button type="button" data-pm="add" class="bg-noir text-white text-[11px] tracking-[.14em] uppercase px-5 py-3 hover:bg-charcoal">+ Add Product with AI</button>
             <button type="button" data-pm="bulkai" class="bg-noir text-white text-[11px] tracking-[.14em] uppercase px-5 py-3 hover:bg-charcoal">✨ Bulk AI Listing</button>
             <button type="button" data-pm="bulkphotos" class="border border-noir bg-white text-[11px] tracking-[.14em] uppercase px-5 py-3 hover:bg-noir hover:text-white">Replace/Add Photos</button>
+            <button type="button" data-pm="cleanup" class="border border-black/20 bg-white text-[11px] tracking-[.14em] uppercase px-5 py-3 hover:border-noir">🧹 Clean Up Products</button>
             <button type="button" data-pm="bulksheet" class="border border-noir bg-white text-[11px] tracking-[.14em] uppercase px-5 py-3 hover:bg-noir hover:text-white">Bulk Import CSV / Excel</button>
             <button type="button" data-pm="export" class="border border-noir bg-white text-[11px] tracking-[.14em] uppercase px-5 py-3 hover:bg-noir hover:text-white">Export Products (Excel)</button>
             <button type="button" data-pm="reload" class="text-[11px] tracking-[.14em] uppercase px-3 py-3 underline underline-offset-4 text-charcoal-soft hover:text-noir">Reload</button>
@@ -929,7 +930,6 @@
     productsHash = text;
 
     PRODUCTS = normalizeProducts(data);
-    if (!PRODUCTS.length) throw new Error('No products found in products.json');
     return changed;
   }
   function showLoadError(err) {
@@ -942,8 +942,8 @@
      2) Every visitor's page checks products.json every 45 s (and when they return to the tab);
         when the website has a new version, the page they are on is re-drawn in place. */
   function applyProducts(data, text) {
-    if (!Array.isArray(data) || !data.length) return;
-    const list = normalizeProducts(data); if (!list.length) return;
+    if (!Array.isArray(data)) return;
+    const list = normalizeProducts(data);
     if (text) productsHash = text;
     PRODUCTS = list;
     const y = window.scrollY;
@@ -1022,8 +1022,9 @@
     </article>`;
   }
 
-  function renderGrid(el, list, dark, hideCat) {
-    el.innerHTML = list.map(p => cardHTML(p, dark, hideCat)).join('');
+  const emptyGrid = (dark) => `<div class="col-span-full text-center py-14 ${dark ? 'text-white/60' : 'text-charcoal-soft'}"><p class="font-serif text-2xl ${dark ? 'text-white' : 'text-noir'} mb-2">No products uploaded yet</p><p class="text-sm">New arrivals are coming soon.</p></div>`;
+  function renderGrid(el, list, dark, hideCat, noEmpty) {
+    el.innerHTML = list.length || noEmpty ? list.map(p => cardHTML(p, dark, hideCat)).join('') : emptyGrid(dark);
     observeReveal(el);
   }
 
@@ -1061,7 +1062,10 @@
       <button data-cat="${c}" class="text-[11px] tracking-[.16em] uppercase px-4 py-2 border transition ${c === state.category ? 'bg-noir text-white border-noir' : 'border-black/15 hover:border-noir'}">${c}</button>`).join('');
     $('catalogCount').textContent = `${list.length} ${list.length === 1 ? 'piece' : 'pieces'}`;
     $('catalogEmpty').classList.toggle('hidden', list.length > 0);
-    renderGrid($('gridCatalog'), list);
+    $('catEmptyTitle').textContent = q ? 'Nothing found' : 'No products uploaded yet';
+    $('catEmptyText').textContent = q ? 'Try another search term or category.' : (state.category === 'All' ? 'New arrivals are coming soon.' : `New ${state.category} pieces are coming soon. Check back shortly.`);
+    $('catEmptyBtn').classList.toggle('hidden', !q && state.category === 'All');
+    renderGrid($('gridCatalog'), list, false, false, true);
   }
 
   /* ---------- View switching ---------- */
@@ -3867,6 +3871,90 @@ Look at the product photo and return ONLY a JSON object (no markdown) with these
     }
   }
 
+  /* ---------- Clean up: remove products without photos, tidy photo numbers, delete unused photo files ---------- */
+  const PHOTO_RE = /^(\d+)((?:-\d+)?)\.(jpe?g|png|webp)$/i;
+  async function openCleanup() {
+    if (!PM.products) return toast('Connect GitHub in Settings first');
+    openPanel('🧹 Clean Up Products', '<p class="text-sm text-charcoal-soft py-10 text-center">Checking every product photo on GitHub…</p>');
+    try {
+      const s = getSet();
+      const t = await gh(`/repos/${s.repo}/git/trees/${encodeURIComponent(s.branch)}?recursive=1`);
+      const files = new Set(t.tree.filter(x => x.type === 'blob').map(x => x.path));
+      const removed = [], fixedLinks = [];
+      let keep = PM.products.map(p => {
+        const imgs = (p.images && p.images.length ? p.images : [p.image]).filter(Boolean);
+        const have = imgs.filter(i => files.has(i));
+        if (!have.length) { removed.push(p); return null; }
+        if (have.length < imgs.length) fixedLinks.push({ p, gone: imgs.filter(i => !files.has(i)) });
+        return { ...p, image: have[0], images: have };
+      }).filter(Boolean);
+      // photo numbers that jump far ahead (e.g. 60 → 161 because of removed placeholders) move down to follow on
+      const renames = [];
+      const order = keep.map((p, i) => ({ i, n: imgNoOf(p) })).filter(x => x.n).sort((a, b) => a.n - b.n);
+      let prev = 0;
+      order.forEach(({ i, n }) => {
+        if (n - prev > 2) {          // a gap of 2+ numbers: close it (single gaps from one deleted product are left alone)
+          const to = prev + 1, p = keep[i];
+          const map = p.images.map(path => { const m = path.match(PHOTO_RE); return m && Number(m[1]) === n ? [path, `${to}${m[2]}.${m[3].toLowerCase()}`] : [path, path]; });
+          renames.push({ id: p.id, name: p.name, from: n, to, map: map.filter(([a, b]) => a !== b) });
+          keep[i] = { ...p, images: map.map(x => x[1]), image: map[0][1] };
+          prev = to;
+        } else prev = n;
+      });
+      PM.cu = { keep, removed, fixedLinks, renames, files };
+      drawCleanup();
+    } catch (e) { console.error(e); $('pmBody').innerHTML = `<p class="text-sm text-[#9B1C1C]">Could not read GitHub: ${esc(e.status ? ghErr(e) : e.message)}</p>`; }
+  }
+  function cuUnused(keep, renames, files) {
+    const used = new Set(keep.flatMap(p => p.images)), written = new Set(renames.flatMap(r => r.map.flat()));   // rename sources are removed by the rename itself
+    return [...files].filter(f => PHOTO_RE.test(f) && !used.has(f) && !written.has(f)).sort((a, b) => parseInt(a) - parseInt(b) || a.localeCompare(b, 'en', { numeric: true }));
+  }
+  function drawCleanup() {
+    const { keep, removed, fixedLinks, renames, files } = PM.cu;
+    const doRen = $('cuRen') ? $('cuRen').checked : true, doDel = $('cuDel') ? $('cuDel').checked : true;
+    const finalKeep = doRen ? keep.slice() : keep.map(p => { const r = renames.find(x => x.id === p.id); if (!r) return p; const back = Object.fromEntries(r.map.map(([a, b]) => [b, a])); const images = p.images.map(x => back[x] || x); return { ...p, images, image: images[0] }; });
+    let unused = cuUnused(finalKeep, doRen ? renames : [], files);
+    // an unused photo that carries a product's own photo number (e.g. 61-6.jpg for photo 61) is attached to that product instead of deleted
+    const relinked = [];
+    unused = unused.filter(f => { const m = f.match(PHOTO_RE); if (!m || !m[2]) return true;
+      const k = finalKeep.findIndex(p => imgNoOf(p) === Number(m[1])); if (k < 0) return true;
+      const p = finalKeep[k]; const images = [...p.images, f].sort((a, b) => (Number((a.match(/-(\d+)\./) || [0, 0])[1])) - (Number((b.match(/-(\d+)\./) || [0, 0])[1])));
+      finalKeep[k] = { ...p, images, image: images[0] }; relinked.push({ id: p.id, f }); return false; });
+    const byCat = Object.fromEntries(CATS4.map(c => [c, finalKeep.filter(p => p.category === c).length]));
+    const maxNo = Math.max(0, ...finalKeep.map(imgNoOf));
+    const nextSkuOf = (c) => { const pre = CAT_PREFIX[c]; const n = Math.max(0, ...finalKeep.map(p => { const m = String(p.id).match(new RegExp('^' + pre + '(\\d+)$')); return m ? Number(m[1]) : 0; })) + 1; return pre + String(n).padStart(2, '0'); };
+    const box = (title, body, tone = '') => `<div class="border border-black/10 ${tone} p-4 mb-3"><p class="font-medium text-sm mb-2">${title}</p>${body}</div>`;
+    const nothing = !removed.length && !fixedLinks.length && !(doRen && renames.length) && !(doDel && unused.length) && !relinked.length;
+    $('pmBody').innerHTML = `
+      <p class="text-sm text-charcoal-light mb-4">Products without any photo on GitHub are removed from the website and the admin panel. Your real products keep their SKU and photos. Nothing changes until you click the button below.</p>
+      ${box(`${removed.length} product${removed.length === 1 ? '' : 's'} without photos → will be removed`, removed.length ? `<div class="max-h-40 overflow-y-auto text-xs text-charcoal-light columns-2 sm:columns-3">${removed.map(p => `<div><span class="font-mono">${esc(p.id)}</span> ${esc(String(p.name).slice(0, 26))}</div>`).join('')}</div>` : '<p class="text-xs text-charcoal-soft">None.</p>', removed.length ? 'bg-[#FDE8E8]/40' : '')}
+      ${fixedLinks.length ? box(`${fixedLinks.length} product${fixedLinks.length === 1 ? '' : 's'} with some missing photos → only the missing photo links are removed`, `<div class="text-xs text-charcoal-light max-h-28 overflow-y-auto">${fixedLinks.map(f => `<div><span class="font-mono">${esc(f.p.id)}</span>: ${f.gone.map(esc).join(', ')}</div>`).join('')}</div>`) : ''}
+      ${renames.length ? box(`<label class="flex items-center gap-2"><input id="cuRen" type="checkbox" ${doRen ? 'checked' : ''} class="w-4 h-4 accent-[#0F0F0F]" /> Fix photo numbers that jump ahead</label>`, `<div class="text-xs text-charcoal-light">${renames.map(r => `<div><span class="font-mono">${esc(r.id)}</span> ${esc(String(r.name).slice(0, 30))}: photo <b>${r.from}</b> → <b>${r.to}</b> (${r.map.length} file${r.map.length === 1 ? '' : 's'} renamed)</div>`).join('')}</div>`) : ''}
+      ${relinked.length ? box(`${relinked.length} photo${relinked.length === 1 ? '' : 's'} on GitHub belong to a product but were not shown → will be added back`, `<div class="text-xs text-charcoal-light">${relinked.map(r => `<span class="font-mono">${esc(r.id)}</span>: ${esc(r.f)}`).join(' · ')}</div>`) : ''}
+      ${unused.length ? box(`<label class="flex items-center gap-2"><input id="cuDel" type="checkbox" ${doDel ? 'checked' : ''} class="w-4 h-4 accent-[#0F0F0F]" /> Delete ${unused.length} unused photo file${unused.length === 1 ? '' : 's'} from GitHub</label>`, `<p class="text-xs text-charcoal-soft">Not used by any product (old or duplicate uploads). Banners and the homepage image are never touched.</p><div class="text-[11px] font-mono text-charcoal-soft max-h-20 overflow-y-auto mt-1">${unused.map(esc).join(', ')}</div>`) : ''}
+      ${box('After clean-up', `<div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs mb-2">${CATS4.map(c => `<div class="border border-black/10 p-2"><b class="font-serif text-lg block">${byCat[c]}</b>${esc(c)}<br><span class="text-charcoal-soft">next SKU ${nextSkuOf(c)}</span></div>`).join('')}</div>
+        <p class="text-xs text-charcoal-soft">Next new product photo number: <b class="text-noir">${maxNo + 1}</b> (${maxNo + 1}.jpg, ${maxNo + 1}-1.jpg …). Empty categories show "No products uploaded yet" on the website.</p>`)}
+      <p id="cuMsg" class="text-sm mt-2"></p>
+      ${nothing ? '<p class="text-sm text-[#1F7A45] mt-2">✓ Everything is already clean.</p>' : `<button type="button" data-pm="cugo" class="mt-3 w-full bg-noir text-white text-[11px] tracking-[.14em] uppercase py-4 hover:bg-charcoal">Clean Up & Publish</button>`}`;
+    PM.cu.final = { keep: finalKeep, unused: doDel ? unused : [], renames: doRen ? renames : [] };
+  }
+  async function runCleanup() {
+    const { removed } = PM.cu, f = PM.cu.final;
+    if (!confirm(`Remove ${removed.length} products without photos${f.renames.length ? `, renumber ${f.renames.length} product photo set(s)` : ''}${f.unused.length ? ` and delete ${f.unused.length} unused photo files` : ''}?\n\nYour ${f.keep.length} real products stay on the website.`)) return;
+    const files = [];
+    f.renames.forEach(r => r.map.forEach(([from, to]) => { files.push({ path: to, fromPath: from }); files.push({ path: from, remove: true }); }));
+    f.unused.forEach(p => files.push({ path: p, remove: true }));
+    files.push(productsFile(f.keep));
+    $('cuMsg').className = 'text-sm mt-2 text-charcoal-soft'; $('cuMsg').textContent = 'Publishing…';
+    try {
+      await ghCommit(files, `Clean up: remove ${removed.length} products without photos`);
+      const touched = f.renames.map(r => String(r.id));
+      PM.cu = null; closePanel();
+      afterPublish(f.keep, 'Clean-up', touched.length ? touched : [String((f.keep[0] || {}).id || '')].filter(Boolean), removed.map(p => String(p.id)));
+    } catch (e) { console.error(e); $('cuMsg').className = 'text-sm mt-2 text-[#9B1C1C]'; $('cuMsg').textContent = e.status ? ghErr(e) : 'Failed: ' + e.message; }
+  }
+  document.addEventListener('change', (e) => { if (PM.cu && (e.target.id === 'cuRen' || e.target.id === 'cuDel')) drawCleanup(); });
+
   /* ---------- Bulk photo upload ---------- */
   function openBulkPhotos() {
     if (!PM.products) return toast('Connect GitHub in Settings first');
@@ -4567,6 +4655,8 @@ Look at the product photo and return ONLY a JSON object (no markdown) with these
     if (d.pm === 'close') return closePanel();
     if (d.pm === 'ai') return runAi();
     if (d.pm === 'bulkphotos') return openBulkPhotos();
+    if (d.pm === 'cleanup') return openCleanup();
+    if (d.pm === 'cugo') return runCleanup();
     if (d.pm === 'bpgo') return publishBulkPhotos();
     if (d.pm === 'bulksheet') return openBulkSheet();
     if (d.pm === 'bsgo') return publishSheet();
