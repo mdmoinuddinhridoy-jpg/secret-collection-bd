@@ -5,6 +5,9 @@
 //   POST /api/steadfast  admin only: balance / create parcel / parcel status
 //   POST /api/sfhook     Steadfast webhook: courier status changes arrive here instantly
 //   POST /api/adminorder admin only: add orders by hand / from Excel (past offline orders)
+//   POST /api/coupon     check a coupon code against the bag (the real check happens again in /api/order)
+//   POST /api/cart       phone-first checkout: saves the bag as an "abandoned cart" until the order is placed
+//   POST /api/review     review invites (admin), review form (customer link from WhatsApp)
 //
 // Order IDs: one running serial for website AND manual orders (SCB-1001, SCB-1002 …), kept in the
 // database at counters/orderSeq and increased safely, so two orders can never get the same number.
@@ -187,9 +190,9 @@ ORDER ITEMS
 ${items}
 
 ━━━━━━━━━━━━━━━
-Subtotal: ${taka(o.subtotal)}
+Subtotal: ${taka(o.subtotal)}${o.coupon ? `\nCoupon ${o.coupon.code}${o.coupon.owner ? ' (' + o.coupon.owner + ')' : ''}: −${taka(o.coupon.discount)}` : ''}
 Delivery: FREE
-TOTAL: ${taka(o.total)} BDT
+TOTAL: ${taka(o.total)} BDT${o.flag ? `\n\n⚠ CUSTOMER TAGGED: ${o.flag}` : ''}
 
 CUSTOMER
 Name: ${o.customer.name}
@@ -210,6 +213,28 @@ TrxID / Ref: ${o.payment.trx}`;
     if (!r.ok) console.error('Order email failed', r.status, r.raw.slice(0, 200));
     return r.ok;
   } catch (e) { console.error('Order email error', e); return false; }
+}
+
+/* ---------- coupons (admin creates them in the panel → database coupons/CODE) ---------- */
+const cleanCode = (v) => String(v || '').toUpperCase().replace(/[^A-Z0-9_-]/g, '').slice(0, 30);
+// returns { ok, code, discount, owner } or { ok:false, error }
+async function checkCoupon(env, rawCode, subtotal, phone) {
+  const code = cleanCode(rawCode);
+  if (!code) return { ok: false, error: 'Please enter a coupon code.' };
+  const c = await dbGet(env, 'coupons/' + code);
+  const no = (m) => ({ ok: false, error: m });
+  if (!c || c.active === false) return no('This coupon code is not valid.');
+  const today = new Date(Date.now() + 6 * 3600e3).toISOString().slice(0, 10);   // Bangladesh date
+  if (c.starts && today < c.starts) return no('This coupon is not active yet.');
+  if (c.expires && today > c.expires) return no('This coupon has expired.');
+  if (c.maxUses && (Number(c.used) || 0) >= Number(c.maxUses)) return no('This coupon has been fully used.');
+  if (c.minOrder && subtotal < Number(c.minOrder)) return no(`This coupon needs a minimum order of ৳${Number(c.minOrder).toLocaleString('en-IN')}.`);
+  if (c.onePerPhone && phone && (await dbGet(env, `couponPhones/${code}/${phone}`))) return no('This coupon was already used with this phone number.');
+  let discount = c.type === 'fixed' ? Math.round(Number(c.value) || 0) : Math.round(subtotal * Math.min(100, Number(c.value) || 0) / 100);
+  if (c.maxDiscount) discount = Math.min(discount, Math.round(Number(c.maxDiscount)));
+  discount = Math.max(0, Math.min(discount, subtotal));
+  if (!discount) return no('This coupon does not apply to this bag.');
+  return { ok: true, code, discount, owner: clip(c.owner, 40) };
 }
 
 /* ======================= POST /api/order ======================= */
@@ -252,9 +277,13 @@ async function handleOrder(ctx, b) {
   if (!(Number(b.ms) >= 3000)) return fail(400, 'Please take a moment to check your details, then tap Confirm again.');
   // 2. customer & payment
   const c = b.customer || {}, pay = b.payment || {};
-  const customer = { name: clip(c.name, 80), phone: normPhone(c.phone), email: clip(c.email, 100).toLowerCase(), address: clip(c.address, 300) };
+  const district = clip(c.district, 40), area = clip(c.area, 60), street = clip(c.street, 220);
+  const customer = { name: clip(c.name, 80), phone: normPhone(c.phone), email: clip(c.email, 100).toLowerCase(),
+    address: district ? clip([street, area, district].filter(Boolean).join(', '), 300) : clip(c.address, 300) };
+  if (district) { customer.district = district; customer.area = area; customer.street = street; }
   if (customer.name.length < 2) return fail(400, 'Please enter your name.');
   if (!customer.phone) return fail(400, 'Please enter a valid Bangladeshi phone number (01XXXXXXXXX).');
+  if (district && street.length < 4) return fail(400, 'Please enter your house / road details.');
   if (customer.email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(customer.email)) return fail(400, 'Please enter a valid email, or leave it empty.');
   if (customer.address.length < 8) return fail(400, 'Please enter your full delivery address.');
   const method = ['bKash', 'Nagad'].includes(pay.method) ? pay.method : '';
@@ -275,12 +304,21 @@ async function handleOrder(ctx, b) {
     const colors = Array.isArray(p.colors) && p.colors.length ? p.colors : ['Default'];
     const size = sizes.includes(it.size) ? it.size : sizes[0];
     const color = colors.includes(it.color) ? it.color : colors[0];
+    const soldOut = Array.isArray(p.soldOut) ? p.soldOut : [];
+    if (soldOut.includes(size)) return fail(409, `Sorry, size ${size} of ${p.name} just sold out. Please choose another size.`);
     const price = Math.round(Number(p.price));
     if (!(price > 0)) return fail(409, `Price missing for ${p.id}.`);
     items.push({ id: String(p.id), name: String(p.name), category: String(p.category || ''), size, color, qty, price, lineTotal: price * qty,
       image: String(p.image || (p.images || [])[0] || '') });
   }
-  const subtotal = items.reduce((n, l) => n + l.lineTotal, 0), total = subtotal;   // delivery is FREE
+  const subtotal = items.reduce((n, l) => n + l.lineTotal, 0);
+  let coupon = null;
+  if (b.coupon) {
+    const cc = await checkCoupon(env, b.coupon, subtotal, customer.phone);
+    if (!cc.ok) return fail(409, cc.error + ' Remove the coupon to order without it.');
+    coupon = { code: cc.code, discount: cc.discount, ...(cc.owner ? { owner: cc.owner } : {}) };
+  }
+  const discount = coupon ? coupon.discount : 0, total = subtotal - discount;   // delivery is FREE
   // 4. rate limits (per network and per phone number)
   const ip = ctx.request.headers.get('CF-Connecting-IP') || ctx.request.headers.get('x-forwarded-for') || 'unknown';
   if (!(await rateLimit(env, 'ip', ip, 30, 3600e3))) return fail(429, 'Too many orders from this network. Please try again in an hour or message us.');
@@ -292,14 +330,22 @@ async function handleOrder(ctx, b) {
   const orderNo = serialNo(serial);
   const key = pushKey(), now = Date.now();
   const order = { orderNo, serial, source: 'website', channel: 'Website', customer, payment: { method, trx }, items, subtotal, delivery: 0, total,
-    uid: user ? user.uid : null, status: 'Pending', createdAt: now };
+    ...(coupon ? { coupon, discount } : {}), uid: user ? user.uid : null, status: 'Pending', createdAt: now };
   const status = { status: 'Pending', createdAt: now, total, itemCount: items.reduce((n, l) => n + l.qty, 0) };
   const upd = { [`orders/${key}`]: order, [`orderStatus/${orderNo}`]: status };
   if (user) upd[`userOrders/${user.uid}/${key}`] = order;
+  upd[`abandoned/${customer.phone}`] = null;                       // the bag became an order
+  if (coupon) {
+    const cur = (await dbGet(env, `coupons/${coupon.code}/used`)) || 0;
+    upd[`coupons/${coupon.code}/used`] = Number(cur) + 1;
+    upd[`couponPhones/${coupon.code}/${customer.phone}`] = orderNo;
+  }
   await dbPatch(env, '', upd);
-  // 7. email alert to the shop
-  const emailed = await sendOrderEmail(env, order);
-  return json(200, { ok: true, orderNo, total, subtotal, emailed });
+  // 7. email alert to the shop (with a warning if you tagged this phone number)
+  let flag = '';
+  try { const n = await dbGet(env, `customerNotes/${customer.phone}`); const t = (n && n.tags) || []; flag = t.filter(x => /fake|block|return/i.test(x)).join(', ') + (n && n.note && t.length ? ` — ${clip(n.note, 120)}` : ''); } catch (e) {}
+  const emailed = await sendOrderEmail(env, { ...order, flag });
+  return json(200, { ok: true, orderNo, total, subtotal, discount, emailed });
 }
 
 /* ======================= POST /api/claim ======================= */
@@ -499,11 +545,90 @@ async function handleAdminOrder(ctx, b) {
   return json(200, { ok: true, added });
 }
 
+/* ======================= POST /api/coupon (check only) ======================= */
+async function bagSubtotal(ctx, rawItems) {
+  const products = await loadProducts(ctx);
+  const byId = Object.fromEntries(products.map(p => [String(p.id), p]));
+  const items = [];
+  for (const it of (Array.isArray(rawItems) ? rawItems.slice(0, 30) : [])) {
+    const p = byId[String(it.id)]; if (!p || p.active === false) continue;
+    const qty = Math.max(1, Math.min(20, parseInt(it.qty, 10) || 1)), price = Math.round(Number(p.price)) || 0;
+    items.push({ id: String(p.id), name: String(p.name), size: clip(it.size, 20), color: clip(it.color, 20), qty, price });
+  }
+  return { items, subtotal: items.reduce((s, l) => s + l.price * l.qty, 0) };
+}
+async function handleCoupon(ctx, b) {
+  const env = ctx.env, ip = ctx.request.headers.get('CF-Connecting-IP') || 'unknown';
+  if (!(await rateLimit(env, 'coupon', ip, 40, 3600e3))) return json(429, { error: 'Too many tries. Please wait a little.' });
+  const { subtotal } = await bagSubtotal(ctx, b.items);
+  if (!subtotal) return json(400, { error: 'Your bag is empty.' });
+  const r = await checkCoupon(env, b.code, subtotal, normPhone(b.phone));
+  if (!r.ok) return json(400, { error: r.error });
+  return json(200, { ok: true, code: r.code, discount: r.discount, subtotal, total: subtotal - r.discount });
+}
+
+/* ======================= POST /api/cart (abandoned cart, phone first) ======================= */
+async function handleCart(ctx, b) {
+  const env = ctx.env, ip = ctx.request.headers.get('CF-Connecting-IP') || 'unknown';
+  if (b.hp) return json(200, { ok: true });
+  const phone = normPhone(b.phone);
+  if (!phone) return json(400, { error: 'phone' });
+  if (!(await rateLimit(env, 'cart', ip, 60, 3600e3))) return json(429, { error: 'busy' });
+  const { items, subtotal } = await bagSubtotal(ctx, b.items);
+  if (!items.length) return json(200, { ok: true });
+  const now = Date.now(), cur = (await dbGet(env, 'abandoned/' + phone)) || {};
+  await dbPatch(env, 'abandoned/' + phone, { phone, name: clip(b.name, 80) || cur.name || '', items, total: subtotal,
+    updatedAt: now, createdAt: cur.createdAt || now, ...(cur.contacted ? {} : { contacted: false }) });
+  return json(200, { ok: true });
+}
+
+/* ======================= POST /api/review ======================= */
+// admin: { action:'invite', orderKey, idToken } → token for a review link (one per order)
+// customer: { action:'get', token } and { action:'submit', token, rating, text, name, photos:[base64 jpeg…], consent }
+async function handleReview(ctx, b) {
+  const env = ctx.env, ip = ctx.request.headers.get('CF-Connecting-IP') || 'unknown';
+  const tok = String(b.token || '').replace(/[^A-Za-z0-9]/g, '').slice(0, 40);
+  if (b.action === 'invite') {
+    const u = await verifyUser(env, b.idToken);
+    if (!u || !ADMIN_EMAILS.includes(u.email)) return json(401, { error: 'Admin login required.' });
+    const key = String(b.orderKey || '').replace(/[.#$\[\]\/]/g, '');
+    const o = key && (await dbGet(env, 'orders/' + key));
+    if (!o) return json(404, { error: 'Order not found.' });
+    if (o.reviewToken) return json(200, { ok: true, token: o.reviewToken });
+    const token = [...randomBytes(12)].map(x => 'abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789'[x % 56]).join('');
+    const items = (Array.isArray(o.items) ? o.items : Object.values(o.items || {})).map(i => ({ id: clip(i.id, 30), name: clip(i.name, 120), image: clip(i.image, 80) }));
+    await dbPatch(env, '', { [`reviewInvites/${token}`]: { orderKey: key, orderNo: o.orderNo, phone: (o.customer || {}).phone || '', name: clip((o.customer || {}).name, 80),
+      items, createdAt: Date.now(), used: false }, [`orders/${key}/reviewToken`]: token });
+    return json(200, { ok: true, token });
+  }
+  if (!tok) return json(400, { error: 'This review link is not valid.' });
+  if (!(await rateLimit(env, 'review', ip, 30, 3600e3))) return json(429, { error: 'Too many tries. Please wait a little.' });
+  const inv = await dbGet(env, 'reviewInvites/' + tok);
+  if (!inv) return json(404, { error: 'This review link is not valid.' });
+  if (b.action === 'get') return json(200, { ok: true, used: !!inv.used, firstName: String(inv.name || '').split(' ')[0], items: inv.items || [] });
+  if (b.action === 'submit') {
+    if (inv.used) return json(409, { error: 'You already sent a review for this order. Thank you!' });
+    const rating = Math.max(1, Math.min(5, parseInt(b.rating, 10) || 0));
+    const text = clip(String(b.text || '').replace(/\s+/g, ' '), 800);
+    if (!parseInt(b.rating, 10)) return json(400, { error: 'Please choose a star rating.' });
+    if (text.length < 5) return json(400, { error: 'Please write a few words about the product.' });
+    if (!b.consent) return json(400, { error: 'Please tick the box to allow showing your review.' });
+    const photos = (Array.isArray(b.photos) ? b.photos : []).slice(0, 3).map(String).filter(x => /^[A-Za-z0-9+/=]+$/.test(x) && x.length < 700000);
+    const ids = new Set((inv.items || []).map(i => i.id));
+    const products = (Array.isArray(b.products) ? b.products : []).map(String).filter(x => ids.has(x));
+    await dbPatch(env, '', { [`reviewSubmissions/${tok}`]: { orderNo: inv.orderNo, phone: inv.phone, products: products.length ? products : [...ids],
+      items: inv.items || [], rating, text, name: clip(b.name, 40) || String(inv.name || 'Customer').split(' ')[0], photos, status: 'pending', submittedAt: Date.now() },
+      [`reviewInvites/${tok}/used`]: true });
+    return json(200, { ok: true });
+  }
+  return json(400, { error: 'Unknown action' });
+}
+
 /* ======================= router ======================= */
 export async function onRequest(ctx) {
   const name = String([].concat(ctx.params.path || []).join('/')).toLowerCase();
   if (name === 'notify') return json(410, { error: 'Moved to /api/order' });
-  const handler = { order: handleOrder, claim: handleClaim, steadfast: handleSteadfast, sfhook: handleSfHook, adminorder: handleAdminOrder }[name];
+  const handler = { order: handleOrder, claim: handleClaim, steadfast: handleSteadfast, sfhook: handleSfHook, adminorder: handleAdminOrder, coupon: handleCoupon, cart: handleCart, review: handleReview }[name];
   if (!handler) return json(404, { error: 'Not found' });
   if (name === 'sfhook' && ctx.request.method !== 'POST') return json(200, { status: 'success', message: 'Webhook endpoint is ready' });   // URL check
   if (ctx.request.method !== 'POST') return json(405, { error: 'POST only' });
