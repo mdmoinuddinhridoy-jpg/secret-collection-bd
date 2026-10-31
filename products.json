@@ -2954,5 +2954,56 @@
       "Care": "Hand wash cold, dry flat in shade"
     },
     "active": true
+  },
+  {
+    "id": "P01",
+    "name": "Sheer Floral Lace Cutout Jumpsuit",
+    "category": "Party Wear",
+    "price": 12999,
+    "oldPrice": null,
+    "image": "62.jpg",
+    "images": [
+      "62.jpg",
+      "62-1.jpg",
+      "62-2.jpg",
+      "62-3.jpg",
+      "62-4.jpg",
+      "62-5.jpg",
+      "62-6.jpg"
+    ],
+    "tags": [
+      "exclusive"
+    ],
+    "sizes": [
+      "S",
+      "M",
+      "L",
+      "XL",
+      "XXL",
+      "3XL",
+      "4XL",
+      "5XL"
+    ],
+    "colors": [
+      "Black",
+      "White",
+      "Red",
+      "Pink",
+      "Blue",
+      "Navy",
+      "Green",
+      "Yellow",
+      "Purple",
+      "Grey",
+      "Beige",
+      "Maroon"
+    ],
+    "description": "Crafted from intricate floral lace with tasteful front cutouts and a flowy wide-leg cut. Ideal for making a chic, sophisticated statement at evening parties and special events. High neck with keyhole cutouts · Flowy wide-leg silhouette · Intricate floral pattern.",
+    "badge": "New",
+    "details": {
+      "Fabric": "Sheer floral lace blend",
+      "Care": "Hand wash cold, line dry"
+    },
+    "active": true
   }
 ]
